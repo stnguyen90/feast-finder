@@ -70,7 +70,7 @@ function Home() {
             </div>
 
             <RestaurantMap
-              restaurants={restaurants as Array<Restaurant>}
+              restaurants={restaurants}
               onSelectRestaurant={setSelectedRestaurant}
             />
 

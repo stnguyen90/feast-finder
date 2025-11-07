@@ -7,7 +7,9 @@ import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 
-// @ts-expect-error Leaflet type issue
+// Leaflet's default icon paths don't work with bundlers like Vite
+// This code explicitly sets the icon URLs to the imported assets
+// @ts-expect-error _getIconUrl is a private Leaflet property that we need to delete to set custom icons
 delete Icon.Default.prototype._getIconUrl
 Icon.Default.mergeOptions({
   iconRetinaUrl: markerIcon2x,
@@ -17,6 +19,7 @@ Icon.Default.mergeOptions({
 
 export interface Restaurant {
   _id: string
+  _creationTime: number
   name: string
   rating: number
   latitude: number
