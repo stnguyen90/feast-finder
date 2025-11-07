@@ -170,13 +170,13 @@ Before marking task complete:
 
 ## Troubleshooting Quick Reference
 
-| Issue                  | Solution                                                         |
-| ---------------------- | ---------------------------------------------------------------- |
-| Lint style errors      | `npm run format` then `npm run lint`                             |
-| Missing Convex types   | `npx convex dev` (once)                                          |
-| Build TS errors        | Fix types, check return types, avoid `any`                       |
-| Dev server won't start | Setup Convex: `npx convex dev` → creates `.env.local`            |
-| CI failing             | Ensure passes locally: `npm ci && npm run lint && npm run build` |
+| Issue                  | Solution                                                                 |
+| ---------------------- | ------------------------------------------------------------------------ |
+| Lint style errors      | `npm run format` then `npm run lint`                                     |
+| Missing Convex types   | `npx convex dev` (once)                                                  |
+| Build TS errors        | Fix types, check return types, avoid `any`                               |
+| Dev server won't start | Setup Convex: `npx convex dev` → creates `.env.local`                    |
+| CI failing             | Ensure passes locally: `npm ci --force && npm run lint && npm run build` |
 
 ## Trust These Instructions
 
