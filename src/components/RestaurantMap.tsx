@@ -111,7 +111,7 @@ function MapComponent({
     )
   }
 
-  const { MapContainer, TileLayer, Marker, Popup } = ReactLeaflet
+  const { MapContainer, TileLayer, Marker } = ReactLeaflet
 
   // Center on San Francisco
   const center: [number, number] = [37.7749, -122.4194]
@@ -137,15 +137,7 @@ function MapComponent({
               onSelectRestaurant(restaurant)
             },
           }}
-        >
-          <Popup>
-            <div className="text-sm">
-              <h3 className="font-bold text-base">{restaurant.name}</h3>
-              <p className="text-yellow-600">⭐ {restaurant.rating}</p>
-              <p className="text-xs text-gray-600">{restaurant.address}</p>
-            </div>
-          </Popup>
-        </Marker>
+        />
       ))}
     </MapContainer>
   )
