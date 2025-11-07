@@ -14,7 +14,7 @@ export const Route = createFileRoute('/')({
 
 function Home() {
   const { data: restaurants } = useSuspenseQuery(
-    convexQuery(api.myFunctions.listRestaurants, {}),
+    convexQuery(api.restaurants.listRestaurants, {}),
   )
 
   const [selectedRestaurant, setSelectedRestaurant] =
@@ -41,46 +41,37 @@ function Home() {
   }, [restaurants.length, seedRestaurants, isSeeding])
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <div className="container mx-auto p-6">
-        <div className="mb-8">
-          <h1 className="text-5xl font-bold text-center text-gray-900 dark:text-gray-100 mb-2">
-            🍽️ Feast Finder
-          </h1>
-          <p className="text-center text-gray-600 dark:text-gray-400 text-lg">
-            Discover amazing restaurants on an interactive map
-          </p>
-        </div>
-
-        {isSeeding ? (
-          <div className="text-center text-gray-600 dark:text-gray-400 py-12">
-            Loading restaurants...
-          </div>
-        ) : restaurants.length === 0 ? (
-          <div className="text-center text-gray-600 dark:text-gray-400 py-12">
-            No restaurants found. Please wait while we load some sample data...
-          </div>
-        ) : (
-          <>
-            <div className="mb-6">
-              <p className="text-center text-gray-700 dark:text-gray-300">
-                Click on any marker to view restaurant details • Found{' '}
-                {restaurants.length} restaurants
-              </p>
-            </div>
-
-            <RestaurantMap
-              restaurants={restaurants}
-              onSelectRestaurant={setSelectedRestaurant}
-            />
-
-            <RestaurantDetail
-              restaurant={selectedRestaurant}
-              onClose={() => setSelectedRestaurant(null)}
-            />
-          </>
-        )}
+    <main className="h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
+      <div className="flex-shrink-0 p-4 bg-white dark:bg-gray-900 shadow-sm">
+        <h1 className="text-3xl font-bold text-center text-gray-900 dark:text-gray-100">
+          🍽️ Feast Finder
+        </h1>
+        <p className="text-center text-gray-600 dark:text-gray-400 text-sm mt-1">
+          Discover amazing restaurants on an interactive map
+        </p>
       </div>
+
+      {isSeeding ? (
+        <div className="flex-1 flex items-center justify-center text-gray-600 dark:text-gray-400">
+          Loading restaurants...
+        </div>
+      ) : restaurants.length === 0 ? (
+        <div className="flex-1 flex items-center justify-center text-gray-600 dark:text-gray-400">
+          No restaurants found. Please wait while we load some sample data...
+        </div>
+      ) : (
+        <div className="flex-1 relative">
+          <RestaurantMap
+            restaurants={restaurants}
+            onSelectRestaurant={setSelectedRestaurant}
+          />
+
+          <RestaurantDetail
+            restaurant={selectedRestaurant}
+            onClose={() => setSelectedRestaurant(null)}
+          />
+        </div>
+      )}
     </main>
   )
 }

@@ -38,10 +38,7 @@ export function RestaurantMap({
   // Only render map on client side to avoid SSR issues with Leaflet
   if (!isClient) {
     return (
-      <div
-        className="rounded-lg shadow-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center"
-        style={{ height: '600px', width: '100%' }}
-      >
+      <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
         <p className="text-gray-600 dark:text-gray-400">Loading map...</p>
       </div>
     )
@@ -84,10 +81,7 @@ function ClientOnlyMap({
 
   if (!mapLoaded) {
     return (
-      <div
-        className="rounded-lg shadow-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center"
-        style={{ height: '600px', width: '100%' }}
-      >
+      <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
         <p className="text-gray-600 dark:text-gray-400">Loading map...</p>
       </div>
     )
@@ -111,10 +105,7 @@ function MapComponent({
 
   if (!ReactLeaflet) {
     return (
-      <div
-        className="rounded-lg shadow-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center"
-        style={{ height: '600px', width: '100%' }}
-      >
+      <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
         <p className="text-gray-600 dark:text-gray-400">Loading map...</p>
       </div>
     )
@@ -130,8 +121,8 @@ function MapComponent({
     <MapContainer
       center={center}
       zoom={zoom}
-      style={{ height: '600px', width: '100%' }}
-      className="rounded-lg shadow-lg"
+      className="absolute inset-0"
+      scrollWheelZoom={true}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

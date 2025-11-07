@@ -8,7 +8,7 @@
  * @module
  */
 
-import type * as myFunctions from "../myFunctions.js";
+import type * as restaurants from "../restaurants.js";
 import type * as seedData from "../seedData.js";
 
 import type {
@@ -26,7 +26,7 @@ import type {
  * ```
  */
 declare const fullApi: ApiFromModules<{
-  myFunctions: typeof myFunctions;
+  restaurants: typeof restaurants;
   seedData: typeof seedData;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
