@@ -3,6 +3,7 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
 import { useMutation } from 'convex/react'
 import { useEffect, useState } from 'react'
+import { Box, Center, Flex, Heading, Spinner, Text } from '@chakra-ui/react'
 import { api } from '../../convex/_generated/api'
 import type { Restaurant } from '~/components/RestaurantMap'
 import { RestaurantDetail } from '~/components/RestaurantDetail'
@@ -41,26 +42,37 @@ function Home() {
   }, [restaurants.length, seedRestaurants, isSeeding])
 
   return (
-    <main className="h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
-      <div className="flex-shrink-0 p-4 shadow-sm" style={{ backgroundColor: '#a20000' }}>
-        <h1 className="text-3xl font-bold text-center text-white">
+    <Flex direction="column" h="100vh" bg="gray.50">
+      <Box
+        flexShrink={0}
+        p={4}
+        bg="#a20000"
+        boxShadow="sm"
+        textAlign="center"
+      >
+        <Heading size="2xl" color="white">
           🍽️ Feast Finder
-        </h1>
-        <p className="text-center text-red-100 text-sm mt-1">
+        </Heading>
+        <Text color="red.100" fontSize="sm" mt={1}>
           Discover amazing restaurants on an interactive map
-        </p>
-      </div>
+        </Text>
+      </Box>
 
       {isSeeding ? (
-        <div className="flex-1 flex items-center justify-center text-gray-600 dark:text-gray-400">
-          Loading restaurants...
-        </div>
+        <Center flex={1} color="gray.600">
+          <Flex direction="column" align="center" gap={4}>
+            <Spinner size="xl" color="#a20000" />
+            <Text>Loading restaurants...</Text>
+          </Flex>
+        </Center>
       ) : restaurants.length === 0 ? (
-        <div className="flex-1 flex items-center justify-center text-gray-600 dark:text-gray-400">
-          No restaurants found. Please wait while we load some sample data...
-        </div>
+        <Center flex={1} color="gray.600">
+          <Text>
+            No restaurants found. Please wait while we load some sample data...
+          </Text>
+        </Center>
       ) : (
-        <div className="flex-1 relative">
+        <Box flex={1} position="relative">
           <RestaurantMap
             restaurants={restaurants}
             onSelectRestaurant={setSelectedRestaurant}
@@ -70,8 +82,8 @@ function Home() {
             restaurant={selectedRestaurant}
             onClose={() => setSelectedRestaurant(null)}
           />
-        </div>
+        </Box>
       )}
-    </main>
+    </Flex>
   )
 }

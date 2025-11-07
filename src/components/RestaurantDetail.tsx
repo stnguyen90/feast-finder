@@ -1,3 +1,18 @@
+import {
+  Badge,
+  Box,
+  DialogBackdrop,
+  DialogBody,
+  DialogCloseTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogRoot,
+  Flex,
+  HStack,
+  Heading,
+  Link,
+  VStack,
+} from '@chakra-ui/react'
 import type { Restaurant } from './RestaurantMap'
 
 interface RestaurantDetailProps {
@@ -29,127 +44,128 @@ export function RestaurantDetail({
   }
 
   return (
-    <div 
-      className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center p-4"
-      style={{ zIndex: 9999 }}
-      onClick={onClose}
+    <DialogRoot
+      open={true}
+      onOpenChange={(e) => {
+        if (!e.open) onClose()
+      }}
     >
-      <div 
-        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="p-6">
-          <div className="flex justify-between items-start mb-4">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              {restaurant.name}
-            </h2>
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl leading-none"
-              aria-label="Close"
-            >
-              ×
-            </button>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <span className="text-yellow-500 text-xl">⭐</span>
-              <span className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+      <DialogBackdrop
+        style={{
+          backgroundColor: 'rgba(0, 0, 0, 0.3)',
+          backdropFilter: 'blur(2px)',
+        }}
+      />
+      <DialogContent maxW="2xl" maxH="90vh" overflowY="auto">
+        <DialogHeader>
+          <Heading size="2xl">{restaurant.name}</Heading>
+        </DialogHeader>
+        <DialogCloseTrigger />
+        <DialogBody pb={6}>
+          <VStack gap={4} align="stretch">
+            <Flex align="center" gap={2}>
+              <span style={{ fontSize: '1.25rem' }}>⭐</span>
+              <Box fontSize="xl" fontWeight="semibold">
                 {restaurant.rating}
-              </span>
-            </div>
+              </Box>
+            </Flex>
 
-            <div>
-              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+            <Box>
+              <Heading size="sm" mb={1} color="gray.600">
                 Address
-              </h3>
-              <p className="text-gray-900 dark:text-gray-100">
-                {restaurant.address}
-              </p>
-            </div>
+              </Heading>
+              <Box>{restaurant.address}</Box>
+            </Box>
 
-            <div>
-              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+            <Box>
+              <Heading size="sm" mb={1} color="gray.600">
                 Categories
-              </h3>
-              <div className="flex flex-wrap gap-2">
+              </Heading>
+              <HStack wrap="wrap" gap={2}>
                 {restaurant.categories.map((category) => (
-                  <span
+                  <Badge
                     key={category}
-                    className="px-3 py-1 rounded-full text-sm"
-                    style={{ backgroundColor: '#fecaca', color: '#7f1d1d' }}
+                    bg="#fecaca"
+                    color="#7f1d1d"
+                    size="md"
+                    borderRadius="full"
+                    px={3}
+                    py={1}
                   >
                     {category}
-                  </span>
+                  </Badge>
                 ))}
-              </div>
-            </div>
+              </HStack>
+            </Box>
 
-            <div>
-              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+            <Box>
+              <Heading size="sm" mb={1} color="gray.600">
                 Meal Times
-              </h3>
-              <div className="flex flex-wrap gap-2">
+              </Heading>
+              <HStack wrap="wrap" gap={2}>
                 {mealTimes.map((meal) => (
-                  <span
+                  <Badge
                     key={meal}
-                    className="px-3 py-1 rounded-full text-sm"
-                    style={{ backgroundColor: '#fee2e2', color: '#991b1b' }}
+                    bg="#fee2e2"
+                    color="#991b1b"
+                    size="md"
+                    borderRadius="full"
+                    px={3}
+                    py={1}
                   >
                     {meal}
-                  </span>
+                  </Badge>
                 ))}
-              </div>
-            </div>
+              </HStack>
+            </Box>
 
             {(restaurant.websiteUrl ||
               restaurant.yelpUrl ||
               restaurant.openTableUrl) && (
-              <div>
-                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              <Box>
+                <Heading size="sm" mb={2} color="gray.600">
                   Links
-                </h3>
-                <div className="flex flex-col gap-2">
+                </Heading>
+                <VStack align="stretch" gap={2}>
                   {restaurant.websiteUrl && (
-                    <a
+                    <Link
                       href={restaurant.websiteUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:underline"
-                      style={{ color: '#a20000' }}
+                      color="#a20000"
+                      _hover={{ textDecoration: 'underline' }}
                     >
                       🌐 Website
-                    </a>
+                    </Link>
                   )}
                   {restaurant.yelpUrl && (
-                    <a
+                    <Link
                       href={restaurant.yelpUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:underline"
-                      style={{ color: '#a20000' }}
+                      color="#a20000"
+                      _hover={{ textDecoration: 'underline' }}
                     >
                       🔍 Yelp
-                    </a>
+                    </Link>
                   )}
                   {restaurant.openTableUrl && (
-                    <a
+                    <Link
                       href={restaurant.openTableUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:underline"
-                      style={{ color: '#a20000' }}
+                      color="#a20000"
+                      _hover={{ textDecoration: 'underline' }}
                     >
                       🍽️ OpenTable
-                    </a>
+                    </Link>
                   )}
-                </div>
-              </div>
+                </VStack>
+              </Box>
             )}
-          </div>
-        </div>
-      </div>
-    </div>
+          </VStack>
+        </DialogBody>
+      </DialogContent>
+    </DialogRoot>
   )
 }
