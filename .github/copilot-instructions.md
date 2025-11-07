@@ -33,6 +33,7 @@ vite.config.ts           # Vite config
 
 ```bash
 npm ci  # ALWAYS use in CI for reproducibility
+# Note: CI uses 'npm ci --force' to handle platform-specific optional dependencies
 ```
 
 ### Critical Pre-PR Commands (MUST pass)
@@ -72,7 +73,7 @@ npm run start  # netlify dev (runs local Netlify dev server)
 
 1. Checkout
 2. Setup Node.js v22 + npm cache
-3. `npm ci`
+3. `npm ci --force` (uses --force to handle platform-specific Rollup dependencies)
 4. `npm run lint`
 5. `npm run build`
 
