@@ -20,7 +20,7 @@ function Home() {
   const [selectedRestaurant, setSelectedRestaurant] =
     useState<Restaurant | null>(null)
 
-  const seedRestaurants = useMutation(api.myFunctions.seedRestaurants)
+  const seedRestaurants = useMutation(api.seedData.seedRestaurants)
   const [isSeeding, setIsSeeding] = useState(false)
 
   // Auto-seed on first load if no restaurants exist
