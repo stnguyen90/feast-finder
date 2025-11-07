@@ -58,9 +58,13 @@ npm run dev    # Convex dev + Vite (port 3000)
 
 **Note:** Requires Convex setup (first run: `npx convex dev`, creates `.env.local` with `VITE_CONVEX_URL`). Will fail if not configured (expected).
 
-### ⚠️ Known Issue
+### Production Server
 
-`npm run start` is BROKEN - expects `.output/server/index.mjs` but build creates `.netlify/v1/functions/server.mjs`. Use `npm run dev` or deploy to Netlify instead.
+```bash
+npm run start  # netlify dev (runs local Netlify dev server)
+```
+
+**Note:** Runs the Netlify dev server locally. Requires build to be completed first.
 
 ## CI/CD (GitHub Actions)
 
@@ -152,6 +156,7 @@ Before marking task complete:
 3. ✅ `npm run build` - Must exit 0
 4. ✅ No manual edits to `routeTree.gen.ts` or `convex/_generated/*`
 5. ✅ Don't commit: `node_modules/`, `.netlify/`, `.env.local`
+6. ✅ **Take screenshots**: For any UI changes, take screenshots and include them in the PR description
 
 ## Files You Should Never Edit
 
