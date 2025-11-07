@@ -30,7 +30,7 @@ export function RestaurantDetail({
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center p-4"
       style={{ zIndex: 9999 }}
       onClick={onClose}
     >
@@ -77,7 +77,8 @@ export function RestaurantDetail({
                 {restaurant.categories.map((category) => (
                   <span
                     key={category}
-                    className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 rounded-full text-sm"
+                    className="px-3 py-1 rounded-full text-sm"
+                    style={{ backgroundColor: '#fecaca', color: '#7f1d1d' }}
                   >
                     {category}
                   </span>
@@ -93,7 +94,8 @@ export function RestaurantDetail({
                 {mealTimes.map((meal) => (
                   <span
                     key={meal}
-                    className="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 rounded-full text-sm"
+                    className="px-3 py-1 rounded-full text-sm"
+                    style={{ backgroundColor: '#fee2e2', color: '#991b1b' }}
                   >
                     {meal}
                   </span>
@@ -114,7 +116,8 @@ export function RestaurantDetail({
                       href={restaurant.websiteUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 dark:text-blue-400 hover:underline"
+                      className="hover:underline"
+                      style={{ color: '#a20000' }}
                     >
                       🌐 Website
                     </a>
@@ -124,7 +127,8 @@ export function RestaurantDetail({
                       href={restaurant.yelpUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 dark:text-blue-400 hover:underline"
+                      className="hover:underline"
+                      style={{ color: '#a20000' }}
                     >
                       🔍 Yelp
                     </a>
@@ -134,7 +138,8 @@ export function RestaurantDetail({
                       href={restaurant.openTableUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 dark:text-blue-400 hover:underline"
+                      className="hover:underline"
+                      style={{ color: '#a20000' }}
                     >
                       🍽️ OpenTable
                     </a>

@@ -42,11 +42,11 @@ function Home() {
 
   return (
     <main className="h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
-      <div className="flex-shrink-0 p-4 bg-white dark:bg-gray-900 shadow-sm">
-        <h1 className="text-3xl font-bold text-center text-gray-900 dark:text-gray-100">
+      <div className="flex-shrink-0 p-4 shadow-sm" style={{ backgroundColor: '#a20000' }}>
+        <h1 className="text-3xl font-bold text-center text-white">
           🍽️ Feast Finder
         </h1>
-        <p className="text-center text-gray-600 dark:text-gray-400 text-sm mt-1">
+        <p className="text-center text-red-100 text-sm mt-1">
           Discover amazing restaurants on an interactive map
         </p>
       </div>
