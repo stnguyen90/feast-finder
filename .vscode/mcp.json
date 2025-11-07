@@ -3,7 +3,7 @@
     "convex-mcp": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "convex@latest", "mcp", "start"],
-    } 
+      "args": ["-y", "convex@latest", "mcp", "start"]
+    }
   }
 }
