@@ -75,8 +75,9 @@ function ClientOnlyMap({
       })
     })
 
-    // Import CSS
+    // Import CSS for Leaflet and awesome-markers
     import('leaflet/dist/leaflet.css')
+    import('leaflet.awesome-markers/dist/leaflet.awesome-markers.css')
   }, [])
 
   if (!mapLoaded) {
@@ -94,16 +95,30 @@ function MapComponent({
   restaurants,
   onSelectRestaurant,
 }: RestaurantMapProps) {
-  // Lazy load react-leaflet components
+  // Lazy load react-leaflet components and awesome-markers
   const [ReactLeaflet, setReactLeaflet] = useState<any>(null)
+  const [redMarkerIcon, setRedMarkerIcon] = useState<any>(null)
 
   useEffect(() => {
     import('react-leaflet').then((module) => {
       setReactLeaflet(module)
     })
+
+    // Load awesome-markers library and create red marker icon
+    import('leaflet.awesome-markers').then(() => {
+      import('leaflet').then((L) => {
+        // Create a red marker icon using the awesome-markers API
+        // Using 'home' as default icon and red markerColor for brand color
+        const icon = L.AwesomeMarkers.icon({
+          markerColor: 'red',
+          iconColor: 'white'
+        })
+        setRedMarkerIcon(icon)
+      })
+    })
   }, [])
 
-  if (!ReactLeaflet) {
+  if (!ReactLeaflet || !redMarkerIcon) {
     return (
       <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
         <p className="text-gray-600 dark:text-gray-400">Loading map...</p>
@@ -132,6 +147,7 @@ function MapComponent({
         <Marker
           key={restaurant._id}
           position={[restaurant.latitude, restaurant.longitude]}
+          icon={redMarkerIcon}
           eventHandlers={{
             click: () => {
               onSelectRestaurant(restaurant)
