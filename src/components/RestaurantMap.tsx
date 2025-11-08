@@ -52,10 +52,16 @@ function ClientOnlyMap({
   onSelectRestaurant,
 }: RestaurantMapProps) {
   const [mapLoaded, setMapLoaded] = useState(false)
+  const [redMarkerIcon, setRedMarkerIcon] = useState<any>(null)
 
   useEffect(() => {
     // Dynamically import Leaflet only on client side
     import('leaflet').then((L) => {
+      // Make Leaflet available globally for awesome-markers
+      if (typeof window !== 'undefined') {
+        (window as any).L = L
+      }
+      
       // Fix for default markers not showing in production build
       import('leaflet/dist/images/marker-icon-2x.png').then((markerIcon2x) => {
         import('leaflet/dist/images/marker-icon.png').then((markerIcon) => {
@@ -69,7 +75,23 @@ function ClientOnlyMap({
               iconUrl: markerIcon.default,
               shadowUrl: markerShadow.default,
             })
-            setMapLoaded(true)
+            
+            // Now that Leaflet is loaded globally, import awesome-markers
+            import('leaflet.awesome-markers').then(() => {
+              // Access L from window to get the AwesomeMarkers extension
+              const LeafletWithMarkers = (window as any).L
+              // Create a red marker icon using the awesome-markers API
+              const icon = LeafletWithMarkers.AwesomeMarkers.icon({
+                markerColor: 'red',
+                iconColor: 'white'
+              })
+              setRedMarkerIcon(icon)
+              setMapLoaded(true)
+            }).catch((error) => {
+              console.error('Error loading awesome-markers:', error)
+              // Fall back to default markers if awesome-markers fails
+              setMapLoaded(true)
+            })
           })
         })
       })
@@ -88,37 +110,35 @@ function ClientOnlyMap({
     )
   }
 
-  return <MapComponent restaurants={restaurants} onSelectRestaurant={onSelectRestaurant} />
+  return <MapComponent 
+    restaurants={restaurants} 
+    onSelectRestaurant={onSelectRestaurant}
+    redMarkerIcon={redMarkerIcon}
+  />
+}
+
+interface MapComponentProps extends RestaurantMapProps {
+  redMarkerIcon?: any
 }
 
 function MapComponent({
   restaurants,
   onSelectRestaurant,
-}: RestaurantMapProps) {
-  // Lazy load react-leaflet components and awesome-markers
+  redMarkerIcon,
+}: MapComponentProps) {
+  // Lazy load react-leaflet components
   const [ReactLeaflet, setReactLeaflet] = useState<any>(null)
-  const [redMarkerIcon, setRedMarkerIcon] = useState<any>(null)
 
   useEffect(() => {
+    // Load react-leaflet
     import('react-leaflet').then((module) => {
       setReactLeaflet(module)
-    })
-
-    // Load awesome-markers library and create red marker icon
-    import('leaflet.awesome-markers').then(() => {
-      import('leaflet').then((L) => {
-        // Create a red marker icon using the awesome-markers API
-        // Using 'home' as default icon and red markerColor for brand color
-        const icon = L.AwesomeMarkers.icon({
-          markerColor: 'red',
-          iconColor: 'white'
-        })
-        setRedMarkerIcon(icon)
-      })
+    }).catch((error) => {
+      console.error('Error loading react-leaflet:', error)
     })
   }, [])
 
-  if (!ReactLeaflet || !redMarkerIcon) {
+  if (!ReactLeaflet) {
     return (
       <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
         <p className="text-gray-600 dark:text-gray-400">Loading map...</p>
