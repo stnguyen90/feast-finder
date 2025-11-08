@@ -22,7 +22,7 @@ const customConfig = defineConfig({
       colors: {
         // Primary brand colors - header uses same colors in both modes
         'brand.solid': {
-          value: { _light: '#a20000', _dark: '#a20000' },
+          value: { _light: '#a20000', _dark: '#fca5a5' },
         },
         'brand.contrast': {
           value: { _light: '#ffffff', _dark: '#ffffff' },
