@@ -1,120 +1,96 @@
-import { Link, createFileRoute } from '@tanstack/react-router'
-import { useMutation } from 'convex/react'
+import { createFileRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
+import { useMutation } from 'convex/react'
+import { useEffect, useState } from 'react'
+import { Box, Center, Flex, Heading, Spinner, Text } from '@chakra-ui/react'
 import { api } from '../../convex/_generated/api'
+import type { Restaurant } from '~/components/RestaurantMap'
+import { RestaurantDetail } from '~/components/RestaurantDetail'
+import { RestaurantMap } from '~/components/RestaurantMap'
+import { ColorModeToggle } from '~/components/ColorModeToggle'
 
 export const Route = createFileRoute('/')({
   component: Home,
 })
 
 function Home() {
-  const {
-    data: { viewer, numbers },
-  } = useSuspenseQuery(convexQuery(api.myFunctions.listNumbers, { count: 10 }))
-
-  const addNumber = useMutation(api.myFunctions.addNumber)
-
-  return (
-    <main className="p-8 flex flex-col gap-16">
-      <h1 className="text-4xl font-bold text-center">
-        Convex + Tanstack Start
-      </h1>
-      <div className="flex flex-col gap-8 max-w-lg mx-auto">
-        <p>Welcome {viewer ?? 'Anonymous'}!</p>
-        <p>
-          Click the button below and open this page in another window - this
-          data is persisted in the Convex cloud database!
-        </p>
-        <p>
-          <button
-            className="bg-dark dark:bg-light text-light dark:text-dark text-sm px-4 py-2 rounded-md border-2"
-            onClick={() => {
-              void addNumber({ value: Math.floor(Math.random() * 10) })
-            }}
-          >
-            Add a random number
-          </button>
-        </p>
-        <p>
-          Numbers:{' '}
-          {numbers.length === 0 ? 'Click the button!' : numbers.join(', ')}
-        </p>
-        <p>
-          Edit{' '}
-          <code className="text-sm font-bold font-mono bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded-md">
-            convex/myFunctions.ts
-          </code>{' '}
-          to change your backend
-        </p>
-        <p>
-          Edit{' '}
-          <code className="text-sm font-bold font-mono bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded-md">
-            src/routes/index.tsx
-          </code>{' '}
-          to change your frontend
-        </p>
-        <p>
-          Open{' '}
-          <Link
-            to="/anotherPage"
-            className="text-blue-600 underline hover:no-underline"
-          >
-            another page
-          </Link>{' '}
-          to send an action.
-        </p>
-        <div className="flex flex-col">
-          <p className="text-lg font-bold">Useful resources:</p>
-          <div className="flex gap-2">
-            <div className="flex flex-col gap-2 w-1/2">
-              <ResourceCard
-                title="Convex docs"
-                description="Read comprehensive documentation for all Convex features."
-                href="https://docs.convex.dev/home"
-              />
-              <ResourceCard
-                title="Stack articles"
-                description="Learn about best practices, use cases, and more from a growing
-            collection of articles, videos, and walkthroughs."
-                href="https://www.typescriptlang.org/docs/handbook/2/basic-types.html"
-              />
-            </div>
-            <div className="flex flex-col gap-2 w-1/2">
-              <ResourceCard
-                title="Templates"
-                description="Browse our collection of templates to get started quickly."
-                href="https://www.convex.dev/templates"
-              />
-              <ResourceCard
-                title="Discord"
-                description="Join our developer community to ask questions, trade tips & tricks,
-            and show off your projects."
-                href="https://www.convex.dev/community"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
+  const { data: restaurants } = useSuspenseQuery(
+    convexQuery(api.restaurants.listRestaurants, {}),
   )
-}
 
-function ResourceCard({
-  title,
-  description,
-  href,
-}: {
-  title: string
-  description: string
-  href: string
-}) {
+  const [selectedRestaurant, setSelectedRestaurant] =
+    useState<Restaurant | null>(null)
+
+  const seedRestaurants = useMutation(api.seedData.seedRestaurants)
+  const [isSeeding, setIsSeeding] = useState(false)
+
+  // Auto-seed on first load if no restaurants exist
+  useEffect(() => {
+    if (restaurants.length === 0 && !isSeeding) {
+      setIsSeeding(true)
+      seedRestaurants({})
+        .then(() => {
+          console.log('Restaurants seeded successfully')
+        })
+        .catch((error) => {
+          console.error('Error seeding restaurants:', error)
+        })
+        .finally(() => {
+          setIsSeeding(false)
+        })
+    }
+  }, [restaurants.length, seedRestaurants, isSeeding])
+
   return (
-    <div className="flex flex-col gap-2 bg-slate-200 dark:bg-slate-800 p-4 rounded-md h-28 overflow-auto">
-      <a href={href} className="text-sm underline hover:no-underline">
-        {title}
-      </a>
-      <p className="text-xs">{description}</p>
-    </div>
+    <Flex direction="column" h="100vh" bg="bg.page">
+      <Flex
+        flexShrink={0}
+        p={4}
+        bg="brand.solid"
+        boxShadow="sm"
+        align="center"
+        justify="space-between"
+      >
+        <Box flex={1} textAlign="center">
+          <Heading size="2xl" color="brand.contrast">
+            🍽️ Feast Finder
+          </Heading>
+          <Text color="text.inverted" fontSize="sm" mt={1}>
+            Discover amazing restaurants on an interactive map
+          </Text>
+        </Box>
+        <Box position="absolute" right={4}>
+          <ColorModeToggle />
+        </Box>
+      </Flex>
+
+      {isSeeding ? (
+        <Center flex={1} color="text.secondary">
+          <Flex direction="column" align="center" gap={4}>
+            <Spinner size="xl" color="brand.solid" />
+            <Text>Loading restaurants...</Text>
+          </Flex>
+        </Center>
+      ) : restaurants.length === 0 ? (
+        <Center flex={1} color="text.secondary">
+          <Text>
+            No restaurants found. Please wait while we load some sample data...
+          </Text>
+        </Center>
+      ) : (
+        <Box flex={1} position="relative">
+          <RestaurantMap
+            restaurants={restaurants}
+            onSelectRestaurant={setSelectedRestaurant}
+          />
+
+          <RestaurantDetail
+            restaurant={selectedRestaurant}
+            onClose={() => setSelectedRestaurant(null)}
+          />
+        </Box>
+      )}
+    </Flex>
   )
 }

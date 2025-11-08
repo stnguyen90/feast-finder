@@ -2,30 +2,49 @@
 
 ## Overview
 
-Full-stack web app using React 19, TanStack Start (SSR framework), Convex (serverless backend), and Tailwind CSS v4. ~24 files, ~1,870 LOC, TypeScript only, Node.js v22, Vite 7, deployed to Netlify.
+Full-stack restaurant discovery app using React 19, TanStack Start (SSR framework), Convex (serverless backend), React Leaflet (maps), and Tailwind CSS v4. TypeScript only, Node.js v22, Vite 7, deployed to Netlify.
+
+**App Purpose:** Interactive map-based restaurant explorer showing 10 SF Bay Area restaurants with detailed views.
 
 ## Project Structure
 
 ```
 .github/workflows/copilot-setup-steps.yml  # CI: runs lint + build
 convex/                  # Backend serverless functions
-  myFunctions.ts         # Queries, mutations, actions
-  schema.ts              # Database schema
-  _generated/            # Auto-generated (DON'T EDIT)
+  myFunctions.ts         # Restaurant queries and mutations
+  seedData.ts            # Sample restaurant data seeding
+  schema.ts              # Database schema (restaurants table)
+  _generated/            # Auto-generated (DON'T EDIT - use npx convex codegen)
 src/
+  components/            # React components
+    RestaurantMap.tsx    # Interactive Leaflet map (client-only)
+    RestaurantDetail.tsx # Restaurant detail modal
   routes/                # File-based routing
     __root.tsx           # Root layout
-    index.tsx            # Homepage (/)
-    anotherPage.tsx      # /anotherPage
+    index.tsx            # Homepage with map
   styles/app.css         # Global Tailwind styles
   router.tsx             # Router + Convex config
   routeTree.gen.ts       # Auto-generated (DON'T EDIT)
+README.md                # Project overview and setup
+IMPLEMENTATION.md        # Technical implementation details
+UI-DESIGN.md             # UI/UX design specification
+CODEGEN_NOTE.md          # Convex codegen instructions
 dist/                    # Build output
-eslint.config.mjs        # ESLint (TanStack + Convex)
-tsconfig.json            # TS config (root + convex/)
-vite.config.ts           # Vite config
-.prettierrc              # no semicolons, single quotes, trailing commas
 ```
+
+## Documentation Files
+
+**For Developers:**
+- **README.md** - User-facing: features, setup, tech stack, sample data
+- **IMPLEMENTATION.md** - Technical details: components, backend, user flow
+- **UI-DESIGN.md** - Design spec: layout, colors, typography, interactions
+- **CODEGEN_NOTE.md** - Important note about regenerating Convex types
+
+**When making changes, update relevant docs if you modify:**
+- Features/tech stack → README.md
+- Component architecture → IMPLEMENTATION.md  
+- UI/styling → UI-DESIGN.md
+- Convex schema/functions → may need CODEGEN_NOTE.md updates
 
 ## Commands (Node.js v22 required)
 
@@ -85,24 +104,40 @@ npm run start  # netlify dev (runs local Netlify dev server)
 
 - React 19 + TanStack Router (file-based routing)
 - TanStack Query + Convex React Query adapter
+- React Leaflet for interactive maps (client-only rendering)
 - Tailwind CSS v4 (utility-first, configured via Vite plugin)
 - Path alias: `~/` → `./src/`
 
 ### Backend (Convex)
 
 - Functions in `convex/` directory
-- **Queries**: Read data (`useSuspenseQuery(convexQuery(api.myFunctions.listNumbers, {...}))`)
-- **Mutations**: Write data (`useMutation(api.myFunctions.addNumber)`)
-- **Actions**: External APIs (`useAction(api.myFunctions.myAction)`)
-- Schema: `convex/schema.ts`
-- Auto-generated types: `convex/_generated/api`
+- **Queries**: Read data (`useSuspenseQuery(convexQuery(api.myFunctions.listRestaurants, {}))`)
+- **Mutations**: Write data (`useMutation(api.seedData.seedRestaurants)`)
+- **Schema**: `convex/schema.ts` defines `restaurants` table with rating, coordinates, categories, meal times, prices
+- Auto-generated types: `convex/_generated/api` (regenerate with `npx convex codegen`)
 
 ### Key Patterns
 
 1. **File-based routing**: Files in `src/routes/` → auto-discovered routes
 2. **Real-time sync**: Convex queries auto-update across all clients
 3. **SSR**: TanStack Start handles server-side rendering
-4. **Deployment**: Netlify serverless functions
+4. **Client-only maps**: Leaflet loaded dynamically in `useEffect` to avoid SSR issues
+5. **Auto-seeding**: Homepage auto-seeds restaurant data on first load if DB is empty
+6. **Deployment**: Netlify serverless functions
+
+## Restaurant App Specifics
+
+**Data Flow:**
+1. User visits homepage → `index.tsx`
+2. Query `api.myFunctions.listRestaurants` via Convex
+3. If empty, auto-trigger `api.seedData.seedRestaurants` mutation
+4. Render `RestaurantMap` with markers (client-only)
+5. Click marker → open `RestaurantDetail` modal
+
+**Important Notes:**
+- Map only renders client-side (SSR would crash with Leaflet)
+- Sample data: 10 SF Bay Area restaurants with full details
+- Schema includes: rating, coordinates, URLs, categories, meal times, prices
 
 ## TypeScript Config
 
@@ -127,7 +162,21 @@ npm run start  # netlify dev (runs local Netlify dev server)
 
 **Fix:** Run `npx convex dev` interactively once. Creates `.env.local` with Convex credentials.
 
+### SSR/Window errors with Leaflet
+
+**Fix:** Map component already handles SSR. Ensure Leaflet imports stay inside `useEffect` with dynamic imports. See `RestaurantMap.tsx` for reference.
+
 ## Working with Code
+
+### Current App Structure
+
+**Feast Finder** displays restaurants on an interactive map. Key files:
+- `convex/schema.ts` - Restaurant data model with all required fields
+- `convex/myFunctions.ts` - Restaurant queries (list, get, add)
+- `convex/seedData.ts` - Sample SF Bay Area restaurant data
+- `src/components/RestaurantMap.tsx` - Client-only map with markers
+- `src/components/RestaurantDetail.tsx` - Restaurant info modal
+- `src/routes/index.tsx` - Homepage with map and auto-seeding
 
 ### Add New Route
 
@@ -138,8 +187,8 @@ npm run start  # netlify dev (runs local Netlify dev server)
 
 ### Add Convex Function
 
-1. Add to `convex/myFunctions.ts` as `query()`, `mutation()`, or `action()`
-2. Run `npx convex dev` to regen types
+1. Add to `convex/myFunctions.ts` or new file as `query()`, `mutation()`, or `action()`
+2. Run `npx convex codegen` to regenerate types (see CODEGEN_NOTE.md)
 3. Use: `api.myFunctions.functionName`
 
 ### Modify Styles
@@ -156,13 +205,15 @@ Before marking task complete:
 2. ✅ `npm run lint` - Must exit 0
 3. ✅ `npm run build` - Must exit 0
 4. ✅ No manual edits to `routeTree.gen.ts` or `convex/_generated/*`
-5. ✅ Don't commit: `node_modules/`, `.netlify/`, `.env.local`
-6. ✅ **Take screenshots**: For any UI changes, take screenshots and include them in the PR description
+5. ✅ Run `npx convex codegen` after Convex changes (if possible)
+6. ✅ Don't commit: `node_modules/`, `.netlify/`, `.env.local`
+7. ✅ **Take screenshots**: For any UI changes, take screenshots and include them in the PR description
+8. ✅ **Update docs**: If you change features, update README.md, IMPLEMENTATION.md, or UI-DESIGN.md
 
 ## Files You Should Never Edit
 
 - `src/routeTree.gen.ts` (TanStack Router auto-gen)
-- `convex/_generated/*` (Convex auto-gen)
+- `convex/_generated/*` (Convex auto-gen - use `npx convex codegen` instead)
 
 ## Gitignored (Build Artifacts)
 
