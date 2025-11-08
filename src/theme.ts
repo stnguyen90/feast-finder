@@ -59,6 +59,11 @@ const customConfig = defineConfig({
           value: { _light: '#ffffff', _dark: '#ffffff' },
         },
         
+        // Link colors with proper contrast
+        'link.primary': {
+          value: { _light: '#a20000', _dark: '#fca5a5' },
+        },
+        
         // Badge colors with high contrast
         'badge.category.bg': {
           value: { _light: '#fecaca', _dark: '#7f1d1d' },
