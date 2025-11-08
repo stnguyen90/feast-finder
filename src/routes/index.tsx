@@ -56,7 +56,7 @@ function Home() {
           <Heading size="2xl" color="brand.contrast">
             🍽️ Feast Finder
           </Heading>
-          <Text color="brand.muted" fontSize="sm" mt={1}>
+          <Text color="text.inverted" fontSize="sm" mt={1}>
             Discover amazing restaurants on an interactive map
           </Text>
         </Box>
