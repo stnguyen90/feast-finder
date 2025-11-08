@@ -167,7 +167,7 @@ function MapComponent({
         <Marker
           key={restaurant._id}
           position={[restaurant.latitude, restaurant.longitude]}
-          icon={redMarkerIcon}
+          {...(redMarkerIcon ? { icon: redMarkerIcon } : {})}
           eventHandlers={{
             click: () => {
               onSelectRestaurant(restaurant)
