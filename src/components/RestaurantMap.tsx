@@ -81,9 +81,12 @@ function ClientOnlyMap({
               // Access L from window to get the AwesomeMarkers extension
               const LeafletWithMarkers = (window as any).L
               // Create a red marker icon using the awesome-markers API
+              // Use empty icon string to create a solid colored marker without requiring Font Awesome
               const icon = LeafletWithMarkers.AwesomeMarkers.icon({
+                icon: '',
                 markerColor: 'red',
-                iconColor: 'white'
+                iconColor: 'white',
+                prefix: ''
               })
               setRedMarkerIcon(icon)
               setMapLoaded(true)
