@@ -22,7 +22,7 @@ const customConfig = defineConfig({
       colors: {
         // Primary brand colors - header uses same colors in both modes
         'brand.solid': {
-          value: { _light: '#a20000', _dark: '#fca5a5' },
+          value: { _light: '#a20000', _dark: '#a20000' },
         },
         'brand.contrast': {
           value: { _light: '#ffffff', _dark: '#ffffff' },
@@ -57,6 +57,11 @@ const customConfig = defineConfig({
         },
         'text.inverted': {
           value: { _light: '#ffffff', _dark: '#ffffff' },
+        },
+        
+        // Link colors with proper contrast
+        'link.primary': {
+          value: { _light: '#a20000', _dark: '#fca5a5' },
         },
         
         // Badge colors with high contrast

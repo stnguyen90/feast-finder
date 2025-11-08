@@ -132,7 +132,7 @@ export function RestaurantDetail({
                       href={restaurant.websiteUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      color="brand.solid"
+                      color="link.primary"
                       _hover={{ textDecoration: 'underline' }}
                     >
                       🌐 Website
@@ -143,7 +143,7 @@ export function RestaurantDetail({
                       href={restaurant.yelpUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      color="brand.solid"
+                      color="link.primary"
                       _hover={{ textDecoration: 'underline' }}
                     >
                       🔍 Yelp
@@ -154,7 +154,7 @@ export function RestaurantDetail({
                       href={restaurant.openTableUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      color="brand.solid"
+                      color="link.primary"
                       _hover={{ textDecoration: 'underline' }}
                     >
                       🍽️ OpenTable
