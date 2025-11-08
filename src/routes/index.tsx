@@ -8,6 +8,7 @@ import { api } from '../../convex/_generated/api'
 import type { Restaurant } from '~/components/RestaurantMap'
 import { RestaurantDetail } from '~/components/RestaurantDetail'
 import { RestaurantMap } from '~/components/RestaurantMap'
+import { ColorModeToggle } from '~/components/ColorModeToggle'
 
 export const Route = createFileRoute('/')({
   component: Home,
@@ -42,31 +43,37 @@ function Home() {
   }, [restaurants.length, seedRestaurants, isSeeding])
 
   return (
-    <Flex direction="column" h="100vh" bg="gray.50">
-      <Box
+    <Flex direction="column" h="100vh" bg="bg.page">
+      <Flex
         flexShrink={0}
         p={4}
-        bg="#a20000"
+        bg="brand.solid"
         boxShadow="sm"
-        textAlign="center"
+        align="center"
+        justify="space-between"
       >
-        <Heading size="2xl" color="white">
-          🍽️ Feast Finder
-        </Heading>
-        <Text color="red.100" fontSize="sm" mt={1}>
-          Discover amazing restaurants on an interactive map
-        </Text>
-      </Box>
+        <Box flex={1} textAlign="center">
+          <Heading size="2xl" color="brand.contrast">
+            🍽️ Feast Finder
+          </Heading>
+          <Text color="brand.muted" fontSize="sm" mt={1}>
+            Discover amazing restaurants on an interactive map
+          </Text>
+        </Box>
+        <Box position="absolute" right={4}>
+          <ColorModeToggle />
+        </Box>
+      </Flex>
 
       {isSeeding ? (
-        <Center flex={1} color="gray.600">
+        <Center flex={1} color="text.secondary">
           <Flex direction="column" align="center" gap={4}>
-            <Spinner size="xl" color="#a20000" />
+            <Spinner size="xl" color="brand.solid" />
             <Text>Loading restaurants...</Text>
           </Flex>
         </Center>
       ) : restaurants.length === 0 ? (
-        <Center flex={1} color="gray.600">
+        <Center flex={1} color="text.secondary">
           <Text>
             No restaurants found. Please wait while we load some sample data...
           </Text>

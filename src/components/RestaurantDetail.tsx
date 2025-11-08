@@ -56,37 +56,37 @@ export function RestaurantDetail({
           backdropFilter: 'blur(2px)',
         }}
       />
-      <DialogContent maxW="2xl" maxH="90vh" overflowY="auto">
+      <DialogContent maxW="2xl" maxH="90vh" overflowY="auto" bg="bg.surface">
         <DialogHeader>
-          <Heading size="2xl">{restaurant.name}</Heading>
+          <Heading size="2xl" color="text.primary">{restaurant.name}</Heading>
         </DialogHeader>
         <DialogCloseTrigger />
         <DialogBody pb={6}>
           <VStack gap={4} align="stretch">
             <Flex align="center" gap={2}>
               <span style={{ fontSize: '1.25rem' }}>⭐</span>
-              <Box fontSize="xl" fontWeight="semibold">
+              <Box fontSize="xl" fontWeight="semibold" color="text.primary">
                 {restaurant.rating}
               </Box>
             </Flex>
 
             <Box>
-              <Heading size="sm" mb={1} color="gray.600">
+              <Heading size="sm" mb={1} color="text.secondary">
                 Address
               </Heading>
-              <Box>{restaurant.address}</Box>
+              <Box color="text.primary">{restaurant.address}</Box>
             </Box>
 
             <Box>
-              <Heading size="sm" mb={1} color="gray.600">
+              <Heading size="sm" mb={1} color="text.secondary">
                 Categories
               </Heading>
               <HStack wrap="wrap" gap={2}>
                 {restaurant.categories.map((category) => (
                   <Badge
                     key={category}
-                    bg="#fecaca"
-                    color="#7f1d1d"
+                    bg="badge.category.bg"
+                    color="badge.category.text"
                     size="md"
                     borderRadius="full"
                     px={3}
@@ -99,15 +99,15 @@ export function RestaurantDetail({
             </Box>
 
             <Box>
-              <Heading size="sm" mb={1} color="gray.600">
+              <Heading size="sm" mb={1} color="text.secondary">
                 Meal Times
               </Heading>
               <HStack wrap="wrap" gap={2}>
                 {mealTimes.map((meal) => (
                   <Badge
                     key={meal}
-                    bg="#fee2e2"
-                    color="#991b1b"
+                    bg="badge.meal.bg"
+                    color="badge.meal.text"
                     size="md"
                     borderRadius="full"
                     px={3}
@@ -123,7 +123,7 @@ export function RestaurantDetail({
               restaurant.yelpUrl ||
               restaurant.openTableUrl) && (
               <Box>
-                <Heading size="sm" mb={2} color="gray.600">
+                <Heading size="sm" mb={2} color="text.secondary">
                   Links
                 </Heading>
                 <VStack align="stretch" gap={2}>
@@ -132,7 +132,7 @@ export function RestaurantDetail({
                       href={restaurant.websiteUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      color="#a20000"
+                      color="brand.solid"
                       _hover={{ textDecoration: 'underline' }}
                     >
                       🌐 Website
@@ -143,7 +143,7 @@ export function RestaurantDetail({
                       href={restaurant.yelpUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      color="#a20000"
+                      color="brand.solid"
                       _hover={{ textDecoration: 'underline' }}
                     >
                       🔍 Yelp
@@ -154,7 +154,7 @@ export function RestaurantDetail({
                       href={restaurant.openTableUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      color="#a20000"
+                      color="brand.solid"
                       _hover={{ textDecoration: 'underline' }}
                     >
                       🍽️ OpenTable
