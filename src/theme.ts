@@ -20,9 +20,9 @@ const customConfig = defineConfig({
     },
     semanticTokens: {
       colors: {
-        // Primary brand colors
+        // Primary brand colors - header uses same colors in both modes
         'brand.solid': {
-          value: { _light: '#a20000', _dark: '#ef4444' },
+          value: { _light: '#a20000', _dark: '#a20000' },
         },
         'brand.contrast': {
           value: { _light: '#ffffff', _dark: '#ffffff' },
@@ -56,7 +56,7 @@ const customConfig = defineConfig({
           value: { _light: '#718096', _dark: '#a0aec0' },
         },
         'text.inverted': {
-          value: { _light: '#ffffff', _dark: '#1a202c' },
+          value: { _light: '#ffffff', _dark: '#ffffff' },
         },
         
         // Badge colors with high contrast
