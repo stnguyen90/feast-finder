@@ -67,10 +67,10 @@ const customConfig = defineConfig({
           value: { _light: '#7f1d1d', _dark: '#fecaca' },
         },
         'badge.meal.bg': {
-          value: { _light: '#fee2e2', _dark: '#991b1b' },
+          value: { _light: '#fecaca', _dark: '#7f1d1d' },
         },
         'badge.meal.text': {
-          value: { _light: '#991b1b', _dark: '#fee2e2' },
+          value: { _light: '#7f1d1d', _dark: '#fecaca' },
         },
       },
     },
