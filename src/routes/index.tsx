@@ -273,13 +273,14 @@ function Home() {
                 _hover={{ bg: 'bg.subtle' }}
                 size="lg"
               >
-                ⚙️
+                🔍
               </IconButton>
             ) : (
               <Box>
                 <PriceFilter 
                   onFilterChange={handleFilterChange}
                   onClearFilters={handleClearFilters}
+                  onApply={() => setShowFilters(false)}
                   initialValues={priceFilters}
                 />
                 <Box

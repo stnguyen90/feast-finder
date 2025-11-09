@@ -13,10 +13,11 @@ export interface PriceFilterState {
 interface PriceFilterProps {
   onFilterChange: (filters: PriceFilterState) => void
   onClearFilters: () => void
+  onApply?: () => void
   initialValues?: PriceFilterState
 }
 
-export function PriceFilter({ onFilterChange, onClearFilters, initialValues }: PriceFilterProps) {
+export function PriceFilter({ onFilterChange, onClearFilters, onApply, initialValues }: PriceFilterProps) {
   const [minBrunchPrice, setMinBrunchPrice] = useState<string>(initialValues?.minBrunchPrice?.toString() ?? '')
   const [maxBrunchPrice, setMaxBrunchPrice] = useState<string>(initialValues?.maxBrunchPrice?.toString() ?? '')
   const [minLunchPrice, setMinLunchPrice] = useState<string>(initialValues?.minLunchPrice?.toString() ?? '')
@@ -47,6 +48,11 @@ export function PriceFilter({ onFilterChange, onClearFilters, initialValues }: P
     if (maxDinnerPrice) filters.maxDinnerPrice = parseFloat(maxDinnerPrice)
     
     onFilterChange(filters)
+    
+    // Hide the filter panel after applying
+    if (onApply) {
+      onApply()
+    }
   }
 
   const handleClearFilters = () => {
