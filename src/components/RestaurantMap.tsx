@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import type { MapBounds } from '~/routes/index'
 
 export interface Restaurant {
   _id: string
@@ -23,11 +24,13 @@ export interface Restaurant {
 interface RestaurantMapProps {
   restaurants: Array<Restaurant>
   onSelectRestaurant: (restaurant: Restaurant) => void
+  onBoundsChange?: (bounds: MapBounds) => void
 }
 
 export function RestaurantMap({
   restaurants,
   onSelectRestaurant,
+  onBoundsChange,
 }: RestaurantMapProps) {
   const [isClient, setIsClient] = useState(false)
 
@@ -44,12 +47,13 @@ export function RestaurantMap({
     )
   }
 
-  return <ClientOnlyMap restaurants={restaurants} onSelectRestaurant={onSelectRestaurant} />
+  return <ClientOnlyMap restaurants={restaurants} onSelectRestaurant={onSelectRestaurant} onBoundsChange={onBoundsChange} />
 }
 
 function ClientOnlyMap({
   restaurants,
   onSelectRestaurant,
+  onBoundsChange,
 }: RestaurantMapProps) {
   const [mapLoaded, setMapLoaded] = useState(false)
 
@@ -87,12 +91,13 @@ function ClientOnlyMap({
     )
   }
 
-  return <MapComponent restaurants={restaurants} onSelectRestaurant={onSelectRestaurant} />
+  return <MapComponent restaurants={restaurants} onSelectRestaurant={onSelectRestaurant} onBoundsChange={onBoundsChange} />
 }
 
 function MapComponent({
   restaurants,
   onSelectRestaurant,
+  onBoundsChange,
 }: RestaurantMapProps) {
   // Lazy load react-leaflet components
   const [ReactLeaflet, setReactLeaflet] = useState<any>(null)
@@ -111,7 +116,39 @@ function MapComponent({
     )
   }
 
-  const { MapContainer, TileLayer, Marker } = ReactLeaflet
+  const { MapContainer, TileLayer, Marker, useMapEvents } = ReactLeaflet
+
+  // Component to track map events
+  function MapEventsHandler() {
+    const map = useMapEvents({
+      moveend: () => {
+        if (onBoundsChange) {
+          const bounds = map.getBounds()
+          onBoundsChange({
+            north: bounds.getNorth(),
+            south: bounds.getSouth(),
+            east: bounds.getEast(),
+            west: bounds.getWest(),
+          })
+        }
+      },
+    })
+    
+    // Set initial bounds on mount
+    useEffect(() => {
+      if (onBoundsChange) {
+        const bounds = map.getBounds()
+        onBoundsChange({
+          north: bounds.getNorth(),
+          south: bounds.getSouth(),
+          east: bounds.getEast(),
+          west: bounds.getWest(),
+        })
+      }
+    }, [map])
+    
+    return null
+  }
 
   // Center on San Francisco
   const center: [number, number] = [37.7749, -122.4194]
@@ -128,6 +165,7 @@ function MapComponent({
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
+      <MapEventsHandler />
       {restaurants.map((restaurant) => (
         <Marker
           key={restaurant._id}

@@ -46,11 +46,22 @@ Defines restaurants table with:
 - brunchPrice, lunchPrice, dinnerPrice (optional numbers)
 - Index on name field
 
-#### Functions (myFunctions.ts)
+#### Geospatial Integration
+- **Configuration** (convex.config.ts): Registers Convex Geospatial Component
+- **Index Setup** (geospatial.ts): Creates geospatial index for restaurant locations
+- **Geospatial Queries** (restaurantsGeo.ts):
+  - **queryRestaurantsInBounds**: Query restaurants within map viewport (rectangle)
+  - **queryNearestRestaurants**: Find nearest restaurants to a specific point
+  - **syncRestaurantToIndex**: Internal mutation to sync restaurants to geospatial index
+  - **syncAllRestaurantsToIndex**: Migration helper for existing data
+
+#### Functions (restaurants.ts)
 - **listRestaurants**: Query to get all restaurants
 - **getRestaurant**: Query to get single restaurant by ID
-- **addRestaurant**: Mutation to add new restaurant
-- **seedRestaurants**: Mutation to populate sample data (10 SF Bay Area restaurants)
+- **addRestaurant**: Mutation to add new restaurant (auto-syncs to geospatial index)
+
+#### Seed Data (seedData.ts)
+- **seedRestaurants**: Mutation to populate sample data (10 SF Bay Area restaurants, auto-syncs to geospatial index)
 
 ### 5. Sample Data
 10 curated San Francisco Bay Area restaurants:
@@ -69,19 +80,23 @@ Defines restaurants table with:
 
 1. User visits the homepage
 2. If no restaurants exist, app automatically seeds sample data
-3. Map displays with 10 restaurant markers in San Francisco
-4. User can:
+3. If restaurants exist but aren't in geospatial index, app automatically syncs them (one-time)
+4. Map displays with restaurant markers in San Francisco
+5. As user pans/zooms the map:
+   - App detects viewport bounds changes
+   - Queries geospatial index for restaurants in current viewport
+   - Updates markers to show only visible restaurants (optimized performance)
+6. User can:
    - Pan and zoom the map
-   - Click any marker to see a popup preview
-   - Click the marker again to open detailed modal
-5. In the modal, user sees:
+   - Click any marker to open detailed modal
+7. In the modal, user sees:
    - Restaurant name and rating
    - Full address
    - Category tags (e.g., "Italian", "Fine Dining")
    - Available meal times with prices
    - Links to website, Yelp, and OpenTable
-6. User clicks X or outside modal to close
-7. User can select another restaurant
+8. User clicks X or outside modal to close
+9. User can select another restaurant
 
 ## Technical Highlights
 
@@ -90,8 +105,11 @@ Defines restaurants table with:
 - **Responsive**: Tailwind CSS ensures mobile-friendly design
 - **SSR**: TanStack Start provides server-side rendering
 - **Map Integration**: React Leaflet with OpenStreetMap tiles
-- **Dark Mode**: Built-in support via Tailwind
+- **Dark Mode**: Built-in support via Chakra UI
 - **Auto-seeding**: Convenient sample data for testing
+- **Geospatial Indexing**: Efficient location-based queries using S2 cell indexing
+- **Viewport-Based Loading**: Dynamic restaurant fetching based on map bounds
+- **Performance Optimized**: Only loads restaurants visible in current viewport
 
 ## Build & Deployment
 
@@ -105,18 +123,21 @@ Defines restaurants table with:
 
 ### Modified:
 - `convex/schema.ts` - Restaurant data model
-- `convex/myFunctions.ts` - Backend queries and mutations
-- `src/routes/index.tsx` - Main homepage with map
-- `src/routes/__root.tsx` - Updated page title
-- `package.json` - Added leaflet dependencies
+- `convex/restaurants.ts` - Backend queries and mutations (added geospatial sync)
+- `convex/seedData.ts` - Seed function (added geospatial sync)
+- `src/routes/index.tsx` - Main homepage with map (added bounds tracking and geospatial queries)
+- `src/components/RestaurantMap.tsx` - Map component (added bounds change tracking)
+- `package.json` - Added geospatial component dependency
+- `README.md` - Updated with geospatial features
+- `IMPLEMENTATION.md` - Updated with geospatial documentation
 
 ### Created:
-- `src/components/RestaurantMap.tsx` - Map component
+- `convex/convex.config.ts` - Convex app configuration with geospatial component
+- `convex/geospatial.ts` - Geospatial index setup
+- `convex/restaurantsGeo.ts` - Geospatial query functions
+- `GEOSPATIAL.md` - Comprehensive geospatial integration documentation
 - `src/components/RestaurantDetail.tsx` - Detail modal component
-- `README.md` - Project documentation
-
-### Deleted:
-- `src/routes/anotherPage.tsx` - Removed demo page
+- `src/components/ColorModeToggle.tsx` - Theme toggle component
 
 ## Visual Design
 
