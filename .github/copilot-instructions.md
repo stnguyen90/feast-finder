@@ -35,14 +35,16 @@ dist/                    # Build output
 ## Documentation Files
 
 **For Developers:**
+
 - **README.md** - User-facing: features, setup, tech stack, sample data
 - **IMPLEMENTATION.md** - Technical details: components, backend, user flow
 - **UI-DESIGN.md** - Design spec: layout, colors, typography, interactions
 - **CODEGEN_NOTE.md** - Important note about regenerating Convex types
 
 **When making changes, update relevant docs if you modify:**
+
 - Features/tech stack → README.md
-- Component architecture → IMPLEMENTATION.md  
+- Component architecture → IMPLEMENTATION.md
 - UI/styling → UI-DESIGN.md
 - Convex schema/functions → may need CODEGEN_NOTE.md updates
 
@@ -128,6 +130,7 @@ npm run start  # netlify dev (runs local Netlify dev server)
 ## Restaurant App Specifics
 
 **Data Flow:**
+
 1. User visits homepage → `index.tsx`
 2. Query `api.myFunctions.listRestaurants` via Convex
 3. If empty, auto-trigger `api.seedData.seedRestaurants` mutation
@@ -135,6 +138,7 @@ npm run start  # netlify dev (runs local Netlify dev server)
 5. Click marker → open `RestaurantDetail` modal
 
 **Important Notes:**
+
 - Map only renders client-side (SSR would crash with Leaflet)
 - Sample data: 10 SF Bay Area restaurants with full details
 - Schema includes: rating, coordinates, URLs, categories, meal times, prices
@@ -171,6 +175,7 @@ npm run start  # netlify dev (runs local Netlify dev server)
 ### Current App Structure
 
 **Feast Finder** displays restaurants on an interactive map. Key files:
+
 - `convex/schema.ts` - Restaurant data model with all required fields
 - `convex/myFunctions.ts` - Restaurant queries (list, get, add)
 - `convex/seedData.ts` - Sample SF Bay Area restaurant data

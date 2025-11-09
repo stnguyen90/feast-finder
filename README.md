@@ -20,6 +20,7 @@ Feast Finder is a modern web application built with React, Convex, and React Lea
 ## Restaurant Data Model
 
 Each restaurant includes:
+
 - **Name**: Restaurant name
 - **Rating**: Numerical rating (0-5)
 - **Coordinates**: Latitude and longitude for map positioning
@@ -34,6 +35,7 @@ Each restaurant includes:
 ## Tech Stack
 
 ### Frontend
+
 - **React 19**: Modern React with hooks
 - **TanStack Router**: File-based routing with SSR support
 - **TanStack Query**: Data fetching and caching
@@ -41,16 +43,19 @@ Each restaurant includes:
 - **Tailwind CSS v4**: Utility-first styling
 
 ### Backend
+
 - **Convex**: Serverless backend and database
 - **Convex Geospatial Component**: Efficient spatial indexing and queries
 - **TypeScript**: Type-safe code throughout
 
 ### Deployment
+
 - **Netlify**: Serverless deployment with edge functions
 
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js v22 or higher
 - npm or yarn
 
@@ -82,6 +87,7 @@ npx convex dev
 ```
 
 This will:
+
 1. Prompt you to create or log into a Convex account
 2. Create a new Convex project
 3. Generate a `.env.local` file with your Convex deployment URL
@@ -112,6 +118,7 @@ feast-finder/
 ## Sample Data
 
 The application includes 10 curated San Francisco Bay Area restaurants:
+
 - The French Laundry (Yountville)
 - Zuni Café
 - State Bird Provisions
@@ -143,15 +150,15 @@ Use the `addRestaurant` mutation from the Convex dashboard or by calling:
 const addRestaurant = useMutation(api.myFunctions.addRestaurant)
 
 addRestaurant({
-  name: "Restaurant Name",
+  name: 'Restaurant Name',
   rating: 4.5,
   latitude: 37.7749,
   longitude: -122.4194,
-  address: "123 Main St, San Francisco, CA",
-  websiteUrl: "https://example.com",
-  yelpUrl: "https://yelp.com/...",
-  openTableUrl: "https://opentable.com/...",
-  categories: ["Italian", "Fine Dining"],
+  address: '123 Main St, San Francisco, CA',
+  websiteUrl: 'https://example.com',
+  yelpUrl: 'https://yelp.com/...',
+  openTableUrl: 'https://opentable.com/...',
+  categories: ['Italian', 'Fine Dining'],
   hasBrunch: true,
   hasLunch: true,
   hasDinner: true,
@@ -171,6 +178,7 @@ The price filtering feature allows users to filter restaurants based on their me
 4. Click "Clear" to remove all filters
 
 **How it works:**
+
 - Restaurants matching ANY of the specified meal type criteria are displayed (OR logic)
 - For example, filtering by "Brunch $20-$40" shows all restaurants with brunch prices between $20-$40
 - You can filter by multiple meal types simultaneously - restaurants matching any of the criteria will be shown
@@ -180,6 +188,7 @@ The price filtering feature allows users to filter restaurants based on their me
 ## Geospatial Integration
 
 Feast Finder uses the Convex Geospatial Component for efficient location-based queries. This enables:
+
 - Fast queries for restaurants within the current map viewport
 - Finding nearest restaurants to any point
 - Automatic data synchronization when adding new restaurants

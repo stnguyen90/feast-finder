@@ -27,8 +27,9 @@ npx convex dev --local --once
 ```
 
 This will properly regenerate all files in `convex/_generated/` including:
+
 - `api.d.ts` - API types
-- `dataModel.d.ts` - Data model types  
+- `dataModel.d.ts` - Data model types
 - `server.d.ts` - Server types
 
 The manually updated file should match what Convex generates, but running the official codegen ensures everything is properly synchronized.

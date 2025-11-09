@@ -7,6 +7,7 @@ Feast Finder is an interactive restaurant discovery application that displays re
 ## Key Features Implemented
 
 ### 1. Interactive Map (RestaurantMap.tsx)
+
 - Uses React Leaflet for map rendering
 - Centered on San Francisco (37.7749, -122.4194)
 - Displays restaurant markers at their exact coordinates
@@ -14,6 +15,7 @@ Feast Finder is an interactive restaurant discovery application that displays re
 - Popup preview shows name, rating, and address
 
 ### 2. Restaurant Detail Modal (RestaurantDetail.tsx)
+
 - Full-screen overlay modal
 - Displays comprehensive restaurant information:
   - Name and rating with star emoji
@@ -25,6 +27,7 @@ Feast Finder is an interactive restaurant discovery application that displays re
 - Dark mode support
 
 ### 3. Homepage (index.tsx)
+
 - Shows "Feast Finder" title with fork/knife emoji
 - Subtitle explaining the app
 - Auto-seeds sample data on first load
@@ -36,7 +39,9 @@ Feast Finder is an interactive restaurant discovery application that displays re
 ### 4. Backend (Convex)
 
 #### Schema (schema.ts)
+
 Defines restaurants table with:
+
 - name (string)
 - rating (number)
 - latitude, longitude (numbers)
@@ -48,6 +53,7 @@ Defines restaurants table with:
 - Index on name field
 
 #### Geospatial Integration
+
 - **Configuration** (convex.config.ts): Registers Convex Geospatial Component
 - **Index Setup** (geospatial.ts): Creates geospatial index for restaurant locations
 - **Geospatial Queries** (restaurantsGeo.ts):
@@ -57,6 +63,7 @@ Defines restaurants table with:
   - **syncAllRestaurantsToIndex**: Migration helper for existing data
 
 #### Functions (restaurants.ts)
+
 - **listRestaurants**: Query to get all restaurants
 - **listRestaurantsWithPriceFilter**: Query to filter restaurants by price ranges
   - Accepts optional min/max prices for brunch, lunch, and dinner
@@ -66,10 +73,13 @@ Defines restaurants table with:
 - **addRestaurant**: Mutation to add new restaurant (auto-syncs to geospatial index)
 
 #### Seed Data (seedData.ts)
+
 - **seedRestaurants**: Mutation to populate sample data (10 SF Bay Area restaurants, auto-syncs to geospatial index)
 
 ### 5. Sample Data
+
 10 curated San Francisco Bay Area restaurants:
+
 1. The French Laundry (Yountville) - French Fine Dining
 2. Zuni Café - American/Mediterranean/Italian
 3. State Bird Provisions - American/Contemporary/Dim Sum
@@ -135,6 +145,7 @@ Defines restaurants table with:
 ## Files Modified/Created
 
 ### Modified:
+
 - `convex/schema.ts` - Restaurant data model
 - `convex/restaurants.ts` - Backend queries and mutations (added geospatial sync)
 - `convex/seedData.ts` - Seed function (added geospatial sync)
@@ -145,6 +156,7 @@ Defines restaurants table with:
 - `IMPLEMENTATION.md` - Updated with geospatial documentation
 
 ### Created:
+
 - `convex/convex.config.ts` - Convex app configuration with geospatial component
 - `convex/geospatial.ts` - Geospatial index setup
 - `convex/restaurantsGeo.ts` - Geospatial query functions
@@ -156,6 +168,7 @@ Defines restaurants table with:
 ## Visual Design
 
 ### Color Scheme:
+
 - Background: Light gray (light mode) / Dark gray (dark mode)
 - Primary text: Gray-900 (light) / Gray-100 (dark)
 - Categories: Blue tags (bg-blue-100/900)
@@ -164,6 +177,7 @@ Defines restaurants table with:
 - Rating: Yellow-500/600 with star emoji
 
 ### Layout:
+
 - Full-width container with padding
 - Centered title and subtitle
 - 600px height map with rounded corners and shadow
@@ -173,6 +187,7 @@ Defines restaurants table with:
 ## Next Steps for Enhancement
 
 Potential future improvements:
+
 - ~~Add search/filter functionality~~ ✅ **Price filtering implemented**
 - Add distance/radius filtering
 - Add user authentication and favorites

@@ -49,7 +49,17 @@ export const queryRestaurantsInBounds = query({
     nextCursor: v.optional(v.string()),
   }),
   handler: async (ctx, args) => {
-    const { bounds, limit = 100, cursor, minBrunchPrice, maxBrunchPrice, minLunchPrice, maxLunchPrice, minDinnerPrice, maxDinnerPrice } = args
+    const {
+      bounds,
+      limit = 100,
+      cursor,
+      minBrunchPrice,
+      maxBrunchPrice,
+      minLunchPrice,
+      maxLunchPrice,
+      minDinnerPrice,
+      maxDinnerPrice,
+    } = args
 
     // Query geospatial index for restaurant IDs in the bounding box
     const geoResults = await restaurantsIndex.query(
@@ -70,8 +80,8 @@ export const queryRestaurantsInBounds = query({
     )
 
     // Extract restaurant IDs from geospatial results
-    const geoIds = geoResults.results.map(result => result.key)
-    
+    const geoIds = geoResults.results.map((result) => result.key)
+
     // If no geospatial results, return empty
     if (geoIds.length === 0) {
       return {
@@ -81,87 +91,110 @@ export const queryRestaurantsInBounds = query({
     }
 
     // Determine which price filters are active
-    const hasBrunchFilter = minBrunchPrice !== undefined || maxBrunchPrice !== undefined
-    const hasLunchFilter = minLunchPrice !== undefined || maxLunchPrice !== undefined
-    const hasDinnerFilter = minDinnerPrice !== undefined || maxDinnerPrice !== undefined
+    const hasBrunchFilter =
+      minBrunchPrice !== undefined || maxBrunchPrice !== undefined
+    const hasLunchFilter =
+      minLunchPrice !== undefined || maxLunchPrice !== undefined
+    const hasDinnerFilter =
+      minDinnerPrice !== undefined || maxDinnerPrice !== undefined
     const hasPriceFilters = hasBrunchFilter || hasLunchFilter || hasDinnerFilter
 
     // Query database with combined geospatial and price filtering
     let restaurantsQuery = ctx.db.query('restaurants')
-    
+
     if (hasPriceFilters) {
       // Apply database-level filtering for both geospatial and price
       restaurantsQuery = restaurantsQuery.filter((q) => {
         // First, ensure restaurant is in geospatial results
-        const inGeoBounds = q.or(...geoIds.map(id => q.eq(q.field('_id'), id)))
-        
+        const inGeoBounds = q.or(
+          ...geoIds.map((id) => q.eq(q.field('_id'), id)),
+        )
+
         // Build price filter conditions
         const priceConditions = []
-        
+
         // Brunch price filter
         if (hasBrunchFilter) {
           let brunchCondition = q.and(
             q.eq(q.field('hasBrunch'), true),
-            q.neq(q.field('brunchPrice'), undefined)
+            q.neq(q.field('brunchPrice'), undefined),
           )
-          
+
           if (minBrunchPrice !== undefined) {
-            brunchCondition = q.and(brunchCondition, q.gte(q.field('brunchPrice'), minBrunchPrice))
+            brunchCondition = q.and(
+              brunchCondition,
+              q.gte(q.field('brunchPrice'), minBrunchPrice),
+            )
           }
-          
+
           if (maxBrunchPrice !== undefined) {
-            brunchCondition = q.and(brunchCondition, q.lte(q.field('brunchPrice'), maxBrunchPrice))
+            brunchCondition = q.and(
+              brunchCondition,
+              q.lte(q.field('brunchPrice'), maxBrunchPrice),
+            )
           }
-          
+
           priceConditions.push(brunchCondition)
         }
-        
+
         // Lunch price filter
         if (hasLunchFilter) {
           let lunchCondition = q.and(
             q.eq(q.field('hasLunch'), true),
-            q.neq(q.field('lunchPrice'), undefined)
+            q.neq(q.field('lunchPrice'), undefined),
           )
-          
+
           if (minLunchPrice !== undefined) {
-            lunchCondition = q.and(lunchCondition, q.gte(q.field('lunchPrice'), minLunchPrice))
+            lunchCondition = q.and(
+              lunchCondition,
+              q.gte(q.field('lunchPrice'), minLunchPrice),
+            )
           }
-          
+
           if (maxLunchPrice !== undefined) {
-            lunchCondition = q.and(lunchCondition, q.lte(q.field('lunchPrice'), maxLunchPrice))
+            lunchCondition = q.and(
+              lunchCondition,
+              q.lte(q.field('lunchPrice'), maxLunchPrice),
+            )
           }
-          
+
           priceConditions.push(lunchCondition)
         }
-        
+
         // Dinner price filter
         if (hasDinnerFilter) {
           let dinnerCondition = q.and(
             q.eq(q.field('hasDinner'), true),
-            q.neq(q.field('dinnerPrice'), undefined)
+            q.neq(q.field('dinnerPrice'), undefined),
           )
-          
+
           if (minDinnerPrice !== undefined) {
-            dinnerCondition = q.and(dinnerCondition, q.gte(q.field('dinnerPrice'), minDinnerPrice))
+            dinnerCondition = q.and(
+              dinnerCondition,
+              q.gte(q.field('dinnerPrice'), minDinnerPrice),
+            )
           }
-          
+
           if (maxDinnerPrice !== undefined) {
-            dinnerCondition = q.and(dinnerCondition, q.lte(q.field('dinnerPrice'), maxDinnerPrice))
+            dinnerCondition = q.and(
+              dinnerCondition,
+              q.lte(q.field('dinnerPrice'), maxDinnerPrice),
+            )
           }
-          
+
           priceConditions.push(dinnerCondition)
         }
-        
+
         // Combine: must be in geo bounds AND match at least one price filter
         return q.and(inGeoBounds, q.or(...priceConditions))
       })
     } else {
       // No price filters, just filter by geospatial IDs
       restaurantsQuery = restaurantsQuery.filter((q) => {
-        return q.or(...geoIds.map(id => q.eq(q.field('_id'), id)))
+        return q.or(...geoIds.map((id) => q.eq(q.field('_id'), id)))
       })
     }
-    
+
     const restaurants = await restaurantsQuery.collect()
 
     return {

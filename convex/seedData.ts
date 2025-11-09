@@ -1,6 +1,7 @@
 import { v } from 'convex/values'
 import { mutation } from './_generated/server'
 import { internal } from './_generated/api'
+import type { Id } from './_generated/dataModel'
 
 // Mutation to seed sample restaurant data
 export const seedRestaurants = mutation({
@@ -180,12 +181,134 @@ export const seedRestaurants = mutation({
 
     // Sync all restaurants to geospatial index
     for (const id of restaurantIds) {
-      await ctx.scheduler.runAfter(0, internal.restaurantsGeo.syncRestaurantToIndex, {
-        restaurantId: id,
-      })
+      await ctx.scheduler.runAfter(
+        0,
+        internal.restaurantsGeo.syncRestaurantToIndex,
+        {
+          restaurantId: id,
+        },
+      )
     }
 
     console.log(`Seeded ${restaurants.length} restaurants`)
+    return null
+  },
+})
+
+// Mutation to seed sample restaurant week events
+export const seedEvents = mutation({
+  args: {},
+  returns: v.null(),
+  handler: async (ctx) => {
+    // Check if events already exist
+    const existing = await ctx.db.query('events').first()
+    if (existing) {
+      console.log('Events already seeded')
+      return null
+    }
+
+    // Get restaurant IDs by name for event associations
+    const getRestaurantId = async (
+      name: string,
+    ): Promise<Id<'restaurants'> | null> => {
+      const restaurant = await ctx.db
+        .query('restaurants')
+        .withIndex('by_name', (q) => q.eq('name', name))
+        .first()
+      return restaurant?._id ?? null
+    }
+
+    // Sample restaurant week events
+    const eventData = [
+      {
+        name: 'SF Restaurant Week',
+        description:
+          "San Francisco Restaurant Week features prix-fixe menus at the city's best restaurants. Enjoy multi-course meals at special prices and discover new culinary favorites across the Bay Area.",
+        startDate: '2025-01-15T00:00:00.000Z',
+        endDate: '2025-01-31T23:59:59.999Z',
+        location: 'Various Locations in San Francisco',
+        city: 'San Francisco',
+        latitude: 37.7749,
+        longitude: -122.4194,
+        restaurantNames: [
+          'Zuni Café',
+          'State Bird Provisions',
+          'Gary Danko',
+          'Nopa',
+          'Flour + Water',
+        ],
+      },
+      {
+        name: 'North Beach Italian Festival Week',
+        description:
+          "Celebrate Italian cuisine in San Francisco's historic North Beach neighborhood. Experience authentic Italian dishes, special tasting menus, and cultural events at neighborhood trattorias and fine dining establishments.",
+        startDate: '2025-02-01T00:00:00.000Z',
+        endDate: '2025-02-14T23:59:59.999Z',
+        location: 'North Beach, San Francisco',
+        city: 'San Francisco',
+        latitude: 37.8008,
+        longitude: -122.4106,
+        restaurantNames: ['Flour + Water', "Mama's on Washington Square"],
+      },
+      {
+        name: 'Bay Area Seafood Week',
+        description:
+          'Dive into the freshest seafood the Bay Area has to offer. Local restaurants showcase sustainable catches, oyster specials, and ocean-to-table dining experiences throughout the week.',
+        startDate: '2025-02-15T00:00:00.000Z',
+        endDate: '2025-02-22T23:59:59.999Z',
+        location: 'San Francisco & Bay Area',
+        city: 'San Francisco',
+        latitude: 37.7919,
+        longitude: -122.4206,
+        restaurantNames: ['Swan Oyster Depot', 'Gary Danko', 'Zuni Café'],
+      },
+      {
+        name: 'Mission District Food Crawl',
+        description:
+          "Explore the vibrant culinary scene of San Francisco's Mission District. From authentic taquerias to innovative bistros, experience the diverse flavors that make the Mission a food lover's paradise.",
+        startDate: '2025-03-01T00:00:00.000Z',
+        endDate: '2025-03-15T23:59:59.999Z',
+        location: 'Mission District, San Francisco',
+        city: 'San Francisco',
+        latitude: 37.7599,
+        longitude: -122.4148,
+        restaurantNames: ['La Taqueria', 'Tartine Bakery', 'Flour + Water'],
+      },
+      {
+        name: 'Wine Country Fine Dining Week',
+        description:
+          'Indulge in world-class dining experiences in Napa and Sonoma wine country. Michelin-starred restaurants offer exclusive wine pairing menus featuring local vintages and seasonal ingredients.',
+        startDate: '2025-03-20T00:00:00.000Z',
+        endDate: '2025-03-31T23:59:59.999Z',
+        location: 'Napa Valley',
+        city: 'Yountville',
+        latitude: 38.4036,
+        longitude: -122.3644,
+        restaurantNames: ['The French Laundry'],
+      },
+    ]
+
+    // Insert events with resolved restaurant IDs
+    for (const event of eventData) {
+      const { restaurantNames, ...eventFields } = event
+      const restaurantIds: Array<Id<'restaurants'>> = []
+
+      for (const name of restaurantNames) {
+        const id = await getRestaurantId(name)
+        if (id) {
+          restaurantIds.push(id)
+        }
+      }
+
+      if (restaurantIds.length > 0) {
+        await ctx.db.insert('events', {
+          ...eventFields,
+          restaurantIds,
+        })
+      }
+    }
+
+    console.log(`Seeded ${eventData.length} events`)
     return null
   },
 })

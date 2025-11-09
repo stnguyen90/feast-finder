@@ -65,15 +65,18 @@ export const listRestaurantsWithPriceFilter = query({
   ),
   handler: async (ctx, args) => {
     // Determine which filters are active
-    const hasBrunchFilter = args.minBrunchPrice !== undefined || args.maxBrunchPrice !== undefined
-    const hasLunchFilter = args.minLunchPrice !== undefined || args.maxLunchPrice !== undefined
-    const hasDinnerFilter = args.minDinnerPrice !== undefined || args.maxDinnerPrice !== undefined
-    
+    const hasBrunchFilter =
+      args.minBrunchPrice !== undefined || args.maxBrunchPrice !== undefined
+    const hasLunchFilter =
+      args.minLunchPrice !== undefined || args.maxLunchPrice !== undefined
+    const hasDinnerFilter =
+      args.minDinnerPrice !== undefined || args.maxDinnerPrice !== undefined
+
     // If no filters are active, return all restaurants
     if (!hasBrunchFilter && !hasLunchFilter && !hasDinnerFilter) {
       return await ctx.db.query('restaurants').collect()
     }
-    
+
     // Use database-level filtering with .filter() for efficiency
     // This pushes the filtering logic to the database layer
     const restaurants = await ctx.db
@@ -81,84 +84,84 @@ export const listRestaurantsWithPriceFilter = query({
       .filter((q) => {
         // Build OR conditions for meal types
         const conditions = []
-        
+
         // Brunch price filter
         if (hasBrunchFilter) {
           let brunchCondition = q.and(
             q.eq(q.field('hasBrunch'), true),
-            q.neq(q.field('brunchPrice'), undefined)
+            q.neq(q.field('brunchPrice'), undefined),
           )
-          
+
           if (args.minBrunchPrice !== undefined) {
             brunchCondition = q.and(
               brunchCondition,
-              q.gte(q.field('brunchPrice'), args.minBrunchPrice)
+              q.gte(q.field('brunchPrice'), args.minBrunchPrice),
             )
           }
-          
+
           if (args.maxBrunchPrice !== undefined) {
             brunchCondition = q.and(
               brunchCondition,
-              q.lte(q.field('brunchPrice'), args.maxBrunchPrice)
+              q.lte(q.field('brunchPrice'), args.maxBrunchPrice),
             )
           }
-          
+
           conditions.push(brunchCondition)
         }
-        
+
         // Lunch price filter
         if (hasLunchFilter) {
           let lunchCondition = q.and(
             q.eq(q.field('hasLunch'), true),
-            q.neq(q.field('lunchPrice'), undefined)
+            q.neq(q.field('lunchPrice'), undefined),
           )
-          
+
           if (args.minLunchPrice !== undefined) {
             lunchCondition = q.and(
               lunchCondition,
-              q.gte(q.field('lunchPrice'), args.minLunchPrice)
+              q.gte(q.field('lunchPrice'), args.minLunchPrice),
             )
           }
-          
+
           if (args.maxLunchPrice !== undefined) {
             lunchCondition = q.and(
               lunchCondition,
-              q.lte(q.field('lunchPrice'), args.maxLunchPrice)
+              q.lte(q.field('lunchPrice'), args.maxLunchPrice),
             )
           }
-          
+
           conditions.push(lunchCondition)
         }
-        
+
         // Dinner price filter
         if (hasDinnerFilter) {
           let dinnerCondition = q.and(
             q.eq(q.field('hasDinner'), true),
-            q.neq(q.field('dinnerPrice'), undefined)
+            q.neq(q.field('dinnerPrice'), undefined),
           )
-          
+
           if (args.minDinnerPrice !== undefined) {
             dinnerCondition = q.and(
               dinnerCondition,
-              q.gte(q.field('dinnerPrice'), args.minDinnerPrice)
+              q.gte(q.field('dinnerPrice'), args.minDinnerPrice),
             )
           }
-          
+
           if (args.maxDinnerPrice !== undefined) {
             dinnerCondition = q.and(
               dinnerCondition,
-              q.lte(q.field('dinnerPrice'), args.maxDinnerPrice)
+              q.lte(q.field('dinnerPrice'), args.maxDinnerPrice),
             )
           }
-          
+
           conditions.push(dinnerCondition)
         }
-        
+
         // Return true if ANY condition matches (OR logic)
         return q.or(...conditions)
       })
       .collect()
-    
+
     return restaurants
   },
 })
@@ -219,9 +222,13 @@ export const addRestaurant = mutation({
   handler: async (ctx, args) => {
     const id = await ctx.db.insert('restaurants', args)
     // Sync to geospatial index
-    await ctx.scheduler.runAfter(0, internal.restaurantsGeo.syncRestaurantToIndex, {
-      restaurantId: id,
-    })
+    await ctx.scheduler.runAfter(
+      0,
+      internal.restaurantsGeo.syncRestaurantToIndex,
+      {
+        restaurantId: id,
+      },
+    )
     return id
   },
 })
