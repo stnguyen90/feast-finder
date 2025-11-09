@@ -13,7 +13,7 @@ import {
   Link,
   VStack,
 } from '@chakra-ui/react'
-import type { Restaurant } from './RestaurantMap'
+import type { Restaurant } from '~/types/restaurant'
 
 interface RestaurantDetailProps {
   restaurant: Restaurant | null
