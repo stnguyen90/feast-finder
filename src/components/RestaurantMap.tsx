@@ -24,13 +24,17 @@ export interface Restaurant {
 interface RestaurantMapProps {
   restaurants: Array<Restaurant>
   onSelectRestaurant: (restaurant: Restaurant) => void
-  onBoundsChange?: (bounds: MapBounds) => void
+  onBoundsChange?: (bounds: MapBounds, center?: { lat: number; lng: number }, zoom?: number) => void
+  initialCenter?: { lat: number; lng: number }
+  initialZoom?: number
 }
 
 export function RestaurantMap({
   restaurants,
   onSelectRestaurant,
   onBoundsChange,
+  initialCenter,
+  initialZoom,
 }: RestaurantMapProps) {
   const [ReactLeaflet, setReactLeaflet] = useState<any>(null)
   const [customIcon, setCustomIcon] = useState<any>(null)
@@ -77,12 +81,14 @@ export function RestaurantMap({
       moveend: () => {
         if (onBoundsChange) {
           const bounds = map.getBounds()
+          const center = map.getCenter()
+          const zoom = map.getZoom()
           onBoundsChange({
             north: bounds.getNorth(),
             south: bounds.getSouth(),
             east: bounds.getEast(),
             west: bounds.getWest(),
-          })
+          }, { lat: center.lat, lng: center.lng }, zoom)
         }
       },
     })
@@ -91,21 +97,25 @@ export function RestaurantMap({
     useEffect(() => {
       if (onBoundsChange) {
         const bounds = map.getBounds()
+        const center = map.getCenter()
+        const zoom = map.getZoom()
         onBoundsChange({
           north: bounds.getNorth(),
           south: bounds.getSouth(),
           east: bounds.getEast(),
           west: bounds.getWest(),
-        })
+        }, { lat: center.lat, lng: center.lng }, zoom)
       }
     }, [map])
     
     return null
   }
 
-  // Center on San Francisco
-  const center: [number, number] = [37.7749, -122.4194]
-  const zoom = 12
+  // Use initial values from props or default to San Francisco
+  const center: [number, number] = initialCenter 
+    ? [initialCenter.lat, initialCenter.lng]
+    : [37.7749, -122.4194]
+  const zoom = initialZoom ?? 12
 
   return (
     <MapContainer

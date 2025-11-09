@@ -1,9 +1,9 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
 import { useMutation } from 'convex/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Box, Center, Flex, Heading, Spinner, Text } from '@chakra-ui/react'
+import { Box, Center, Flex, Heading, IconButton, Spinner, Text } from '@chakra-ui/react'
 import { api } from '../../convex/_generated/api'
 import type { PriceFilterState } from '~/components/PriceFilter'
 import type { Restaurant } from '~/components/RestaurantMap'
@@ -12,8 +12,34 @@ import { PriceFilter } from '~/components/PriceFilter'
 import { RestaurantDetail } from '~/components/RestaurantDetail'
 import { RestaurantMap } from '~/components/RestaurantMap'
 
+// Define search params schema for URL state
+interface SearchParams {
+  minBrunchPrice?: number
+  maxBrunchPrice?: number
+  minLunchPrice?: number
+  maxLunchPrice?: number
+  minDinnerPrice?: number
+  maxDinnerPrice?: number
+  lat?: number
+  lng?: number
+  zoom?: number
+}
+
 export const Route = createFileRoute('/')({
   component: Home,
+  validateSearch: (search: Record<string, unknown>): SearchParams => {
+    return {
+      minBrunchPrice: search.minBrunchPrice ? Number(search.minBrunchPrice) : undefined,
+      maxBrunchPrice: search.maxBrunchPrice ? Number(search.maxBrunchPrice) : undefined,
+      minLunchPrice: search.minLunchPrice ? Number(search.minLunchPrice) : undefined,
+      maxLunchPrice: search.maxLunchPrice ? Number(search.maxLunchPrice) : undefined,
+      minDinnerPrice: search.minDinnerPrice ? Number(search.minDinnerPrice) : undefined,
+      maxDinnerPrice: search.maxDinnerPrice ? Number(search.maxDinnerPrice) : undefined,
+      lat: search.lat ? Number(search.lat) : undefined,
+      lng: search.lng ? Number(search.lng) : undefined,
+      zoom: search.zoom ? Number(search.zoom) : undefined,
+    }
+  },
 })
 
 // Type for map bounds
@@ -25,12 +51,23 @@ export interface MapBounds {
 }
 
 function Home() {
+  const navigate = useNavigate({ from: '/' })
+  const searchParams = useSearch({ from: '/' })
+  
   // Track map bounds for geospatial queries
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null)
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
   
-  // Track price filter state
-  const [priceFilters, setPriceFilters] = useState<PriceFilterState>({})
+  // Track price filter state from URL
+  const priceFilters: PriceFilterState = useMemo(() => ({
+    minBrunchPrice: searchParams.minBrunchPrice,
+    maxBrunchPrice: searchParams.maxBrunchPrice,
+    minLunchPrice: searchParams.minLunchPrice,
+    maxLunchPrice: searchParams.maxLunchPrice,
+    minDinnerPrice: searchParams.minDinnerPrice,
+    maxDinnerPrice: searchParams.maxDinnerPrice,
+  }), [searchParams])
+  
   const [showFilters, setShowFilters] = useState(false)
 
   // Always fetch all restaurants for now (used for seeding check and fallback)
@@ -115,23 +152,54 @@ function Home() {
     }
   }, [allRestaurants.length, syncAllToIndex, isSeeding])
 
-  const handleBoundsChange = useCallback((bounds: MapBounds) => {
+  const handleBoundsChange = useCallback((bounds: MapBounds, center?: { lat: number; lng: number }, zoom?: number) => {
     // Debounce bounds updates to prevent flickering during pan
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current)
     }
     debounceTimerRef.current = setTimeout(() => {
       setMapBounds(bounds)
+      
+      // Update URL with map position if provided
+      if (center && zoom !== undefined) {
+        navigate({
+          search: (prev) => ({
+            ...prev,
+            lat: center.lat,
+            lng: center.lng,
+            zoom,
+          }),
+          replace: true,
+        })
+      }
     }, 300) // 300ms debounce
-  }, [])
+  }, [navigate])
   
   const handleFilterChange = useCallback((filters: PriceFilterState) => {
-    setPriceFilters(filters)
-  }, [])
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        minBrunchPrice: filters.minBrunchPrice,
+        maxBrunchPrice: filters.maxBrunchPrice,
+        minLunchPrice: filters.minLunchPrice,
+        maxLunchPrice: filters.maxLunchPrice,
+        minDinnerPrice: filters.minDinnerPrice,
+        maxDinnerPrice: filters.maxDinnerPrice,
+      }),
+      replace: true,
+    })
+  }, [navigate])
   
   const handleClearFilters = useCallback(() => {
-    setPriceFilters({})
-  }, [])
+    navigate({
+      search: (prev) => ({
+        lat: prev.lat,
+        lng: prev.lng,
+        zoom: prev.zoom,
+      }),
+      replace: true,
+    })
+  }, [navigate])
 
   // Cleanup debounce timer on unmount
   useEffect(() => {
@@ -184,6 +252,8 @@ function Home() {
             restaurants={restaurants}
             onSelectRestaurant={setSelectedRestaurant}
             onBoundsChange={handleBoundsChange}
+            initialCenter={searchParams.lat && searchParams.lng ? { lat: searchParams.lat, lng: searchParams.lng } : undefined}
+            initialZoom={searchParams.zoom}
           />
           
           {/* Price Filter Panel */}
@@ -194,24 +264,23 @@ function Home() {
             zIndex={1000}
           >
             {!showFilters ? (
-              <Box
+              <IconButton
+                aria-label="Filters"
                 bg="bg.surface"
-                p={3}
                 borderRadius="md"
                 boxShadow="md"
-                cursor="pointer"
                 onClick={() => setShowFilters(true)}
                 _hover={{ bg: 'bg.subtle' }}
+                size="lg"
               >
-                <Text fontWeight="semibold" color="text.primary">
-                  💲 Filter by Price
-                </Text>
-              </Box>
+                ⚙️
+              </IconButton>
             ) : (
               <Box>
                 <PriceFilter 
                   onFilterChange={handleFilterChange}
                   onClearFilters={handleClearFilters}
+                  initialValues={priceFilters}
                 />
                 <Box
                   mt={2}

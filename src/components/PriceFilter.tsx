@@ -1,5 +1,5 @@
 import { Box, Button, HStack, Heading, Input, VStack } from '@chakra-ui/react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export interface PriceFilterState {
   minBrunchPrice?: number
@@ -13,15 +13,28 @@ export interface PriceFilterState {
 interface PriceFilterProps {
   onFilterChange: (filters: PriceFilterState) => void
   onClearFilters: () => void
+  initialValues?: PriceFilterState
 }
 
-export function PriceFilter({ onFilterChange, onClearFilters }: PriceFilterProps) {
-  const [minBrunchPrice, setMinBrunchPrice] = useState<string>('')
-  const [maxBrunchPrice, setMaxBrunchPrice] = useState<string>('')
-  const [minLunchPrice, setMinLunchPrice] = useState<string>('')
-  const [maxLunchPrice, setMaxLunchPrice] = useState<string>('')
-  const [minDinnerPrice, setMinDinnerPrice] = useState<string>('')
-  const [maxDinnerPrice, setMaxDinnerPrice] = useState<string>('')
+export function PriceFilter({ onFilterChange, onClearFilters, initialValues }: PriceFilterProps) {
+  const [minBrunchPrice, setMinBrunchPrice] = useState<string>(initialValues?.minBrunchPrice?.toString() ?? '')
+  const [maxBrunchPrice, setMaxBrunchPrice] = useState<string>(initialValues?.maxBrunchPrice?.toString() ?? '')
+  const [minLunchPrice, setMinLunchPrice] = useState<string>(initialValues?.minLunchPrice?.toString() ?? '')
+  const [maxLunchPrice, setMaxLunchPrice] = useState<string>(initialValues?.maxLunchPrice?.toString() ?? '')
+  const [minDinnerPrice, setMinDinnerPrice] = useState<string>(initialValues?.minDinnerPrice?.toString() ?? '')
+  const [maxDinnerPrice, setMaxDinnerPrice] = useState<string>(initialValues?.maxDinnerPrice?.toString() ?? '')
+
+  // Update local state when initialValues change
+  useEffect(() => {
+    if (initialValues) {
+      setMinBrunchPrice(initialValues.minBrunchPrice?.toString() ?? '')
+      setMaxBrunchPrice(initialValues.maxBrunchPrice?.toString() ?? '')
+      setMinLunchPrice(initialValues.minLunchPrice?.toString() ?? '')
+      setMaxLunchPrice(initialValues.maxLunchPrice?.toString() ?? '')
+      setMinDinnerPrice(initialValues.minDinnerPrice?.toString() ?? '')
+      setMaxDinnerPrice(initialValues.maxDinnerPrice?.toString() ?? '')
+    }
+  }, [initialValues])
 
   const handleApplyFilters = () => {
     const filters: PriceFilterState = {}
@@ -56,7 +69,7 @@ export function PriceFilter({ onFilterChange, onClearFilters }: PriceFilterProps
       maxW="400px"
     >
       <Heading size="md" mb={4} color="text.primary">
-        Filter by Price
+        Price
       </Heading>
       
       <VStack gap={4} align="stretch">
