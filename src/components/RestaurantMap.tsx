@@ -30,56 +30,28 @@ export function RestaurantMap({
   onSelectRestaurant,
 }: RestaurantMapProps) {
   const [isClient, setIsClient] = useState(false)
+  const [mapLoaded, setMapLoaded] = useState(false)
+  const [ReactLeaflet, setReactLeaflet] = useState<any>(null)
+  const [customIcon, setCustomIcon] = useState<any>(null)
 
+  // Step 1: Check if we're on the client side (avoid SSR issues with Leaflet)
   useEffect(() => {
     setIsClient(true)
   }, [])
 
-  // Only render map on client side to avoid SSR issues with Leaflet
-  if (!isClient) {
-    return (
-      <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-        <p className="text-gray-600 dark:text-gray-400">Loading map...</p>
-      </div>
-    )
-  }
-
-  return <ClientOnlyMap restaurants={restaurants} onSelectRestaurant={onSelectRestaurant} />
-}
-
-function ClientOnlyMap({
-  restaurants,
-  onSelectRestaurant,
-}: RestaurantMapProps) {
-  const [mapLoaded, setMapLoaded] = useState(false)
-
+  // Step 2: Dynamically import Leaflet CSS only on client side
   useEffect(() => {
-    // Dynamically import Leaflet CSS only on client side
+    if (!isClient) return
+
     import('leaflet/dist/leaflet.css').then(() => {
       setMapLoaded(true)
     })
-  }, [])
+  }, [isClient])
 
-  if (!mapLoaded) {
-    return (
-      <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-        <p className="text-gray-600 dark:text-gray-400">Loading map...</p>
-      </div>
-    )
-  }
-
-  return <MapComponent restaurants={restaurants} onSelectRestaurant={onSelectRestaurant} />
-}
-
-function MapComponent({
-  restaurants,
-  onSelectRestaurant,
-}: RestaurantMapProps) {
-  // Lazy load react-leaflet components and Leaflet
-  const [ReactLeaflet, setReactLeaflet] = useState<any>(null)
-  const [customIcon, setCustomIcon] = useState<any>(null)
-
+  // Step 3: Lazy load react-leaflet components and Leaflet
   useEffect(() => {
+    if (!mapLoaded) return
+
     Promise.all([
       import('react-leaflet'),
       import('leaflet')
@@ -100,9 +72,10 @@ function MapComponent({
       
       setCustomIcon(svgIcon)
     })
-  }, [])
+  }, [mapLoaded])
 
-  if (!ReactLeaflet || !customIcon) {
+  // Show loading state while initializing
+  if (!isClient || !mapLoaded || !ReactLeaflet || !customIcon) {
     return (
       <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
         <p className="text-gray-600 dark:text-gray-400">Loading map...</p>
