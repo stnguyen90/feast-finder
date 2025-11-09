@@ -39,9 +39,11 @@ function Home() {
   )
   
   // Fetch filtered restaurants when price filters are applied
-  const { data: filteredRestaurants } = useSuspenseQuery(
-    convexQuery(api.restaurants.listRestaurantsWithPriceFilter, priceFilters),
-  )
+  // Use regular useQuery with placeholderData to prevent flickering
+  const { data: filteredRestaurants } = useQuery({
+    ...convexQuery(api.restaurants.listRestaurantsWithPriceFilter, priceFilters),
+    placeholderData: (previousData) => previousData, // Keep previous data while loading
+  })
 
   // Fetch geospatial results when bounds are available
   // Use regular useQuery with placeholderData to prevent flickering
@@ -57,7 +59,9 @@ function Home() {
   const restaurants = useMemo(() => {
     // Start with price-filtered restaurants if any filters are active
     const hasPriceFilters = Object.keys(priceFilters).length > 0
-    const baseRestaurants = hasPriceFilters ? filteredRestaurants : allRestaurants
+    const baseRestaurants = hasPriceFilters 
+      ? (filteredRestaurants ?? allRestaurants) 
+      : allRestaurants
     
     // Apply geospatial filtering on top of price filtering
     if (mapBounds !== null && geoRestaurantsResult) {

@@ -69,7 +69,7 @@ export function RestaurantMap({
     )
   }
 
-  const { MapContainer, TileLayer, Marker, useMapEvents } = ReactLeaflet
+  const { MapContainer, TileLayer, Marker, useMapEvents, ZoomControl } = ReactLeaflet
 
   // Component to track map events
   function MapEventsHandler() {
@@ -113,11 +113,13 @@ export function RestaurantMap({
       zoom={zoom}
       className="absolute inset-0"
       scrollWheelZoom={true}
+      zoomControl={false}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
+      <ZoomControl position="topright" />
       <MapEventsHandler />
       {restaurants.map((restaurant) => (
         <Marker
