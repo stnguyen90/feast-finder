@@ -6,12 +6,16 @@ Feast Finder is an interactive restaurant discovery application that displays re
 
 ## Key Features Implemented
 
-### 1. Interactive Map (RestaurantMap.tsx)
+### 1. Interactive Map (RestaurantMap.tsx & RestaurantMapClient.tsx)
 - Uses React Leaflet for map rendering
 - Centered on San Francisco (37.7749, -122.4194)
 - Displays restaurant markers at their exact coordinates
 - Click markers to open detail modal
-- Popup preview shows name, rating, and address
+- Client-side only rendering using TanStack Router's `ClientOnly` component
+- Lazy-loaded with React's `lazy()` and `Suspense` for optimal code splitting
+- Split into two files:
+  - `RestaurantMap.tsx`: Wrapper with ClientOnly and Suspense handling
+  - `RestaurantMapClient.tsx`: Actual Leaflet implementation (client-side only)
 
 ### 2. Restaurant Detail Modal (RestaurantDetail.tsx)
 - Full-screen overlay modal
@@ -90,8 +94,35 @@ Defines restaurants table with:
 - **Responsive**: Tailwind CSS ensures mobile-friendly design
 - **SSR**: TanStack Start provides server-side rendering
 - **Map Integration**: React Leaflet with OpenStreetMap tiles
+- **Client-Side Rendering**: Uses TanStack Router's `ClientOnly` component to handle SSR/client-only code
+- **Code Splitting**: Leaflet components lazy-loaded with React.lazy() and Suspense (~159 KB separate chunk)
 - **Dark Mode**: Built-in support via Tailwind
 - **Auto-seeding**: Convenient sample data for testing
+
+## Architecture: Map Component Design
+
+The map implementation uses a modern, simplified architecture:
+
+### RestaurantMap.tsx (Main Wrapper)
+- Wraps everything with TanStack Router's `ClientOnly` component
+- Handles SSR by showing fallback during server-side rendering
+- Uses React's `lazy()` to dynamically import the map component
+- Uses `Suspense` to show loading state while map loads
+- Imports Leaflet CSS once on mount
+
+### RestaurantMapClient.tsx (Client-Side Implementation)
+- Contains all Leaflet-specific code
+- Only loaded on client-side (never during SSR)
+- Configures Leaflet marker icons for Vite bundler
+- Renders MapContainer with TileLayer and Markers
+- Handles restaurant selection on marker click
+
+This architecture provides:
+- ✅ **Clean separation of concerns**: SSR logic separate from map implementation
+- ✅ **Better code splitting**: Map code in separate chunk (~159 KB)
+- ✅ **Simpler loading states**: Single unified loading component
+- ✅ **Modern React patterns**: Uses official lazy/Suspense APIs
+- ✅ **No manual state management**: Relies on framework utilities
 
 ## Build & Deployment
 
@@ -111,7 +142,8 @@ Defines restaurants table with:
 - `package.json` - Added leaflet dependencies
 
 ### Created:
-- `src/components/RestaurantMap.tsx` - Map component
+- `src/components/RestaurantMap.tsx` - Map wrapper with ClientOnly and Suspense
+- `src/components/RestaurantMapClient.tsx` - Client-side Leaflet implementation
 - `src/components/RestaurantDetail.tsx` - Detail modal component
 - `README.md` - Project documentation
 
