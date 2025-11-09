@@ -1,11 +1,12 @@
 # 🍽️ Feast Finder
 
-**Discover amazing restaurants on an interactive map**
+**Discover amazing restaurants and restaurant week events in the San Francisco Bay Area**
 
-Feast Finder is a modern web application built with React, Convex, and React Leaflet that helps users explore and discover restaurants in the San Francisco Bay Area through an interactive map interface.
+Feast Finder is a modern web application built with React, Convex, and React Leaflet that helps users explore restaurant week events and discover dining experiences through an interactive map interface.
 
 ## Features
 
+- 🎉 **Restaurant Week Events**: Browse upcoming restaurant week events with exclusive menus
 - 🗺️ **Interactive Map**: Explore restaurants on an OpenStreetMap-powered interactive map
 - 📍 **Location Markers**: Each restaurant is marked on the map with its exact coordinates
 - 🔍 **Restaurant Details**: Click on any marker to view comprehensive restaurant information
@@ -16,6 +17,23 @@ Feast Finder is a modern web application built with React, Convex, and React Lea
 - 📱 **Responsive Design**: Works seamlessly on desktop and mobile devices
 - 🌍 **Geospatial Indexing**: Efficient location-based queries using Convex Geospatial Component
 - 🎯 **Viewport-Based Loading**: Dynamically fetches restaurants visible in the current map view
+
+## Pages
+
+### Landing Page (`/`)
+The homepage showcases Feast Finder's purpose and features:
+- Hero section describing the app's benefits
+- Feature highlights (Interactive Map, Restaurant Week Events, Price Filtering)
+- Upcoming restaurant week events with detailed descriptions
+- Call-to-action buttons to explore restaurants
+- Fallback messaging when no events are available
+
+### Restaurants Page (`/restaurants`)
+Interactive map interface for exploring restaurants:
+- Full-screen map with restaurant markers
+- Price filter panel for brunch, lunch, and dinner
+- Restaurant detail modals with comprehensive information
+- Geospatial viewport-based loading for performance
 
 ## Restaurant Data Model
 
@@ -32,6 +50,19 @@ Each restaurant includes:
 - **Meal Times**: Boolean flags for brunch, lunch, and dinner availability
 - **Pricing**: Average prices for brunch, lunch, and dinner services
 
+## Event Data Model
+
+Each restaurant week event includes:
+
+- **Name**: Event name
+- **Description**: Detailed description of the event
+- **Dates**: Start and end dates (ISO format)
+- **Location**: Event location description
+- **City**: City name for filtering
+- **Coordinates**: Latitude and longitude for location-based features
+- **Restaurant IDs**: Array of participating restaurant IDs
+- **Image URL**: Optional event image
+
 ## Tech Stack
 
 ### Frontend
@@ -40,6 +71,7 @@ Each restaurant includes:
 - **TanStack Router**: File-based routing with SSR support
 - **TanStack Query**: Data fetching and caching
 - **React Leaflet**: Interactive map component
+- **Chakra UI v3**: Component library for UI
 - **Tailwind CSS v4**: Utility-first styling
 
 ### Backend
@@ -93,29 +125,37 @@ This will:
 3. Generate a `.env.local` file with your Convex deployment URL
 4. Start the Convex development server
 
-The app automatically seeds sample restaurant data on first load.
+The app automatically seeds sample restaurant and event data on first load.
 
 ## Project Structure
 
 ```
 feast-finder/
 ├── convex/
-│   ├── myFunctions.ts       # Backend queries and mutations
+│   ├── events.ts            # Event queries and mutations
+│   ├── restaurants.ts       # Restaurant queries and mutations
+│   ├── restaurantsGeo.ts    # Geospatial queries
+│   ├── seedData.ts          # Sample data seeding
 │   ├── schema.ts            # Database schema definition
 │   └── _generated/          # Auto-generated Convex types
 ├── src/
 │   ├── components/
 │   │   ├── RestaurantMap.tsx    # Interactive map component
-│   │   └── RestaurantDetail.tsx # Restaurant detail modal
+│   │   ├── RestaurantDetail.tsx # Restaurant detail modal
+│   │   ├── PriceFilter.tsx      # Price filtering component
+│   │   └── ColorModeToggle.tsx  # Dark mode toggle
 │   ├── routes/
-│   │   ├── __root.tsx       # Root layout
-│   │   └── index.tsx        # Homepage
+│   │   ├── __root.tsx        # Root layout
+│   │   ├── index.tsx         # Landing page with events
+│   │   └── restaurants.tsx   # Interactive map page
 │   └── styles/
 │       └── app.css          # Global styles
 └── public/                  # Static assets
 ```
 
 ## Sample Data
+
+### Restaurants
 
 The application includes 10 curated San Francisco Bay Area restaurants:
 
@@ -129,6 +169,16 @@ The application includes 10 curated San Francisco Bay Area restaurants:
 - Swan Oyster Depot
 - Flour + Water
 - Mama's on Washington Square
+
+### Restaurant Week Events
+
+The application includes 5 sample restaurant week events:
+
+- **SF Restaurant Week** (Jan 15-31, 2025): Multi-course prix-fixe menus across SF
+- **North Beach Italian Festival Week** (Feb 1-14, 2025): Italian cuisine celebration
+- **Bay Area Seafood Week** (Feb 15-22, 2025): Fresh seafood and sustainable catches
+- **Mission District Food Crawl** (Mar 1-15, 2025): Diverse Mission neighborhood flavors
+- **Wine Country Fine Dining Week** (Mar 20-31, 2025): Michelin-starred experiences in Napa
 
 ## Development
 

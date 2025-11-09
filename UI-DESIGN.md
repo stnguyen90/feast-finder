@@ -2,7 +2,78 @@
 
 ## Visual Design Description
 
-### Homepage Layout
+### Landing Page Layout (`/`)
+
+The landing page is designed to introduce Feast Finder and showcase restaurant week events.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     🍽️ Feast Finder                        │
+│                                                               │
+└─────────────────────────────────────────────────────────────┘
+│                                                               │
+│              Discover Your Next Culinary Adventure            │
+│                                                               │
+│    Feast Finder helps you explore restaurant week events     │
+│    and discover amazing dining experiences in the SF Bay     │
+│    Area. Find exclusive prix-fixe menus, special tastings,   │
+│    and culinary events near you.                             │
+│                                                               │
+│         [Explore Restaurants on Map] (Blue button)           │
+│                                                               │
+├─────────────────────────────────────────────────────────────┤
+│                                                               │
+│                  Why Choose Feast Finder?                     │
+│                                                               │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
+│  │     🗺️       │  │     🎉       │  │     💲       │       │
+│  │ Interactive  │  │ Restaurant   │  │ Filter by    │       │
+│  │     Map      │  │ Week Events  │  │    Price     │       │
+│  │              │  │              │  │              │       │
+│  │ Explore on   │  │ Never miss   │  │ Find within  │       │
+│  │ intuitive    │  │ special      │  │ your budget  │       │
+│  │ interface    │  │ dining       │  │              │       │
+│  └──────────────┘  └──────────────┘  └──────────────┘       │
+│                                                               │
+├─────────────────────────────────────────────────────────────┤
+│                                                               │
+│            Upcoming Restaurant Week Events                    │
+│     Join special dining events featuring exclusive menus     │
+│                                                               │
+│  ┌───────────────────────────────────────────────────────┐   │
+│  │ SF Restaurant Week            [Active Now]            │   │
+│  │ 📍 Various Locations in San Francisco                │   │
+│  │                                                         │   │
+│  │ Multi-course prix-fixe menus at special prices...     │   │
+│  │                                                         │   │
+│  │ 📅 Jan 15 - Jan 31, 2025    🍽️ 5 restaurants         │   │
+│  │                                                         │   │
+│  │         [View Participating Restaurants]                │   │
+│  └───────────────────────────────────────────────────────┘   │
+│                                                               │
+│  [Additional event cards...]                                  │
+│                                                               │
+├─────────────────────────────────────────────────────────────┤
+│  © 2025 Feast Finder. Discover amazing restaurants in SF.   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Landing Page Features:**
+- **Header**: Simple header with Feast Finder logo and dark mode toggle
+- **Hero Section**: Large heading, descriptive text, prominent CTA button
+- **Features Grid**: 3-column responsive grid (stacks on mobile)
+- **Events Section**: Vertical stack of event cards
+- **Event Cards**: 
+  - Event name with optional "Active Now" badge (green)
+  - Location with emoji
+  - Description text
+  - Date range and restaurant count
+  - Blue CTA button to view restaurants
+  - Hover effect: elevated shadow and slight upward translation
+- **Footer**: Copyright text with subtle background
+- **Responsive**: Container max-width 1280px, stacks vertically on mobile
+
+### Restaurants Page Layout (`/restaurants`)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
