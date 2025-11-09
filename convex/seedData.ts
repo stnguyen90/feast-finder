@@ -1,7 +1,6 @@
 import { v } from 'convex/values'
 import { mutation } from './_generated/server'
 import { internal } from './_generated/api'
-import type { Id } from './_generated/dataModel'
 
 // Mutation to seed sample restaurant data
 export const seedRestaurants = mutation({
@@ -207,108 +206,175 @@ export const seedEvents = mutation({
       return null
     }
 
-    // Get restaurant IDs by name for event associations
-    const getRestaurantId = async (
-      name: string,
-    ): Promise<Id<'restaurants'> | null> => {
-      const restaurant = await ctx.db
-        .query('restaurants')
-        .withIndex('by_name', (q) => q.eq('name', name))
-        .first()
-      return restaurant?._id ?? null
-    }
+    const syncTime = Date.now()
 
     // Sample restaurant week events
     const eventData = [
       {
         name: 'SF Restaurant Week',
-        description:
-          "San Francisco Restaurant Week features prix-fixe menus at the city's best restaurants. Enjoy multi-course meals at special prices and discover new culinary favorites across the Bay Area.",
         startDate: '2025-01-15T00:00:00.000Z',
         endDate: '2025-01-31T23:59:59.999Z',
-        location: 'Various Locations in San Francisco',
-        city: 'San Francisco',
         latitude: 37.7749,
         longitude: -122.4194,
-        restaurantNames: [
+        websiteUrl: 'https://www.sfrestaurantweek.com',
+      },
+      {
+        name: 'North Beach Italian Festival Week',
+        startDate: '2025-02-01T00:00:00.000Z',
+        endDate: '2025-02-14T23:59:59.999Z',
+        latitude: 37.8008,
+        longitude: -122.4106,
+        websiteUrl: 'https://www.northbeachfestival.com',
+      },
+      {
+        name: 'Bay Area Seafood Week',
+        startDate: '2025-02-15T00:00:00.000Z',
+        endDate: '2025-02-22T23:59:59.999Z',
+        latitude: 37.7919,
+        longitude: -122.4206,
+        websiteUrl: 'https://www.bayareaseafoodweek.com',
+      },
+      {
+        name: 'Mission District Food Crawl',
+        startDate: '2025-03-01T00:00:00.000Z',
+        endDate: '2025-03-15T23:59:59.999Z',
+        latitude: 37.7599,
+        longitude: -122.4148,
+        websiteUrl: 'https://www.missionfoodcrawl.com',
+      },
+      {
+        name: 'Wine Country Fine Dining Week',
+        startDate: '2025-03-20T00:00:00.000Z',
+        endDate: '2025-03-31T23:59:59.999Z',
+        latitude: 38.4036,
+        longitude: -122.3644,
+        websiteUrl: 'https://www.winecountrydining.com',
+      },
+    ]
+
+    // Insert events and create menus
+    for (const event of eventData) {
+      const eventId = await ctx.db.insert('events', {
+        ...event,
+        syncTime,
+      })
+
+      // Create sample menus based on event name
+      if (event.name === 'SF Restaurant Week') {
+        // Add menus for multiple restaurants
+        const restaurants = [
           'Zuni Café',
           'State Bird Provisions',
           'Gary Danko',
           'Nopa',
           'Flour + Water',
-        ],
-      },
-      {
-        name: 'North Beach Italian Festival Week',
-        description:
-          "Celebrate Italian cuisine in San Francisco's historic North Beach neighborhood. Experience authentic Italian dishes, special tasting menus, and cultural events at neighborhood trattorias and fine dining establishments.",
-        startDate: '2025-02-01T00:00:00.000Z',
-        endDate: '2025-02-14T23:59:59.999Z',
-        location: 'North Beach, San Francisco',
-        city: 'San Francisco',
-        latitude: 37.8008,
-        longitude: -122.4106,
-        restaurantNames: ['Flour + Water', "Mama's on Washington Square"],
-      },
-      {
-        name: 'Bay Area Seafood Week',
-        description:
-          'Dive into the freshest seafood the Bay Area has to offer. Local restaurants showcase sustainable catches, oyster specials, and ocean-to-table dining experiences throughout the week.',
-        startDate: '2025-02-15T00:00:00.000Z',
-        endDate: '2025-02-22T23:59:59.999Z',
-        location: 'San Francisco & Bay Area',
-        city: 'San Francisco',
-        latitude: 37.7919,
-        longitude: -122.4206,
-        restaurantNames: ['Swan Oyster Depot', 'Gary Danko', 'Zuni Café'],
-      },
-      {
-        name: 'Mission District Food Crawl',
-        description:
-          "Explore the vibrant culinary scene of San Francisco's Mission District. From authentic taquerias to innovative bistros, experience the diverse flavors that make the Mission a food lover's paradise.",
-        startDate: '2025-03-01T00:00:00.000Z',
-        endDate: '2025-03-15T23:59:59.999Z',
-        location: 'Mission District, San Francisco',
-        city: 'San Francisco',
-        latitude: 37.7599,
-        longitude: -122.4148,
-        restaurantNames: ['La Taqueria', 'Tartine Bakery', 'Flour + Water'],
-      },
-      {
-        name: 'Wine Country Fine Dining Week',
-        description:
-          'Indulge in world-class dining experiences in Napa and Sonoma wine country. Michelin-starred restaurants offer exclusive wine pairing menus featuring local vintages and seasonal ingredients.',
-        startDate: '2025-03-20T00:00:00.000Z',
-        endDate: '2025-03-31T23:59:59.999Z',
-        location: 'Napa Valley',
-        city: 'Yountville',
-        latitude: 38.4036,
-        longitude: -122.3644,
-        restaurantNames: ['The French Laundry'],
-      },
-    ]
-
-    // Insert events with resolved restaurant IDs
-    for (const event of eventData) {
-      const { restaurantNames, ...eventFields } = event
-      const restaurantIds: Array<Id<'restaurants'>> = []
-
-      for (const name of restaurantNames) {
-        const id = await getRestaurantId(name)
-        if (id) {
-          restaurantIds.push(id)
+        ]
+        for (const name of restaurants) {
+          const restaurant = await ctx.db
+            .query('restaurants')
+            .withIndex('by_name', (q) => q.eq('name', name))
+            .first()
+          if (restaurant) {
+            // Add lunch and dinner menus
+            await ctx.db.insert('menus', {
+              restaurant: restaurant._id,
+              event: eventId,
+              meal: 'lunch',
+              price: 45,
+              syncTime,
+            })
+            await ctx.db.insert('menus', {
+              restaurant: restaurant._id,
+              event: eventId,
+              meal: 'dinner',
+              price: 65,
+              syncTime,
+            })
+          }
         }
-      }
-
-      if (restaurantIds.length > 0) {
-        await ctx.db.insert('events', {
-          ...eventFields,
-          restaurantIds,
-        })
+      } else if (event.name === 'North Beach Italian Festival Week') {
+        const restaurants = ['Flour + Water', "Mama's on Washington Square"]
+        for (const name of restaurants) {
+          const restaurant = await ctx.db
+            .query('restaurants')
+            .withIndex('by_name', (q) => q.eq('name', name))
+            .first()
+          if (restaurant) {
+            await ctx.db.insert('menus', {
+              restaurant: restaurant._id,
+              event: eventId,
+              meal: 'dinner',
+              price: 55,
+              syncTime,
+            })
+          }
+        }
+      } else if (event.name === 'Bay Area Seafood Week') {
+        const restaurants = ['Swan Oyster Depot', 'Gary Danko', 'Zuni Café']
+        for (const name of restaurants) {
+          const restaurant = await ctx.db
+            .query('restaurants')
+            .withIndex('by_name', (q) => q.eq('name', name))
+            .first()
+          if (restaurant) {
+            await ctx.db.insert('menus', {
+              restaurant: restaurant._id,
+              event: eventId,
+              meal: 'lunch',
+              price: 50,
+              syncTime,
+            })
+          }
+        }
+      } else if (event.name === 'Mission District Food Crawl') {
+        const restaurants = ['La Taqueria', 'Tartine Bakery', 'Flour + Water']
+        for (const name of restaurants) {
+          const restaurant = await ctx.db
+            .query('restaurants')
+            .withIndex('by_name', (q) => q.eq('name', name))
+            .first()
+          if (restaurant) {
+            await ctx.db.insert('menus', {
+              restaurant: restaurant._id,
+              event: eventId,
+              meal: 'brunch',
+              price: 30,
+              syncTime,
+            })
+            await ctx.db.insert('menus', {
+              restaurant: restaurant._id,
+              event: eventId,
+              meal: 'lunch',
+              price: 35,
+              syncTime,
+            })
+          }
+        }
+      } else if (event.name === 'Wine Country Fine Dining Week') {
+        const restaurant = await ctx.db
+          .query('restaurants')
+          .withIndex('by_name', (q) => q.eq('name', 'The French Laundry'))
+          .first()
+        if (restaurant) {
+          await ctx.db.insert('menus', {
+            restaurant: restaurant._id,
+            event: eventId,
+            meal: 'lunch',
+            price: 350,
+            syncTime,
+          })
+          await ctx.db.insert('menus', {
+            restaurant: restaurant._id,
+            event: eventId,
+            meal: 'dinner',
+            price: 350,
+            syncTime,
+          })
+        }
       }
     }
 
-    console.log(`Seeded ${eventData.length} events`)
+    console.log(`Seeded ${eventData.length} events with menus`)
     return null
   },
 })

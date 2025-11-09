@@ -22,16 +22,23 @@ export default defineSchema({
 
   events: defineTable({
     name: v.string(),
-    description: v.string(),
     startDate: v.string(), // ISO date string
     endDate: v.string(), // ISO date string
-    location: v.string(),
-    city: v.string(),
     latitude: v.number(),
     longitude: v.number(),
-    restaurantIds: v.array(v.id('restaurants')),
-    imageUrl: v.optional(v.string()),
+    websiteUrl: v.optional(v.string()),
+    syncTime: v.number(), // Unix timestamp
+  }).index('by_start_date', ['startDate']),
+
+  menus: defineTable({
+    restaurant: v.id('restaurants'),
+    event: v.id('events'),
+    meal: v.union(v.literal('brunch'), v.literal('lunch'), v.literal('dinner')),
+    price: v.number(),
+    url: v.optional(v.string()), // Link to image/PDF menu
+    syncTime: v.number(), // Unix timestamp
   })
-    .index('by_city', ['city'])
-    .index('by_start_date', ['startDate']),
+    .index('by_restaurant', ['restaurant'])
+    .index('by_event', ['event'])
+    .index('by_restaurant_and_event', ['restaurant', 'event']),
 })

@@ -22,15 +22,13 @@ interface Event {
   _id: Id<'events'>
   _creationTime: number
   name: string
-  description: string
   startDate: string
   endDate: string
-  location: string
-  city: string
   latitude: number
   longitude: number
-  restaurantIds: Array<Id<'restaurants'>>
-  imageUrl?: string
+  websiteUrl?: string
+  syncTime: number
+  menuCount: number
   restaurantCount: number
 }
 
@@ -237,7 +235,7 @@ function LandingPage() {
                       align="flex-start"
                     >
                       <Box flex={1}>
-                        <Flex align="center" gap={3} mb={2}>
+                        <Flex align="center" gap={3} mb={4}>
                           <Heading size="lg">{event.name}</Heading>
                           {isActive && (
                             <Badge
@@ -250,15 +248,12 @@ function LandingPage() {
                             </Badge>
                           )}
                         </Flex>
-                        <Text color="text.secondary" mb={4}>
-                          📍 {event.location}
-                        </Text>
-                        <Text mb={4}>{event.description}</Text>
                         <Flex
                           gap={4}
                           mb={4}
                           fontSize="sm"
                           color="text.secondary"
+                          wrap="wrap"
                         >
                           <Text>
                             📅{' '}
@@ -280,7 +275,29 @@ function LandingPage() {
                               ? 'restaurant'
                               : 'restaurants'}
                           </Text>
+                          <Text>
+                            📋 {event.menuCount}{' '}
+                            {event.menuCount === 1 ? 'menu' : 'menus'}
+                          </Text>
                         </Flex>
+                        {event.websiteUrl && (
+                          <Box mb={4}>
+                            <a
+                              href={event.websiteUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{ color: '#3182ce', textDecoration: 'none' }}
+                              onMouseOver={(e) => {
+                                e.currentTarget.style.textDecoration = 'underline'
+                              }}
+                              onMouseOut={(e) => {
+                                e.currentTarget.style.textDecoration = 'none'
+                              }}
+                            >
+                              🌐 Event Website
+                            </a>
+                          </Box>
+                        )}
                         <Link to="/restaurants">
                           <Box
                             as="button"
