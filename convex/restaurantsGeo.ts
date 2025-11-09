@@ -69,67 +69,100 @@ export const queryRestaurantsInBounds = query({
       cursor,
     )
 
+    // Extract restaurant IDs from geospatial results
+    const geoIds = geoResults.results.map(result => result.key)
+    
+    // If no geospatial results, return empty
+    if (geoIds.length === 0) {
+      return {
+        results: [],
+        nextCursor: geoResults.nextCursor,
+      }
+    }
+
     // Determine which price filters are active
     const hasBrunchFilter = minBrunchPrice !== undefined || maxBrunchPrice !== undefined
     const hasLunchFilter = minLunchPrice !== undefined || maxLunchPrice !== undefined
     const hasDinnerFilter = minDinnerPrice !== undefined || maxDinnerPrice !== undefined
     const hasPriceFilters = hasBrunchFilter || hasLunchFilter || hasDinnerFilter
 
-    // Fetch full restaurant details for each ID and apply price filtering
-    const restaurants = []
-    for (const result of geoResults.results) {
-      const restaurant = await ctx.db.get(result.key)
-      if (restaurant) {
-        // Apply price filtering if any filters are active
-        if (hasPriceFilters) {
-          let matchesAtLeastOne = false
+    // Query database with combined geospatial and price filtering
+    let restaurantsQuery = ctx.db.query('restaurants')
+    
+    if (hasPriceFilters) {
+      // Apply database-level filtering for both geospatial and price
+      restaurantsQuery = restaurantsQuery.filter((q) => {
+        // First, ensure restaurant is in geospatial results
+        const inGeoBounds = q.or(...geoIds.map(id => q.eq(q.field('_id'), id)))
+        
+        // Build price filter conditions
+        const priceConditions = []
+        
+        // Brunch price filter
+        if (hasBrunchFilter) {
+          let brunchCondition = q.and(
+            q.eq(q.field('hasBrunch'), true),
+            q.neq(q.field('brunchPrice'), undefined)
+          )
           
-          // Check brunch price filter
-          if (hasBrunchFilter) {
-            const hasBrunch = restaurant.hasBrunch && restaurant.brunchPrice !== undefined
-            if (hasBrunch && restaurant.brunchPrice !== undefined) {
-              const meetsMin = minBrunchPrice === undefined || restaurant.brunchPrice >= minBrunchPrice
-              const meetsMax = maxBrunchPrice === undefined || restaurant.brunchPrice <= maxBrunchPrice
-              if (meetsMin && meetsMax) {
-                matchesAtLeastOne = true
-              }
-            }
+          if (minBrunchPrice !== undefined) {
+            brunchCondition = q.and(brunchCondition, q.gte(q.field('brunchPrice'), minBrunchPrice))
           }
           
-          // Check lunch price filter
-          if (hasLunchFilter && !matchesAtLeastOne) {
-            const hasLunch = restaurant.hasLunch && restaurant.lunchPrice !== undefined
-            if (hasLunch && restaurant.lunchPrice !== undefined) {
-              const meetsMin = minLunchPrice === undefined || restaurant.lunchPrice >= minLunchPrice
-              const meetsMax = maxLunchPrice === undefined || restaurant.lunchPrice <= maxLunchPrice
-              if (meetsMin && meetsMax) {
-                matchesAtLeastOne = true
-              }
-            }
+          if (maxBrunchPrice !== undefined) {
+            brunchCondition = q.and(brunchCondition, q.lte(q.field('brunchPrice'), maxBrunchPrice))
           }
           
-          // Check dinner price filter
-          if (hasDinnerFilter && !matchesAtLeastOne) {
-            const hasDinner = restaurant.hasDinner && restaurant.dinnerPrice !== undefined
-            if (hasDinner && restaurant.dinnerPrice !== undefined) {
-              const meetsMin = minDinnerPrice === undefined || restaurant.dinnerPrice >= minDinnerPrice
-              const meetsMax = maxDinnerPrice === undefined || restaurant.dinnerPrice <= maxDinnerPrice
-              if (meetsMin && meetsMax) {
-                matchesAtLeastOne = true
-              }
-            }
-          }
-          
-          // Only include restaurant if it matches at least one price filter
-          if (matchesAtLeastOne) {
-            restaurants.push(restaurant)
-          }
-        } else {
-          // No price filters, include all geospatially matching restaurants
-          restaurants.push(restaurant)
+          priceConditions.push(brunchCondition)
         }
-      }
+        
+        // Lunch price filter
+        if (hasLunchFilter) {
+          let lunchCondition = q.and(
+            q.eq(q.field('hasLunch'), true),
+            q.neq(q.field('lunchPrice'), undefined)
+          )
+          
+          if (minLunchPrice !== undefined) {
+            lunchCondition = q.and(lunchCondition, q.gte(q.field('lunchPrice'), minLunchPrice))
+          }
+          
+          if (maxLunchPrice !== undefined) {
+            lunchCondition = q.and(lunchCondition, q.lte(q.field('lunchPrice'), maxLunchPrice))
+          }
+          
+          priceConditions.push(lunchCondition)
+        }
+        
+        // Dinner price filter
+        if (hasDinnerFilter) {
+          let dinnerCondition = q.and(
+            q.eq(q.field('hasDinner'), true),
+            q.neq(q.field('dinnerPrice'), undefined)
+          )
+          
+          if (minDinnerPrice !== undefined) {
+            dinnerCondition = q.and(dinnerCondition, q.gte(q.field('dinnerPrice'), minDinnerPrice))
+          }
+          
+          if (maxDinnerPrice !== undefined) {
+            dinnerCondition = q.and(dinnerCondition, q.lte(q.field('dinnerPrice'), maxDinnerPrice))
+          }
+          
+          priceConditions.push(dinnerCondition)
+        }
+        
+        // Combine: must be in geo bounds AND match at least one price filter
+        return q.and(inGeoBounds, q.or(...priceConditions))
+      })
+    } else {
+      // No price filters, just filter by geospatial IDs
+      restaurantsQuery = restaurantsQuery.filter((q) => {
+        return q.or(...geoIds.map(id => q.eq(q.field('_id'), id)))
+      })
     }
+    
+    const restaurants = await restaurantsQuery.collect()
 
     return {
       results: restaurants,
