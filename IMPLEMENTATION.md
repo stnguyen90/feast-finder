@@ -30,6 +30,7 @@ Feast Finder is an interactive restaurant discovery application that displays re
 - Auto-seeds sample data on first load
 - Shows count of restaurants found
 - Instructions to click markers
+- **Price Filter Panel**: Toggle button to show/hide price filters
 - Renders map and handles restaurant selection
 
 ### 4. Backend (Convex)
@@ -57,6 +58,10 @@ Defines restaurants table with:
 
 #### Functions (restaurants.ts)
 - **listRestaurants**: Query to get all restaurants
+- **listRestaurantsWithPriceFilter**: Query to filter restaurants by price ranges
+  - Accepts optional min/max prices for brunch, lunch, and dinner
+  - Uses OR logic: restaurants matching ANY meal type criteria are returned
+  - Only shows restaurants that have the specified meal type with prices in range
 - **getRestaurant**: Query to get single restaurant by ID
 - **addRestaurant**: Mutation to add new restaurant (auto-syncs to geospatial index)
 
@@ -89,14 +94,22 @@ Defines restaurants table with:
 6. User can:
    - Pan and zoom the map
    - Click any marker to open detailed modal
-7. In the modal, user sees:
+   - **Open price filter panel** to filter restaurants by meal prices
+7. When using price filters:
+   - Click "💲 Filter by Price" button to show filter panel
+   - Enter min/max prices for desired meal types (brunch, lunch, dinner)
+   - Click "Apply Filters" to update the map
+   - Restaurants matching ANY of the price criteria are shown
+   - Price filtering combines with viewport filtering
+   - Click "Clear" to remove filters, or "Hide Filters" to collapse panel
+8. In the modal, user sees:
    - Restaurant name and rating
    - Full address
    - Category tags (e.g., "Italian", "Fine Dining")
    - Available meal times with prices
    - Links to website, Yelp, and OpenTable
-8. User clicks X or outside modal to close
-9. User can select another restaurant
+9. User clicks X or outside modal to close
+10. User can select another restaurant
 
 ## Technical Highlights
 
@@ -138,6 +151,7 @@ Defines restaurants table with:
 - `GEOSPATIAL.md` - Comprehensive geospatial integration documentation
 - `src/components/RestaurantDetail.tsx` - Detail modal component
 - `src/components/ColorModeToggle.tsx` - Theme toggle component
+- `src/components/PriceFilter.tsx` - Price filtering component with min/max inputs
 
 ## Visual Design
 
@@ -159,7 +173,7 @@ Defines restaurants table with:
 ## Next Steps for Enhancement
 
 Potential future improvements:
-- Add search/filter functionality
+- ~~Add search/filter functionality~~ ✅ **Price filtering implemented**
 - Add distance/radius filtering
 - Add user authentication and favorites
 - Add review system
@@ -167,3 +181,5 @@ Potential future improvements:
 - Add clustering for many restaurants
 - Add directions/navigation integration
 - Add restaurant comparison feature
+- Add category/cuisine filtering
+- Add rating filtering
