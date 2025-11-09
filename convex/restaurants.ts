@@ -66,48 +66,57 @@ export const listRestaurantsWithPriceFilter = query({
   handler: async (ctx, args) => {
     const restaurants = await ctx.db.query('restaurants').collect()
     
-    // Filter restaurants based on price criteria
+    // Determine which filters are active
+    const hasBrunchFilter = args.minBrunchPrice !== undefined || args.maxBrunchPrice !== undefined
+    const hasLunchFilter = args.minLunchPrice !== undefined || args.maxLunchPrice !== undefined
+    const hasDinnerFilter = args.minDinnerPrice !== undefined || args.maxDinnerPrice !== undefined
+    
+    // If no filters are active, return all restaurants
+    if (!hasBrunchFilter && !hasLunchFilter && !hasDinnerFilter) {
+      return restaurants
+    }
+    
+    // Filter restaurants based on price criteria (OR logic between meal types)
     return restaurants.filter((restaurant) => {
+      let matchesAtLeastOne = false
+      
       // Check brunch price filter
-      if (args.minBrunchPrice !== undefined || args.maxBrunchPrice !== undefined) {
-        if (!restaurant.hasBrunch || restaurant.brunchPrice === undefined) {
-          return false
-        }
-        if (args.minBrunchPrice !== undefined && restaurant.brunchPrice < args.minBrunchPrice) {
-          return false
-        }
-        if (args.maxBrunchPrice !== undefined && restaurant.brunchPrice > args.maxBrunchPrice) {
-          return false
+      if (hasBrunchFilter) {
+        const hasBrunch = restaurant.hasBrunch && restaurant.brunchPrice !== undefined
+        if (hasBrunch && restaurant.brunchPrice !== undefined) {
+          const meetsMin = args.minBrunchPrice === undefined || restaurant.brunchPrice >= args.minBrunchPrice
+          const meetsMax = args.maxBrunchPrice === undefined || restaurant.brunchPrice <= args.maxBrunchPrice
+          if (meetsMin && meetsMax) {
+            matchesAtLeastOne = true
+          }
         }
       }
       
       // Check lunch price filter
-      if (args.minLunchPrice !== undefined || args.maxLunchPrice !== undefined) {
-        if (!restaurant.hasLunch || restaurant.lunchPrice === undefined) {
-          return false
-        }
-        if (args.minLunchPrice !== undefined && restaurant.lunchPrice < args.minLunchPrice) {
-          return false
-        }
-        if (args.maxLunchPrice !== undefined && restaurant.lunchPrice > args.maxLunchPrice) {
-          return false
+      if (hasLunchFilter) {
+        const hasLunch = restaurant.hasLunch && restaurant.lunchPrice !== undefined
+        if (hasLunch && restaurant.lunchPrice !== undefined) {
+          const meetsMin = args.minLunchPrice === undefined || restaurant.lunchPrice >= args.minLunchPrice
+          const meetsMax = args.maxLunchPrice === undefined || restaurant.lunchPrice <= args.maxLunchPrice
+          if (meetsMin && meetsMax) {
+            matchesAtLeastOne = true
+          }
         }
       }
       
       // Check dinner price filter
-      if (args.minDinnerPrice !== undefined || args.maxDinnerPrice !== undefined) {
-        if (!restaurant.hasDinner || restaurant.dinnerPrice === undefined) {
-          return false
-        }
-        if (args.minDinnerPrice !== undefined && restaurant.dinnerPrice < args.minDinnerPrice) {
-          return false
-        }
-        if (args.maxDinnerPrice !== undefined && restaurant.dinnerPrice > args.maxDinnerPrice) {
-          return false
+      if (hasDinnerFilter) {
+        const hasDinner = restaurant.hasDinner && restaurant.dinnerPrice !== undefined
+        if (hasDinner && restaurant.dinnerPrice !== undefined) {
+          const meetsMin = args.minDinnerPrice === undefined || restaurant.dinnerPrice >= args.minDinnerPrice
+          const meetsMax = args.maxDinnerPrice === undefined || restaurant.dinnerPrice <= args.maxDinnerPrice
+          if (meetsMin && meetsMax) {
+            matchesAtLeastOne = true
+          }
         }
       }
       
-      return true
+      return matchesAtLeastOne
     })
   },
 })
