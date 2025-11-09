@@ -23,6 +23,45 @@ export const Route = createRootRouteWithContext<{
       {
         title: 'Feast Finder - Discover Amazing Restaurants',
       },
+      {
+        name: 'description',
+        content:
+          'Discover restaurant week events and amazing dining experiences near you. Find exclusive prix-fixe menus, special tastings, and culinary events.',
+      },
+      {
+        property: 'og:title',
+        content: 'Feast Finder - Discover Amazing Restaurants',
+      },
+      {
+        property: 'og:description',
+        content:
+          'Discover restaurant week events and amazing dining experiences near you. Find exclusive prix-fixe menus, special tastings, and culinary events.',
+      },
+      {
+        property: 'og:type',
+        content: 'website',
+      },
+      {
+        property: 'og:image',
+        content: '/og-image.png',
+      },
+      {
+        name: 'twitter:card',
+        content: 'summary_large_image',
+      },
+      {
+        name: 'twitter:title',
+        content: 'Feast Finder - Discover Amazing Restaurants',
+      },
+      {
+        name: 'twitter:description',
+        content:
+          'Discover restaurant week events and amazing dining experiences near you. Find exclusive prix-fixe menus, special tastings, and culinary events.',
+      },
+      {
+        name: 'twitter:image',
+        content: '/og-image.png',
+      },
     ],
     links: [
       { rel: 'stylesheet', href: appCss },

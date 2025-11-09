@@ -1,4 +1,4 @@
-import { Link, createFileRoute } from '@tanstack/react-router'
+import { Link as RouterLink, createFileRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
 import { useMutation } from 'convex/react'
@@ -11,11 +11,12 @@ import {
   Container,
   Flex,
   Heading,
+  Link,
   Spinner,
   Text,
   VisuallyHidden,
 } from '@chakra-ui/react'
-import { FaCalendarAlt, FaClipboardList, FaFilter, FaGlobe, FaMapMarkedAlt, FaUtensils } from 'react-icons/fa'
+import { FaCalendarAlt, FaFilter, FaGlobe, FaMapMarkedAlt, FaUtensils } from 'react-icons/fa'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { ColorModeToggle } from '~/components/ColorModeToggle'
@@ -93,9 +94,19 @@ function LandingPage() {
 
       <Container maxW="container.xl" py={12}>
         {/* Hero Section */}
-        <Box textAlign="center" mb={16}>
-          <Heading size="4xl" mb={6}>
-            Discover Your Next Culinary Adventure
+        <Box textAlign="center" mb={16} position="relative">
+          <Heading size="5xl" mb={6} fontWeight="extrabold" color="fg.default">
+            Discover Your Next
+            <br />
+            <Box
+              as="span"
+              bgGradient="to-r"
+              gradientFrom="brand.solid"
+              gradientTo="purple.500"
+              bgClip="text"
+            >
+              Culinary Adventure
+            </Box>
           </Heading>
           <Text
             fontSize="xl"
@@ -103,13 +114,14 @@ function LandingPage() {
             mb={8}
             maxW="2xl"
             mx="auto"
+            lineHeight="tall"
           >
             Feast Finder helps you explore restaurant week events and discover
             amazing dining experiences near you. Find exclusive prix-fixe menus,
             special tastings, and culinary events in your area.
           </Text>
           <Button asChild bg="brand.solid" color="brand.contrast" size="xl">
-            <Link to="/restaurants">Explore Restaurants</Link>
+            <RouterLink to="/restaurants">Explore Restaurants</RouterLink>
           </Button>
         </Box>
 
@@ -131,7 +143,7 @@ function LandingPage() {
               <Box fontSize="4xl" mb={4} color="brand.solid">
                 <FaMapMarkedAlt />
               </Box>
-              <Heading size="lg" mb={4}>
+              <Heading size="lg" mb={4} color="fg.default">
                 Interactive Map
               </Heading>
               <Text color="text.secondary">
@@ -149,7 +161,7 @@ function LandingPage() {
               <Box fontSize="4xl" mb={4} color="brand.solid">
                 <FaCalendarAlt />
               </Box>
-              <Heading size="lg" mb={4}>
+              <Heading size="lg" mb={4} color="fg.default">
                 Restaurant Week Events
               </Heading>
               <Text color="text.secondary">
@@ -167,7 +179,7 @@ function LandingPage() {
               <Box fontSize="4xl" mb={4} color="brand.solid">
                 <FaFilter />
               </Box>
-              <Heading size="lg" mb={4}>
+              <Heading size="lg" mb={4} color="fg.default">
                 Easy Filtering
               </Heading>
               <Text color="text.secondary">
@@ -180,7 +192,7 @@ function LandingPage() {
 
         {/* Events Section */}
         <Box>
-          <Heading size="xl" textAlign="center" mb={2}>
+          <Heading size="xl" textAlign="center" mb={2} color="fg.default">
             Upcoming Restaurant Week Events
           </Heading>
           <Text textAlign="center" color="text.secondary" mb={8}>
@@ -231,7 +243,7 @@ function LandingPage() {
                     >
                       <Box flex={1}>
                         <Flex align="center" gap={3} mb={4}>
-                          <Heading size="lg">{event.name}</Heading>
+                          <Heading size="lg" color="fg.default">{event.name}</Heading>
                           {isActive && (
                             <Badge
                               colorScheme="green"
@@ -276,43 +288,27 @@ function LandingPage() {
                                 : 'restaurants'}
                             </Text>
                           </Flex>
-                          <Flex align="center" gap={1}>
-                            <FaClipboardList />
-                            <Text>
-                              {event.menuCount}{' '}
-                              {event.menuCount === 1 ? 'menu' : 'menus'}
-                            </Text>
-                          </Flex>
                         </Flex>
                         {event.websiteUrl && (
                           <Box mb={4}>
-                            <a
+                            <Link
                               href={event.websiteUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                color: '#3182ce',
-                                textDecoration: 'none',
-                              }}
-                              onMouseOver={(e) => {
-                                e.currentTarget.style.textDecoration = 'underline'
-                              }}
-                              onMouseOut={(e) => {
-                                e.currentTarget.style.textDecoration = 'none'
-                              }}
+                              color="link.primary"
+                              _hover={{ textDecoration: 'underline' }}
                             >
-                              <FaGlobe />
-                              <span>Event Website</span>
-                            </a>
+                              <Flex align="center" gap={1}>
+                                <FaGlobe />
+                                <span>Event Website</span>
+                              </Flex>
+                            </Link>
                           </Box>
                         )}
                         <Button asChild bg="brand.solid" color="brand.contrast" size="lg">
-                          <Link to="/restaurants">
+                          <RouterLink to="/restaurants">
                             View Participating Restaurants
-                          </Link>
+                          </RouterLink>
                         </Button>
                       </Box>
                     </Flex>

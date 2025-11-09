@@ -212,16 +212,16 @@ export const seedEvents = mutation({
     const eventData = [
       {
         name: 'SF Restaurant Week',
-        startDate: '2025-01-15T00:00:00.000Z',
-        endDate: '2025-01-31T23:59:59.999Z',
+        startDate: '2026-01-15T00:00:00.000Z',
+        endDate: '2026-01-31T23:59:59.999Z',
         latitude: 37.7749,
         longitude: -122.4194,
         websiteUrl: 'https://www.sfrestaurantweek.com',
       },
       {
         name: 'North Beach Italian Festival Week',
-        startDate: '2025-02-01T00:00:00.000Z',
-        endDate: '2025-02-14T23:59:59.999Z',
+        startDate: '2026-02-01T00:00:00.000Z',
+        endDate: '2026-02-14T23:59:59.999Z',
         latitude: 37.8008,
         longitude: -122.4106,
         websiteUrl: 'https://www.northbeachfestival.com',
