@@ -3,8 +3,8 @@ import { internalMutation, mutation, query } from './_generated/server'
 import { restaurantsIndex } from './geospatial'
 
 /**
- * Query restaurants within a bounding box (map viewport)
- * This efficiently retrieves only restaurants visible in the current map view
+ * Query restaurants within a bounding box (map viewport) with optional price filtering
+ * This efficiently retrieves only restaurants visible in the current map view that match price criteria
  */
 export const queryRestaurantsInBounds = query({
   args: {
@@ -16,6 +16,13 @@ export const queryRestaurantsInBounds = query({
     }),
     limit: v.optional(v.number()),
     cursor: v.optional(v.string()),
+    // Price filter parameters
+    minBrunchPrice: v.optional(v.number()),
+    maxBrunchPrice: v.optional(v.number()),
+    minLunchPrice: v.optional(v.number()),
+    maxLunchPrice: v.optional(v.number()),
+    minDinnerPrice: v.optional(v.number()),
+    maxDinnerPrice: v.optional(v.number()),
   },
   returns: v.object({
     results: v.array(
@@ -42,7 +49,7 @@ export const queryRestaurantsInBounds = query({
     nextCursor: v.optional(v.string()),
   }),
   handler: async (ctx, args) => {
-    const { bounds, limit = 100, cursor } = args
+    const { bounds, limit = 100, cursor, minBrunchPrice, maxBrunchPrice, minLunchPrice, maxLunchPrice, minDinnerPrice, maxDinnerPrice } = args
 
     // Query geospatial index for restaurant IDs in the bounding box
     const geoResults = await restaurantsIndex.query(
@@ -62,12 +69,65 @@ export const queryRestaurantsInBounds = query({
       cursor,
     )
 
-    // Fetch full restaurant details for each ID
+    // Determine which price filters are active
+    const hasBrunchFilter = minBrunchPrice !== undefined || maxBrunchPrice !== undefined
+    const hasLunchFilter = minLunchPrice !== undefined || maxLunchPrice !== undefined
+    const hasDinnerFilter = minDinnerPrice !== undefined || maxDinnerPrice !== undefined
+    const hasPriceFilters = hasBrunchFilter || hasLunchFilter || hasDinnerFilter
+
+    // Fetch full restaurant details for each ID and apply price filtering
     const restaurants = []
     for (const result of geoResults.results) {
       const restaurant = await ctx.db.get(result.key)
       if (restaurant) {
-        restaurants.push(restaurant)
+        // Apply price filtering if any filters are active
+        if (hasPriceFilters) {
+          let matchesAtLeastOne = false
+          
+          // Check brunch price filter
+          if (hasBrunchFilter) {
+            const hasBrunch = restaurant.hasBrunch && restaurant.brunchPrice !== undefined
+            if (hasBrunch && restaurant.brunchPrice !== undefined) {
+              const meetsMin = minBrunchPrice === undefined || restaurant.brunchPrice >= minBrunchPrice
+              const meetsMax = maxBrunchPrice === undefined || restaurant.brunchPrice <= maxBrunchPrice
+              if (meetsMin && meetsMax) {
+                matchesAtLeastOne = true
+              }
+            }
+          }
+          
+          // Check lunch price filter
+          if (hasLunchFilter && !matchesAtLeastOne) {
+            const hasLunch = restaurant.hasLunch && restaurant.lunchPrice !== undefined
+            if (hasLunch && restaurant.lunchPrice !== undefined) {
+              const meetsMin = minLunchPrice === undefined || restaurant.lunchPrice >= minLunchPrice
+              const meetsMax = maxLunchPrice === undefined || restaurant.lunchPrice <= maxLunchPrice
+              if (meetsMin && meetsMax) {
+                matchesAtLeastOne = true
+              }
+            }
+          }
+          
+          // Check dinner price filter
+          if (hasDinnerFilter && !matchesAtLeastOne) {
+            const hasDinner = restaurant.hasDinner && restaurant.dinnerPrice !== undefined
+            if (hasDinner && restaurant.dinnerPrice !== undefined) {
+              const meetsMin = minDinnerPrice === undefined || restaurant.dinnerPrice >= minDinnerPrice
+              const meetsMax = maxDinnerPrice === undefined || restaurant.dinnerPrice <= maxDinnerPrice
+              if (meetsMin && meetsMax) {
+                matchesAtLeastOne = true
+              }
+            }
+          }
+          
+          // Only include restaurant if it matches at least one price filter
+          if (matchesAtLeastOne) {
+            restaurants.push(restaurant)
+          }
+        } else {
+          // No price filters, include all geospatially matching restaurants
+          restaurants.push(restaurant)
+        }
       }
     }
 

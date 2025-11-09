@@ -70,44 +70,29 @@ function Home() {
   
   const [showFilters, setShowFilters] = useState(false)
 
-  // Always fetch all restaurants for now (used for seeding check and fallback)
+  // Always fetch all restaurants for now (used for seeding check only)
   const { data: allRestaurants } = useSuspenseQuery(
     convexQuery(api.restaurants.listRestaurants, {}),
   )
-  
-  // Fetch filtered restaurants when price filters are applied
-  // Use regular useQuery with placeholderData to prevent flickering
-  const { data: filteredRestaurants } = useQuery({
-    ...convexQuery(api.restaurants.listRestaurantsWithPriceFilter, priceFilters),
-    placeholderData: (previousData) => previousData, // Keep previous data while loading
-  })
 
-  // Fetch geospatial results when bounds are available
+  // Fetch restaurants with both geospatial and price filtering in a single query
   // Use regular useQuery with placeholderData to prevent flickering
   const geoQueryArgs = mapBounds ?? { north: 0, south: 0, east: 0, west: 0 }
   const { data: geoRestaurantsResult } = useQuery({
     ...convexQuery(api.restaurantsGeo.queryRestaurantsInBounds, {
       bounds: geoQueryArgs,
+      ...priceFilters, // Include all price filter parameters
     }),
     placeholderData: (previousData) => previousData, // Keep previous data while loading
   })
 
-  // Determine which restaurants to display based on filters and bounds
+  // Use geospatial results directly - filtering is done in database
   const restaurants = useMemo(() => {
-    // Start with price-filtered restaurants if any filters are active
-    const hasPriceFilters = Object.keys(priceFilters).length > 0
-    const baseRestaurants = hasPriceFilters 
-      ? (filteredRestaurants ?? allRestaurants) 
-      : allRestaurants
-    
-    // Apply geospatial filtering on top of price filtering
     if (mapBounds !== null && geoRestaurantsResult) {
-      const geoIds = new Set(geoRestaurantsResult.results.map((r) => r._id))
-      return baseRestaurants.filter((r) => geoIds.has(r._id))
+      return geoRestaurantsResult.results
     }
-    
-    return baseRestaurants
-  }, [mapBounds, geoRestaurantsResult, allRestaurants, filteredRestaurants, priceFilters])
+    return allRestaurants
+  }, [mapBounds, geoRestaurantsResult, allRestaurants])
 
   const [selectedRestaurant, setSelectedRestaurant] =
     useState<Restaurant | null>(null)
