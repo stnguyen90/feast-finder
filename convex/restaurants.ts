@@ -64,8 +64,6 @@ export const listRestaurantsWithPriceFilter = query({
     }),
   ),
   handler: async (ctx, args) => {
-    const restaurants = await ctx.db.query('restaurants').collect()
-    
     // Determine which filters are active
     const hasBrunchFilter = args.minBrunchPrice !== undefined || args.maxBrunchPrice !== undefined
     const hasLunchFilter = args.minLunchPrice !== undefined || args.maxLunchPrice !== undefined
@@ -73,51 +71,95 @@ export const listRestaurantsWithPriceFilter = query({
     
     // If no filters are active, return all restaurants
     if (!hasBrunchFilter && !hasLunchFilter && !hasDinnerFilter) {
-      return restaurants
+      return await ctx.db.query('restaurants').collect()
     }
     
-    // Filter restaurants based on price criteria (OR logic between meal types)
-    return restaurants.filter((restaurant) => {
-      let matchesAtLeastOne = false
-      
-      // Check brunch price filter
-      if (hasBrunchFilter) {
-        const hasBrunch = restaurant.hasBrunch && restaurant.brunchPrice !== undefined
-        if (hasBrunch && restaurant.brunchPrice !== undefined) {
-          const meetsMin = args.minBrunchPrice === undefined || restaurant.brunchPrice >= args.minBrunchPrice
-          const meetsMax = args.maxBrunchPrice === undefined || restaurant.brunchPrice <= args.maxBrunchPrice
-          if (meetsMin && meetsMax) {
-            matchesAtLeastOne = true
+    // Use database-level filtering with .filter() for efficiency
+    // This pushes the filtering logic to the database layer
+    const restaurants = await ctx.db
+      .query('restaurants')
+      .filter((q) => {
+        // Build OR conditions for meal types
+        const conditions = []
+        
+        // Brunch price filter
+        if (hasBrunchFilter) {
+          let brunchCondition = q.and(
+            q.eq(q.field('hasBrunch'), true),
+            q.neq(q.field('brunchPrice'), undefined)
+          )
+          
+          if (args.minBrunchPrice !== undefined) {
+            brunchCondition = q.and(
+              brunchCondition,
+              q.gte(q.field('brunchPrice'), args.minBrunchPrice)
+            )
           }
-        }
-      }
-      
-      // Check lunch price filter
-      if (hasLunchFilter) {
-        const hasLunch = restaurant.hasLunch && restaurant.lunchPrice !== undefined
-        if (hasLunch && restaurant.lunchPrice !== undefined) {
-          const meetsMin = args.minLunchPrice === undefined || restaurant.lunchPrice >= args.minLunchPrice
-          const meetsMax = args.maxLunchPrice === undefined || restaurant.lunchPrice <= args.maxLunchPrice
-          if (meetsMin && meetsMax) {
-            matchesAtLeastOne = true
+          
+          if (args.maxBrunchPrice !== undefined) {
+            brunchCondition = q.and(
+              brunchCondition,
+              q.lte(q.field('brunchPrice'), args.maxBrunchPrice)
+            )
           }
+          
+          conditions.push(brunchCondition)
         }
-      }
-      
-      // Check dinner price filter
-      if (hasDinnerFilter) {
-        const hasDinner = restaurant.hasDinner && restaurant.dinnerPrice !== undefined
-        if (hasDinner && restaurant.dinnerPrice !== undefined) {
-          const meetsMin = args.minDinnerPrice === undefined || restaurant.dinnerPrice >= args.minDinnerPrice
-          const meetsMax = args.maxDinnerPrice === undefined || restaurant.dinnerPrice <= args.maxDinnerPrice
-          if (meetsMin && meetsMax) {
-            matchesAtLeastOne = true
+        
+        // Lunch price filter
+        if (hasLunchFilter) {
+          let lunchCondition = q.and(
+            q.eq(q.field('hasLunch'), true),
+            q.neq(q.field('lunchPrice'), undefined)
+          )
+          
+          if (args.minLunchPrice !== undefined) {
+            lunchCondition = q.and(
+              lunchCondition,
+              q.gte(q.field('lunchPrice'), args.minLunchPrice)
+            )
           }
+          
+          if (args.maxLunchPrice !== undefined) {
+            lunchCondition = q.and(
+              lunchCondition,
+              q.lte(q.field('lunchPrice'), args.maxLunchPrice)
+            )
+          }
+          
+          conditions.push(lunchCondition)
         }
-      }
-      
-      return matchesAtLeastOne
-    })
+        
+        // Dinner price filter
+        if (hasDinnerFilter) {
+          let dinnerCondition = q.and(
+            q.eq(q.field('hasDinner'), true),
+            q.neq(q.field('dinnerPrice'), undefined)
+          )
+          
+          if (args.minDinnerPrice !== undefined) {
+            dinnerCondition = q.and(
+              dinnerCondition,
+              q.gte(q.field('dinnerPrice'), args.minDinnerPrice)
+            )
+          }
+          
+          if (args.maxDinnerPrice !== undefined) {
+            dinnerCondition = q.and(
+              dinnerCondition,
+              q.lte(q.field('dinnerPrice'), args.maxDinnerPrice)
+            )
+          }
+          
+          conditions.push(dinnerCondition)
+        }
+        
+        // Return true if ANY condition matches (OR logic)
+        return q.or(...conditions)
+      })
+      .collect()
+    
+    return restaurants
   },
 })
 
