@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
 import { useMutation } from 'convex/react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Box, Center, Flex, Heading, Spinner, Text } from '@chakra-ui/react'
 import { api } from '../../convex/_generated/api'
 import type { Restaurant } from '~/components/RestaurantMap'
@@ -25,6 +25,7 @@ export interface MapBounds {
 function Home() {
   // Track map bounds for geospatial queries
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null)
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   // Always fetch all restaurants for now (used for seeding check and fallback)
   const { data: allRestaurants } = useSuspenseQuery(
@@ -32,15 +33,22 @@ function Home() {
   )
 
   // Fetch geospatial results when bounds are available
+  // Use regular useQuery with placeholderData to prevent flickering
   const geoQueryArgs = mapBounds ?? { north: 0, south: 0, east: 0, west: 0 }
-  const { data: geoRestaurantsResult } = useSuspenseQuery(
-    convexQuery(api.restaurantsGeo.queryRestaurantsInBounds, {
+  const { data: geoRestaurantsResult } = useQuery({
+    ...convexQuery(api.restaurantsGeo.queryRestaurantsInBounds, {
       bounds: geoQueryArgs,
     }),
-  )
+    placeholderData: (previousData) => previousData, // Keep previous data while loading
+  })
 
-  // Use geospatial results if bounds are set, otherwise all restaurants
-  const restaurants = mapBounds !== null ? geoRestaurantsResult.results : allRestaurants
+  // Use geospatial results if bounds are set and data is available, otherwise all restaurants
+  const restaurants = useMemo(() => {
+    if (mapBounds !== null && geoRestaurantsResult) {
+      return geoRestaurantsResult.results
+    }
+    return allRestaurants
+  }, [mapBounds, geoRestaurantsResult, allRestaurants])
 
   const [selectedRestaurant, setSelectedRestaurant] =
     useState<Restaurant | null>(null)
@@ -86,7 +94,22 @@ function Home() {
   }, [allRestaurants.length, syncAllToIndex, isSeeding])
 
   const handleBoundsChange = useCallback((bounds: MapBounds) => {
-    setMapBounds(bounds)
+    // Debounce bounds updates to prevent flickering during pan
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      setMapBounds(bounds)
+    }, 300) // 300ms debounce
+  }, [])
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+    }
   }, [])
 
   return (
