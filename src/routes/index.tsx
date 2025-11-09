@@ -6,13 +6,16 @@ import { useEffect, useState } from 'react'
 import {
   Badge,
   Box,
+  Button,
   Center,
   Container,
   Flex,
   Heading,
   Spinner,
   Text,
+  VisuallyHidden,
 } from '@chakra-ui/react'
+import { FaCalendarAlt, FaClipboardList, FaFilter, FaGlobe, FaMapMarkedAlt, FaUtensils } from 'react-icons/fa'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { ColorModeToggle } from '~/components/ColorModeToggle'
@@ -44,11 +47,13 @@ function LandingPage() {
 
   const seedEvents = useMutation(api.seedData.seedEvents)
   const [isSeeding, setIsSeeding] = useState(false)
+  const [hasAttemptedSeed, setHasAttemptedSeed] = useState(false)
 
   // Auto-seed events on first load if no events exist
   useEffect(() => {
-    if (events.length === 0 && !isSeeding) {
+    if (events.length === 0 && !isSeeding && !hasAttemptedSeed) {
       setIsSeeding(true)
+      setHasAttemptedSeed(true)
       seedEvents({})
         .then(() => {
           console.log('Events seeded successfully')
@@ -60,7 +65,7 @@ function LandingPage() {
           setIsSeeding(false)
         })
     }
-  }, [events.length, seedEvents, isSeeding])
+  }, [events.length, seedEvents, isSeeding, hasAttemptedSeed])
 
   return (
     <Flex direction="column" minH="100vh" bg="bg.page">
@@ -74,9 +79,12 @@ function LandingPage() {
         justify="space-between"
       >
         <Box flex={1} textAlign="center">
-          <Heading size="2xl" color="brand.contrast">
-            🍽️ Feast Finder
-          </Heading>
+          <Flex align="center" justify="center" gap={2}>
+            <FaUtensils size={32} color="var(--chakra-colors-brand-contrast)" />
+            <Heading size="2xl" color="brand.contrast">
+              Feast Finder
+            </Heading>
+          </Flex>
         </Box>
         <Box position="absolute" right={4}>
           <ColorModeToggle />
@@ -97,34 +105,21 @@ function LandingPage() {
             mx="auto"
           >
             Feast Finder helps you explore restaurant week events and discover
-            amazing dining experiences in the San Francisco Bay Area. Find
-            exclusive prix-fixe menus, special tastings, and culinary events
-            near you.
+            amazing dining experiences near you. Find exclusive prix-fixe menus,
+            special tastings, and culinary events in your area.
           </Text>
-          <Link to="/restaurants">
-            <Box
-              as="button"
-              px={12}
-              py={4}
-              fontSize="xl"
-              fontWeight="semibold"
-              bg="blue.500"
-              color="white"
-              borderRadius="md"
-              _hover={{ bg: 'blue.600', transform: 'translateY(-2px)' }}
-              transition="all 0.2s"
-              boxShadow="md"
-            >
-              Explore Restaurants on Map
-            </Box>
-          </Link>
+          <Button asChild bg="brand.solid" color="brand.contrast" size="xl">
+            <Link to="/restaurants">Explore Restaurants</Link>
+          </Button>
         </Box>
 
         {/* Features Section */}
         <Box mb={16}>
-          <Heading size="xl" textAlign="center" mb={8}>
-            Why Choose Feast Finder?
-          </Heading>
+          <VisuallyHidden>
+            <Heading size="xl" textAlign="center" mb={8}>
+              Why Choose Feast Finder?
+            </Heading>
+          </VisuallyHidden>
           <Flex direction={{ base: 'column', md: 'row' }} gap={8}>
             <Box
               flex={1}
@@ -133,15 +128,15 @@ function LandingPage() {
               borderRadius="lg"
               boxShadow="md"
             >
-              <Text fontSize="4xl" mb={4}>
-                🗺️
-              </Text>
+              <Box fontSize="4xl" mb={4} color="brand.solid">
+                <FaMapMarkedAlt />
+              </Box>
               <Heading size="lg" mb={4}>
                 Interactive Map
               </Heading>
               <Text color="text.secondary">
                 Explore restaurants on an intuitive map interface. Pan, zoom,
-                and discover hidden culinary gems across the Bay Area.
+                and discover hidden culinary gems in your area.
               </Text>
             </Box>
             <Box
@@ -151,9 +146,9 @@ function LandingPage() {
               borderRadius="lg"
               boxShadow="md"
             >
-              <Text fontSize="4xl" mb={4}>
-                🎉
-              </Text>
+              <Box fontSize="4xl" mb={4} color="brand.solid">
+                <FaCalendarAlt />
+              </Box>
               <Heading size="lg" mb={4}>
                 Restaurant Week Events
               </Heading>
@@ -169,15 +164,15 @@ function LandingPage() {
               borderRadius="lg"
               boxShadow="md"
             >
-              <Text fontSize="4xl" mb={4}>
-                💲
-              </Text>
+              <Box fontSize="4xl" mb={4} color="brand.solid">
+                <FaFilter />
+              </Box>
               <Heading size="lg" mb={4}>
-                Filter by Price
+                Easy Filtering
               </Heading>
               <Text color="text.secondary">
-                Find restaurants that fit your budget. Filter by price range for
-                brunch, lunch, or dinner to plan the perfect meal.
+                Filter restaurants by price, meal type, cuisine, and more to
+                easily find exactly what you're looking for.
               </Text>
             </Box>
           </Flex>
@@ -254,31 +249,40 @@ function LandingPage() {
                           fontSize="sm"
                           color="text.secondary"
                           wrap="wrap"
+                          align="center"
                         >
-                          <Text>
-                            📅{' '}
-                            {startDate.toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                            })}{' '}
-                            -{' '}
-                            {endDate.toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                            })}
-                          </Text>
-                          <Text>
-                            🍽️ {event.restaurantCount}{' '}
-                            {event.restaurantCount === 1
-                              ? 'restaurant'
-                              : 'restaurants'}
-                          </Text>
-                          <Text>
-                            📋 {event.menuCount}{' '}
-                            {event.menuCount === 1 ? 'menu' : 'menus'}
-                          </Text>
+                          <Flex align="center" gap={1}>
+                            <FaCalendarAlt />
+                            <Text>
+                              {startDate.toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                              })}{' '}
+                              -{' '}
+                              {endDate.toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                              })}
+                            </Text>
+                          </Flex>
+                          <Flex align="center" gap={1}>
+                            <FaUtensils />
+                            <Text>
+                              {event.restaurantCount}{' '}
+                              {event.restaurantCount === 1
+                                ? 'restaurant'
+                                : 'restaurants'}
+                            </Text>
+                          </Flex>
+                          <Flex align="center" gap={1}>
+                            <FaClipboardList />
+                            <Text>
+                              {event.menuCount}{' '}
+                              {event.menuCount === 1 ? 'menu' : 'menus'}
+                            </Text>
+                          </Flex>
                         </Flex>
                         {event.websiteUrl && (
                           <Box mb={4}>
@@ -286,7 +290,13 @@ function LandingPage() {
                               href={event.websiteUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              style={{ color: '#3182ce', textDecoration: 'none' }}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                color: '#3182ce',
+                                textDecoration: 'none',
+                              }}
                               onMouseOver={(e) => {
                                 e.currentTarget.style.textDecoration = 'underline'
                               }}
@@ -294,26 +304,16 @@ function LandingPage() {
                                 e.currentTarget.style.textDecoration = 'none'
                               }}
                             >
-                              🌐 Event Website
+                              <FaGlobe />
+                              <span>Event Website</span>
                             </a>
                           </Box>
                         )}
-                        <Link to="/restaurants">
-                          <Box
-                            as="button"
-                            px={6}
-                            py={3}
-                            fontSize="lg"
-                            fontWeight="semibold"
-                            bg="blue.500"
-                            color="white"
-                            borderRadius="md"
-                            _hover={{ bg: 'blue.600' }}
-                            transition="all 0.2s"
-                          >
+                        <Button asChild bg="brand.solid" color="brand.contrast" size="lg">
+                          <Link to="/restaurants">
                             View Participating Restaurants
-                          </Box>
-                        </Link>
+                          </Link>
+                        </Button>
                       </Box>
                     </Flex>
                   </Box>
@@ -327,8 +327,7 @@ function LandingPage() {
       {/* Footer */}
       <Box mt="auto" py={8} bg="bg.subtle" textAlign="center">
         <Text color="text.secondary">
-          © 2025 Feast Finder. Discover amazing restaurants in the San
-          Francisco Bay Area.
+          © 2025 Feast Finder. Discover amazing restaurants near you.
         </Text>
       </Box>
     </Flex>
