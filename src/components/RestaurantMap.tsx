@@ -30,32 +30,16 @@ export function RestaurantMap({
   onSelectRestaurant,
 }: RestaurantMapProps) {
   const [isClient, setIsClient] = useState(false)
-  const [mapLoaded, setMapLoaded] = useState(false)
   const [ReactLeaflet, setReactLeaflet] = useState<any>(null)
   const [customIcon, setCustomIcon] = useState<any>(null)
 
-  // Step 1: Check if we're on the client side (avoid SSR issues with Leaflet)
+  // Lazy load Leaflet CSS, react-leaflet components and Leaflet library
   useEffect(() => {
-    setIsClient(true)
-  }, [])
-
-  // Step 2: Dynamically import Leaflet CSS only on client side
-  useEffect(() => {
-    if (!isClient) return
-
-    import('leaflet/dist/leaflet.css').then(() => {
-      setMapLoaded(true)
-    })
-  }, [isClient])
-
-  // Step 3: Lazy load react-leaflet components and Leaflet
-  useEffect(() => {
-    if (!mapLoaded) return
-
     Promise.all([
+      import('leaflet/dist/leaflet.css'),
       import('react-leaflet'),
       import('leaflet')
-    ]).then(([reactLeafletModule, L]) => {
+    ]).then(([_, reactLeafletModule, L]) => {
       setReactLeaflet(reactLeafletModule)
       
       // Create custom icon using the provided SVG
@@ -71,11 +55,12 @@ export function RestaurantMap({
       })
       
       setCustomIcon(svgIcon)
+      setIsClient(true)
     })
-  }, [mapLoaded])
+  }, [])
 
   // Show loading state while initializing
-  if (!isClient || !mapLoaded || !ReactLeaflet || !customIcon) {
+  if (!isClient || !ReactLeaflet || !customIcon) {
     return (
       <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
         <p className="text-gray-600 dark:text-gray-400">Loading map...</p>
