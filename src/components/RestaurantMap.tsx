@@ -56,8 +56,10 @@ function ClientOnlyMap({
 
   useEffect(() => {
     // Dynamically import Leaflet only on client side
-    import('leaflet').then((L) => {
+    import('leaflet').then((LeafletModule) => {
       // Make Leaflet available globally for awesome-markers
+      // Use default export to ensure the object is extensible
+      const L = 'default' in LeafletModule ? LeafletModule.default : LeafletModule
       if (typeof window !== 'undefined') {
         (window as any).L = L
       }
