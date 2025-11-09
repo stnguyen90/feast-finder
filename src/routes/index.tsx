@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
 import { useMutation } from 'convex/react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Box, Center, Flex, Heading, Spinner, Text } from '@chakra-ui/react'
 import { api } from '../../convex/_generated/api'
 import type { Restaurant } from '~/components/RestaurantMap'
@@ -14,20 +14,52 @@ export const Route = createFileRoute('/')({
   component: Home,
 })
 
+// Type for map bounds
+export interface MapBounds {
+  north: number
+  south: number
+  east: number
+  west: number
+}
+
 function Home() {
-  const { data: restaurants } = useSuspenseQuery(
+  // Track map bounds for geospatial queries
+  const [mapBounds, setMapBounds] = useState<MapBounds | null>(null)
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Always fetch all restaurants for now (used for seeding check and fallback)
+  const { data: allRestaurants } = useSuspenseQuery(
     convexQuery(api.restaurants.listRestaurants, {}),
   )
+
+  // Fetch geospatial results when bounds are available
+  // Use regular useQuery with placeholderData to prevent flickering
+  const geoQueryArgs = mapBounds ?? { north: 0, south: 0, east: 0, west: 0 }
+  const { data: geoRestaurantsResult } = useQuery({
+    ...convexQuery(api.restaurantsGeo.queryRestaurantsInBounds, {
+      bounds: geoQueryArgs,
+    }),
+    placeholderData: (previousData) => previousData, // Keep previous data while loading
+  })
+
+  // Use geospatial results if bounds are set and data is available, otherwise all restaurants
+  const restaurants = useMemo(() => {
+    if (mapBounds !== null && geoRestaurantsResult) {
+      return geoRestaurantsResult.results
+    }
+    return allRestaurants
+  }, [mapBounds, geoRestaurantsResult, allRestaurants])
 
   const [selectedRestaurant, setSelectedRestaurant] =
     useState<Restaurant | null>(null)
 
   const seedRestaurants = useMutation(api.seedData.seedRestaurants)
+  const syncAllToIndex = useMutation(api.restaurantsGeo.syncAllRestaurantsToIndex)
   const [isSeeding, setIsSeeding] = useState(false)
 
   // Auto-seed on first load if no restaurants exist
   useEffect(() => {
-    if (restaurants.length === 0 && !isSeeding) {
+    if (allRestaurants.length === 0 && !isSeeding) {
       setIsSeeding(true)
       seedRestaurants({})
         .then(() => {
@@ -40,7 +72,45 @@ function Home() {
           setIsSeeding(false)
         })
     }
-  }, [restaurants.length, seedRestaurants, isSeeding])
+  }, [allRestaurants.length, seedRestaurants, isSeeding])
+
+  // Sync existing restaurants to geospatial index on first load
+  useEffect(() => {
+    if (allRestaurants.length > 0 && !isSeeding) {
+      // Only sync once - check if we've already synced
+      const hasSynced = localStorage.getItem('geospatial-synced')
+      if (!hasSynced) {
+        console.log('Syncing restaurants to geospatial index...')
+        syncAllToIndex({})
+          .then((result) => {
+            console.log(`Synced ${result.synced} restaurants to geospatial index`)
+            localStorage.setItem('geospatial-synced', 'true')
+          })
+          .catch((error) => {
+            console.error('Error syncing to geospatial index:', error)
+          })
+      }
+    }
+  }, [allRestaurants.length, syncAllToIndex, isSeeding])
+
+  const handleBoundsChange = useCallback((bounds: MapBounds) => {
+    // Debounce bounds updates to prevent flickering during pan
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      setMapBounds(bounds)
+    }, 300) // 300ms debounce
+  }, [])
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+    }
+  }, [])
 
   return (
     <Flex direction="column" h="100vh" bg="bg.page">
@@ -72,7 +142,7 @@ function Home() {
             <Text>Loading restaurants...</Text>
           </Flex>
         </Center>
-      ) : restaurants.length === 0 ? (
+      ) : allRestaurants.length === 0 ? (
         <Center flex={1} color="text.secondary">
           <Text>
             No restaurants found. Please wait while we load some sample data...
@@ -83,6 +153,7 @@ function Home() {
           <RestaurantMap
             restaurants={restaurants}
             onSelectRestaurant={setSelectedRestaurant}
+            onBoundsChange={handleBoundsChange}
           />
 
           <RestaurantDetail

@@ -1,5 +1,6 @@
 import { v } from 'convex/values'
 import { mutation, query } from './_generated/server'
+import { internal } from './_generated/api'
 
 // Query to get all restaurants
 export const listRestaurants = query({
@@ -86,6 +87,10 @@ export const addRestaurant = mutation({
   returns: v.id('restaurants'),
   handler: async (ctx, args) => {
     const id = await ctx.db.insert('restaurants', args)
+    // Sync to geospatial index
+    await ctx.scheduler.runAfter(0, internal.restaurantsGeo.syncRestaurantToIndex, {
+      restaurantId: id,
+    })
     return id
   },
 })

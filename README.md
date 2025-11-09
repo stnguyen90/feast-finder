@@ -13,6 +13,8 @@ Feast Finder is a modern web application built with React, Convex, and React Lea
 - 🌙 **Dark Mode Support**: Built-in dark mode for comfortable viewing
 - ⚡ **Real-time Updates**: Powered by Convex for real-time data synchronization
 - 📱 **Responsive Design**: Works seamlessly on desktop and mobile devices
+- 🌍 **Geospatial Indexing**: Efficient location-based queries using Convex Geospatial Component
+- 🎯 **Viewport-Based Loading**: Dynamically fetches restaurants visible in the current map view
 
 ## Restaurant Data Model
 
@@ -39,6 +41,7 @@ Each restaurant includes:
 
 ### Backend
 - **Convex**: Serverless backend and database
+- **Convex Geospatial Component**: Efficient spatial indexing and queries
 - **TypeScript**: Type-safe code throughout
 
 ### Deployment
@@ -156,6 +159,15 @@ addRestaurant({
   dinnerPrice: 75,
 })
 ```
+
+## Geospatial Integration
+
+Feast Finder uses the Convex Geospatial Component for efficient location-based queries. This enables:
+- Fast queries for restaurants within the current map viewport
+- Finding nearest restaurants to any point
+- Automatic data synchronization when adding new restaurants
+
+For detailed documentation on the geospatial integration, see [GEOSPATIAL.md](./GEOSPATIAL.md).
 
 ## Contributing
 

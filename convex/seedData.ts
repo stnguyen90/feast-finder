@@ -1,5 +1,6 @@
 import { v } from 'convex/values'
 import { mutation } from './_generated/server'
+import { internal } from './_generated/api'
 
 // Mutation to seed sample restaurant data
 export const seedRestaurants = mutation({
@@ -170,8 +171,18 @@ export const seedRestaurants = mutation({
       },
     ]
 
+    // Insert restaurants and collect IDs
+    const restaurantIds = []
     for (const restaurant of restaurants) {
-      await ctx.db.insert('restaurants', restaurant)
+      const id = await ctx.db.insert('restaurants', restaurant)
+      restaurantIds.push(id)
+    }
+
+    // Sync all restaurants to geospatial index
+    for (const id of restaurantIds) {
+      await ctx.scheduler.runAfter(0, internal.restaurantsGeo.syncRestaurantToIndex, {
+        restaurantId: id,
+      })
     }
 
     console.log(`Seeded ${restaurants.length} restaurants`)
