@@ -5,10 +5,12 @@ import { useMutation } from 'convex/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Box, Center, Flex, Heading, Spinner, Text } from '@chakra-ui/react'
 import { api } from '../../convex/_generated/api'
+import type { PriceFilterState } from '~/components/PriceFilter'
 import type { Restaurant } from '~/components/RestaurantMap'
+import { ColorModeToggle } from '~/components/ColorModeToggle'
+import { PriceFilter } from '~/components/PriceFilter'
 import { RestaurantDetail } from '~/components/RestaurantDetail'
 import { RestaurantMap } from '~/components/RestaurantMap'
-import { ColorModeToggle } from '~/components/ColorModeToggle'
 
 export const Route = createFileRoute('/')({
   component: Home,
@@ -26,10 +28,19 @@ function Home() {
   // Track map bounds for geospatial queries
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null)
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+  
+  // Track price filter state
+  const [priceFilters, setPriceFilters] = useState<PriceFilterState>({})
+  const [showFilters, setShowFilters] = useState(false)
 
   // Always fetch all restaurants for now (used for seeding check and fallback)
   const { data: allRestaurants } = useSuspenseQuery(
     convexQuery(api.restaurants.listRestaurants, {}),
+  )
+  
+  // Fetch filtered restaurants when price filters are applied
+  const { data: filteredRestaurants } = useSuspenseQuery(
+    convexQuery(api.restaurants.listRestaurantsWithPriceFilter, priceFilters),
   )
 
   // Fetch geospatial results when bounds are available
@@ -42,13 +53,20 @@ function Home() {
     placeholderData: (previousData) => previousData, // Keep previous data while loading
   })
 
-  // Use geospatial results if bounds are set and data is available, otherwise all restaurants
+  // Determine which restaurants to display based on filters and bounds
   const restaurants = useMemo(() => {
+    // Start with price-filtered restaurants if any filters are active
+    const hasPriceFilters = Object.keys(priceFilters).length > 0
+    const baseRestaurants = hasPriceFilters ? filteredRestaurants : allRestaurants
+    
+    // Apply geospatial filtering on top of price filtering
     if (mapBounds !== null && geoRestaurantsResult) {
-      return geoRestaurantsResult.results
+      const geoIds = new Set(geoRestaurantsResult.results.map((r) => r._id))
+      return baseRestaurants.filter((r) => geoIds.has(r._id))
     }
-    return allRestaurants
-  }, [mapBounds, geoRestaurantsResult, allRestaurants])
+    
+    return baseRestaurants
+  }, [mapBounds, geoRestaurantsResult, allRestaurants, filteredRestaurants, priceFilters])
 
   const [selectedRestaurant, setSelectedRestaurant] =
     useState<Restaurant | null>(null)
@@ -101,6 +119,14 @@ function Home() {
     debounceTimerRef.current = setTimeout(() => {
       setMapBounds(bounds)
     }, 300) // 300ms debounce
+  }, [])
+  
+  const handleFilterChange = useCallback((filters: PriceFilterState) => {
+    setPriceFilters(filters)
+  }, [])
+  
+  const handleClearFilters = useCallback(() => {
+    setPriceFilters({})
   }, [])
 
   // Cleanup debounce timer on unmount
@@ -155,6 +181,52 @@ function Home() {
             onSelectRestaurant={setSelectedRestaurant}
             onBoundsChange={handleBoundsChange}
           />
+          
+          {/* Price Filter Panel */}
+          <Box 
+            position="absolute" 
+            top={4} 
+            left={4} 
+            zIndex={1000}
+          >
+            {!showFilters ? (
+              <Box
+                bg="bg.surface"
+                p={3}
+                borderRadius="md"
+                boxShadow="md"
+                cursor="pointer"
+                onClick={() => setShowFilters(true)}
+                _hover={{ bg: 'bg.subtle' }}
+              >
+                <Text fontWeight="semibold" color="text.primary">
+                  💲 Filter by Price
+                </Text>
+              </Box>
+            ) : (
+              <Box>
+                <PriceFilter 
+                  onFilterChange={handleFilterChange}
+                  onClearFilters={handleClearFilters}
+                />
+                <Box
+                  mt={2}
+                  bg="bg.surface"
+                  p={2}
+                  borderRadius="md"
+                  boxShadow="md"
+                  textAlign="center"
+                  cursor="pointer"
+                  onClick={() => setShowFilters(false)}
+                  _hover={{ bg: 'bg.subtle' }}
+                >
+                  <Text fontSize="sm" color="text.secondary">
+                    Hide Filters
+                  </Text>
+                </Box>
+              </Box>
+            )}
+          </Box>
 
           <RestaurantDetail
             restaurant={selectedRestaurant}
