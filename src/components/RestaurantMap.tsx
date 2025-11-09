@@ -1,9 +1,4 @@
-import L from 'leaflet'
 import { MapContainer, Marker, TileLayer } from 'react-leaflet'
-import 'leaflet/dist/leaflet.css'
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
-import markerIcon from 'leaflet/dist/images/marker-icon.png'
-import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 import type { Restaurant } from '~/types/restaurant'
 
 interface RestaurantMapProps {
@@ -11,14 +6,14 @@ interface RestaurantMapProps {
   onSelectRestaurant: (restaurant: Restaurant) => void
 }
 
+// Access Leaflet from global scope (loaded via CDN)
+const L = (window as any).L
+
 // Fix Leaflet's default icon paths for bundlers like Vite
-// @ts-expect-error _getIconUrl is a private Leaflet property
-delete L.Icon.Default.prototype._getIconUrl
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-})
+// Only needed if using default icons, but we're using custom markers
+if (L?.Icon?.Default?.prototype?._getIconUrl) {
+  delete L.Icon.Default.prototype._getIconUrl
+}
 
 // Create custom red marker icon using divIcon with inline SVG
 const redMarkerIcon = L.divIcon({
