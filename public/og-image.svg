@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGradient)"/>
+  
+  <!-- Utensils icon (simplified fork and knife) -->
+  <g transform="translate(480, 180)">
+    <!-- Fork -->
+    <rect x="90" y="0" width="20" height="200" fill="white" rx="10"/>
+    <rect x="70" y="0" width="10" height="80" fill="white" rx="5"/>
+    <rect x="110" y="0" width="10" height="80" fill="white" rx="5"/>
+    <!-- Knife -->
+    <rect x="150" y="0" width="20" height="200" fill="white" rx="10"/>
+    <path d="M 140 0 L 180 0 L 180 60 L 160 80 L 140 60 Z" fill="white"/>
+  </g>
+  
+  <!-- Title -->
+  <text x="600" y="420" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="white" text-anchor="middle">
+    Feast Finder
+  </text>
+  
+  <!-- Subtitle -->
+  <text x="600" y="480" font-family="Arial, sans-serif" font-size="32" fill="white" text-anchor="middle" opacity="0.9">
+    Discover Amazing Restaurants
+  </text>
+  
+  <!-- Description -->
+  <text x="600" y="540" font-family="Arial, sans-serif" font-size="24" fill="white" text-anchor="middle" opacity="0.8">
+    Explore restaurant week events and culinary experiences near you
+  </text>
+</svg>

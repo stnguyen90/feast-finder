@@ -43,7 +43,7 @@ export const Route = createRootRouteWithContext<{
       },
       {
         property: 'og:image',
-        content: '/og-image.png',
+        content: '/og-image.svg',
       },
       {
         name: 'twitter:card',
@@ -60,11 +60,16 @@ export const Route = createRootRouteWithContext<{
       },
       {
         name: 'twitter:image',
-        content: '/og-image.png',
+        content: '/og-image.svg',
       },
     ],
     links: [
       { rel: 'stylesheet', href: appCss },
+      {
+        rel: 'icon',
+        type: 'image/svg+xml',
+        href: '/favicon.svg',
+      },
       {
         rel: 'apple-touch-icon',
         sizes: '180x180',

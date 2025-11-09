@@ -16,7 +16,7 @@ import {
   Text,
   VisuallyHidden,
 } from '@chakra-ui/react'
-import { FaCalendarAlt, FaFilter, FaGlobe, FaMapMarkedAlt, FaUtensils } from 'react-icons/fa'
+import { FaCalendar, FaFilter, FaGlobe, FaMapLocationDot, FaUtensils } from 'react-icons/fa6'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { ColorModeToggle } from '~/components/ColorModeToggle'
@@ -95,7 +95,7 @@ function LandingPage() {
       <Container maxW="container.xl" py={12}>
         {/* Hero Section */}
         <Box textAlign="center" mb={16} position="relative">
-          <Heading size="5xl" mb={6} fontWeight="extrabold" color="fg.default">
+          <Heading size="5xl" mb={6} fontWeight="extrabold" color="text.primary">
             Discover Your Next
             <br />
             <Box
@@ -141,9 +141,9 @@ function LandingPage() {
               boxShadow="md"
             >
               <Box fontSize="4xl" mb={4} color="brand.solid">
-                <FaMapMarkedAlt />
+                <FaMapLocationDot />
               </Box>
-              <Heading size="lg" mb={4} color="fg.default">
+              <Heading size="lg" mb={4} color="text.primary">
                 Interactive Map
               </Heading>
               <Text color="text.secondary">
@@ -159,9 +159,9 @@ function LandingPage() {
               boxShadow="md"
             >
               <Box fontSize="4xl" mb={4} color="brand.solid">
-                <FaCalendarAlt />
+                <FaCalendar />
               </Box>
-              <Heading size="lg" mb={4} color="fg.default">
+              <Heading size="lg" mb={4} color="text.primary">
                 Restaurant Week Events
               </Heading>
               <Text color="text.secondary">
@@ -179,7 +179,7 @@ function LandingPage() {
               <Box fontSize="4xl" mb={4} color="brand.solid">
                 <FaFilter />
               </Box>
-              <Heading size="lg" mb={4} color="fg.default">
+              <Heading size="lg" mb={4} color="text.primary">
                 Easy Filtering
               </Heading>
               <Text color="text.secondary">
@@ -192,7 +192,7 @@ function LandingPage() {
 
         {/* Events Section */}
         <Box>
-          <Heading size="xl" textAlign="center" mb={2} color="fg.default">
+          <Heading size="xl" textAlign="center" mb={2} color="text.primary">
             Upcoming Restaurant Week Events
           </Heading>
           <Text textAlign="center" color="text.secondary" mb={8}>
@@ -243,7 +243,7 @@ function LandingPage() {
                     >
                       <Box flex={1}>
                         <Flex align="center" gap={3} mb={4}>
-                          <Heading size="lg" color="fg.default">{event.name}</Heading>
+                          <Heading size="lg" color="text.primary">{event.name}</Heading>
                           {isActive && (
                             <Badge
                               colorScheme="green"
@@ -264,7 +264,7 @@ function LandingPage() {
                           align="center"
                         >
                           <Flex align="center" gap={1}>
-                            <FaCalendarAlt />
+                            <FaCalendar />
                             <Text>
                               {startDate.toLocaleDateString('en-US', {
                                 month: 'short',
@@ -282,7 +282,8 @@ function LandingPage() {
                           <Flex align="center" gap={1}>
                             <FaUtensils />
                             <Text>
-                              {event.restaurantCount}{' '}
+                              {event.restaurantCount}
+                              {' '}
                               {event.restaurantCount === 1
                                 ? 'restaurant'
                                 : 'restaurants'}

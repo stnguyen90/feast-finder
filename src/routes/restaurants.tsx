@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
+import { Link, createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
 import { useMutation } from 'convex/react'
@@ -12,6 +12,7 @@ import {
   Spinner,
   Text,
 } from '@chakra-ui/react'
+import { FaUtensils } from 'react-icons/fa6'
 import { api } from '../../convex/_generated/api'
 import type { MapBounds, Restaurant } from '~/components/RestaurantMap'
 import type { PriceFilterState } from '~/components/PriceFilter'
@@ -235,9 +236,14 @@ function Restaurants() {
         justify="space-between"
       >
         <Box flex={1} textAlign="center">
-          <Heading size="2xl" color="brand.contrast">
-            🍽️ Feast Finder
-          </Heading>
+          <Link to="/">
+            <Flex align="center" justify="center" gap={2}>
+              <FaUtensils size={32} color="var(--chakra-colors-brand-contrast)" />
+              <Heading size="2xl" color="brand.contrast">
+                Feast Finder
+              </Heading>
+            </Flex>
+          </Link>
           <Text color="text.inverted" fontSize="sm" mt={1}>
             Discover amazing restaurants on an interactive map
           </Text>
