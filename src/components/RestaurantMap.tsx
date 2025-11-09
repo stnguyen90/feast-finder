@@ -29,7 +29,6 @@ export function RestaurantMap({
   restaurants,
   onSelectRestaurant,
 }: RestaurantMapProps) {
-  const [isClient, setIsClient] = useState(false)
   const [ReactLeaflet, setReactLeaflet] = useState<any>(null)
   const [customIcon, setCustomIcon] = useState<any>(null)
 
@@ -55,12 +54,11 @@ export function RestaurantMap({
       })
       
       setCustomIcon(svgIcon)
-      setIsClient(true)
     })
   }, [])
 
   // Show loading state while initializing
-  if (!isClient || !ReactLeaflet || !customIcon) {
+  if (!ReactLeaflet || !customIcon) {
     return (
       <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
         <p className="text-gray-600 dark:text-gray-400">Loading map...</p>
