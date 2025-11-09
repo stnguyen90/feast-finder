@@ -1,32 +1,115 @@
-import { Suspense, lazy } from 'react'
+import { Suspense, lazy, useEffect, useState } from 'react'
 import { ClientOnly, createFileRoute } from '@tanstack/react-router'
-import { Center, Flex, Spinner, Text } from '@chakra-ui/react'
+import { useSuspenseQuery } from '@tanstack/react-query'
+import { convexQuery } from '@convex-dev/react-query'
+import { useMutation } from 'convex/react'
+import { Box, Center, Flex, Heading, Spinner, Text } from '@chakra-ui/react'
+import { api } from '../../convex/_generated/api'
+import type { Restaurant } from '~/components/RestaurantMap'
+import { RestaurantDetail } from '~/components/RestaurantDetail'
+import { ColorModeToggle } from '~/components/ColorModeToggle'
 
-// Loading fallback component
-function HomeLoading() {
+// Loading fallback component for the map
+function MapLoading() {
   return (
-    <Center h="100vh" color="text.secondary">
-      <Flex direction="column" align="center" gap={4}>
-        <Spinner size="xl" color="brand.solid" />
-        <Text>Loading...</Text>
-      </Flex>
-    </Center>
+    <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+      <p className="text-gray-600 dark:text-gray-400">Loading map...</p>
+    </div>
   )
 }
 
-// Lazy load the Home component (client-side only)
-const LazyHome = lazy(() =>
-  import('~/components/HomeClient').then((module) => ({
-    default: module.HomeClient,
+// Lazy load the RestaurantMap component (client-side only)
+const LazyRestaurantMap = lazy(() =>
+  import('~/components/RestaurantMap').then((module) => ({
+    default: module.RestaurantMap,
   })),
 )
 
 export const Route = createFileRoute('/')({
-  component: () => (
-    <ClientOnly fallback={<HomeLoading />}>
-      <Suspense fallback={<HomeLoading />}>
-        <LazyHome />
-      </Suspense>
-    </ClientOnly>
-  ),
+  component: Home,
 })
+
+function Home() {
+  const { data: restaurants } = useSuspenseQuery(
+    convexQuery(api.restaurants.listRestaurants, {}),
+  )
+
+  const [selectedRestaurant, setSelectedRestaurant] =
+    useState<Restaurant | null>(null)
+
+  const seedRestaurants = useMutation(api.seedData.seedRestaurants)
+  const [isSeeding, setIsSeeding] = useState(false)
+
+  // Auto-seed on first load if no restaurants exist
+  useEffect(() => {
+    if (restaurants.length === 0 && !isSeeding) {
+      setIsSeeding(true)
+      seedRestaurants({})
+        .then(() => {
+          console.log('Restaurants seeded successfully')
+        })
+        .catch((error) => {
+          console.error('Error seeding restaurants:', error)
+        })
+        .finally(() => {
+          setIsSeeding(false)
+        })
+    }
+  }, [restaurants.length, seedRestaurants, isSeeding])
+
+  return (
+    <Flex direction="column" h="100vh" bg="bg.page">
+      <Flex
+        flexShrink={0}
+        p={4}
+        bg="brand.solid"
+        boxShadow="sm"
+        align="center"
+        justify="space-between"
+      >
+        <Box flex={1} textAlign="center">
+          <Heading size="2xl" color="brand.contrast">
+            🍽️ Feast Finder
+          </Heading>
+          <Text color="text.inverted" fontSize="sm" mt={1}>
+            Discover amazing restaurants on an interactive map
+          </Text>
+        </Box>
+        <Box position="absolute" right={4}>
+          <ColorModeToggle />
+        </Box>
+      </Flex>
+
+      {isSeeding ? (
+        <Center flex={1} color="text.secondary">
+          <Flex direction="column" align="center" gap={4}>
+            <Spinner size="xl" color="brand.solid" />
+            <Text>Loading restaurants...</Text>
+          </Flex>
+        </Center>
+      ) : restaurants.length === 0 ? (
+        <Center flex={1} color="text.secondary">
+          <Text>
+            No restaurants found. Please wait while we load some sample data...
+          </Text>
+        </Center>
+      ) : (
+        <Box flex={1} position="relative">
+          <ClientOnly fallback={<MapLoading />}>
+            <Suspense fallback={<MapLoading />}>
+              <LazyRestaurantMap
+                restaurants={restaurants}
+                onSelectRestaurant={setSelectedRestaurant}
+              />
+            </Suspense>
+          </ClientOnly>
+
+          <RestaurantDetail
+            restaurant={selectedRestaurant}
+            onClose={() => setSelectedRestaurant(null)}
+          />
+        </Box>
+      )}
+    </Flex>
+  )
+}
