@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { ClientOnly, createFileRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
 import { useMutation } from 'convex/react'
@@ -80,10 +80,18 @@ function Home() {
         </Center>
       ) : (
         <Box flex={1} position="relative">
-          <RestaurantMap
-            restaurants={restaurants}
-            onSelectRestaurant={setSelectedRestaurant}
-          />
+          <ClientOnly
+            fallback={
+              <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                <p className="text-gray-600 dark:text-gray-400">Loading map...</p>
+              </div>
+            }
+          >
+            <RestaurantMap
+              restaurants={restaurants}
+              onSelectRestaurant={setSelectedRestaurant}
+            />
+          </ClientOnly>
 
           <RestaurantDetail
             restaurant={selectedRestaurant}
