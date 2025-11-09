@@ -12,6 +12,7 @@ import { ColorModeToggle } from '~/components/ColorModeToggle'
 
 export const Route = createFileRoute('/')({
   component: Home,
+  ssr: false,
 })
 
 function Home() {
