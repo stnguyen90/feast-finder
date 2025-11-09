@@ -9,6 +9,7 @@ Feast Finder is a modern web application built with React, Convex, and React Lea
 - 🗺️ **Interactive Map**: Explore restaurants on an OpenStreetMap-powered interactive map
 - 📍 **Location Markers**: Each restaurant is marked on the map with its exact coordinates
 - 🔍 **Restaurant Details**: Click on any marker to view comprehensive restaurant information
+- 💲 **Price Filtering**: Filter restaurants by price range for brunch, lunch, or dinner
 - 🏷️ **Rich Metadata**: View ratings, categories, meal times, prices, and external links
 - 🌙 **Dark Mode Support**: Built-in dark mode for comfortable viewing
 - ⚡ **Real-time Updates**: Powered by Convex for real-time data synchronization
@@ -159,6 +160,22 @@ addRestaurant({
   dinnerPrice: 75,
 })
 ```
+
+### Filtering Restaurants by Price
+
+The price filtering feature allows users to filter restaurants based on their meal prices:
+
+1. Click the "💲 Filter by Price" button on the map
+2. Enter min/max prices for any meal type (brunch, lunch, dinner)
+3. Click "Apply Filters" to see restaurants matching your criteria
+4. Click "Clear" to remove all filters
+
+**How it works:**
+- Restaurants matching ANY of the specified meal type criteria are displayed (OR logic)
+- For example, filtering by "Brunch $20-$40" shows all restaurants with brunch prices between $20-$40
+- You can filter by multiple meal types simultaneously - restaurants matching any of the criteria will be shown
+- Price filtering works seamlessly with the map viewport filtering
+- Only restaurants that serve the specified meal type and meet the price criteria are included
 
 ## Geospatial Integration
 
