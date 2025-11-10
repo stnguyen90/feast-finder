@@ -18,7 +18,7 @@ Users can discover restaurant week events on the landing page and explore partic
 - Three feature highlights:
   - Interactive Map
   - Restaurant Week Events
-  - Filter by Price
+  - Easy Filtering (Price & Categories)
 - Event listing section showing active and upcoming events:
   - Event name with "Active Now" badge for current events
   - Location and description
@@ -38,7 +38,9 @@ Users can discover restaurant week events on the landing page and explore partic
 - Shows "Feast Finder" title with fork/knife emoji
 - Subtitle explaining the map interface
 - Auto-seeds sample data on first load
-- **Price Filter Panel**: Toggle button to show/hide price filters
+- **Filter Panel**: Toggle button to show/hide filters with tab-based navigation
+  - **Price Tab**: Filter by brunch, lunch, and dinner price ranges
+  - **Categories Tab**: Filter by cuisine types (checkboxes for each category)
 - Renders map and handles restaurant selection
 - URL state management for filters and map position
 
@@ -84,6 +86,10 @@ Defines restaurants table with:
 - **Index Setup** (geospatial.ts): Creates geospatial index for restaurant locations
 - **Geospatial Queries** (restaurantsGeo.ts):
   - **queryRestaurantsInBounds**: Query restaurants within map viewport (rectangle)
+    - Accepts optional price filter parameters (min/max for brunch, lunch, dinner)
+    - Accepts optional categories array to filter by cuisine types
+    - Price filtering is done at database level for efficiency
+    - Category filtering is done in-memory on the geospatial results
   - **queryNearestRestaurants**: Find nearest restaurants to a specific point
   - **syncRestaurantToIndex**: Internal mutation to sync restaurants to geospatial index
   - **syncAllRestaurantsToIndex**: Migration helper for existing data
@@ -91,6 +97,9 @@ Defines restaurants table with:
 #### Functions (restaurants.ts)
 
 - **listRestaurants**: Query to get all restaurants
+- **listCategories**: Query to get all unique categories from restaurants
+  - Efficiently collects and returns a sorted array of unique cuisine types
+  - Used to populate category filter options
 - **listRestaurantsWithPriceFilter**: Query to filter restaurants by price ranges
   - Accepts optional min/max prices for brunch, lunch, and dinner
   - Uses OR logic: restaurants matching ANY meal type criteria are returned
@@ -169,14 +178,19 @@ Defines restaurants table with:
 6. User can:
    - Pan and zoom the map
    - Click any marker to open detailed modal
-   - **Open price filter panel** to filter restaurants by meal prices
-7. When using price filters:
-   - Click "💲 Filter by Price" button to show filter panel
-   - Enter min/max prices for desired meal types (brunch, lunch, dinner)
+   - **Open filter panel** to filter restaurants by price or categories
+7. When using filters:
+   - Click "🔍" button to show filter panel
+   - Choose between "Price" or "Categories" tabs
+   - **Price Tab**: Enter min/max prices for desired meal types (brunch, lunch, dinner)
+   - **Categories Tab**: Select one or more cuisine types using checkboxes
    - Click "Apply Filters" to update the map
-   - Restaurants matching ANY of the price criteria are shown
-   - Price filtering combines with viewport filtering
+   - Both filters can be used together
+   - Restaurants matching ANY of the selected price criteria are shown
+   - Restaurants matching ANY of the selected categories are shown
+   - Filters combine with viewport filtering for efficient queries
    - Click "Clear" to remove filters, or "Hide Filters" to collapse panel
+   - All filter selections are saved in the URL for easy sharing
 8. In the modal, user sees:
    - Restaurant name and rating
    - Full address
@@ -231,6 +245,7 @@ Defines restaurants table with:
 - `src/components/RestaurantDetail.tsx` - Detail modal component
 - `src/components/ColorModeToggle.tsx` - Theme toggle component
 - `src/components/PriceFilter.tsx` - Price filtering component with min/max inputs
+- `src/components/CategoryFilter.tsx` - Category filtering component with checkboxes
 
 ## Visual Design
 
@@ -256,6 +271,7 @@ Defines restaurants table with:
 Potential future improvements:
 
 - ~~Add search/filter functionality~~ ✅ **Price filtering implemented**
+- ~~Add category/cuisine filtering~~ ✅ **Category filtering implemented**
 - Add distance/radius filtering
 - Add user authentication and favorites
 - Add review system
@@ -263,5 +279,4 @@ Potential future improvements:
 - Add clustering for many restaurants
 - Add directions/navigation integration
 - Add restaurant comparison feature
-- Add category/cuisine filtering
 - Add rating filtering

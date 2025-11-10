@@ -5,12 +5,15 @@ import { useMutation } from 'convex/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Box,
+  Button,
   Center,
   Flex,
+  HStack,
   Heading,
   IconButton,
   Spinner,
   Text,
+  VStack,
 } from '@chakra-ui/react'
 import { FaUtensils } from 'react-icons/fa6'
 import { api } from '../../convex/_generated/api'
@@ -18,6 +21,7 @@ import type { MapBounds, Restaurant } from '~/components/RestaurantMap'
 import type { PriceFilterState } from '~/components/PriceFilter'
 import { ColorModeToggle } from '~/components/ColorModeToggle'
 import { PriceFilter } from '~/components/PriceFilter'
+import { CategoryFilter } from '~/components/CategoryFilter'
 import { RestaurantDetail } from '~/components/RestaurantDetail'
 import { RestaurantMap } from '~/components/RestaurantMap'
 
@@ -29,6 +33,7 @@ interface SearchParams {
   maxLunchPrice?: number
   minDinnerPrice?: number
   maxDinnerPrice?: number
+  categories?: Array<string>
   lat?: number
   lng?: number
   zoom?: number
@@ -56,6 +61,11 @@ export const Route = createFileRoute('/restaurants')({
       maxDinnerPrice: search.maxDinnerPrice
         ? Number(search.maxDinnerPrice)
         : undefined,
+      categories: search.categories
+        ? Array.isArray(search.categories)
+          ? search.categories
+          : [search.categories]
+        : undefined,
       lat: search.lat ? Number(search.lat) : undefined,
       lng: search.lng ? Number(search.lng) : undefined,
       zoom: search.zoom ? Number(search.zoom) : undefined,
@@ -70,6 +80,7 @@ function Restaurants() {
   // Track map bounds for geospatial queries
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null)
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const filterPanelRef = useRef<HTMLDivElement | null>(null)
 
   // Track price filter state from URL
   const priceFilters: PriceFilterState = useMemo(
@@ -84,7 +95,28 @@ function Restaurants() {
     [searchParams],
   )
 
+  // Track category filter state from URL
+  const selectedCategories = useMemo(
+    () => searchParams.categories ?? [],
+    [searchParams.categories],
+  )
+
   const [showFilters, setShowFilters] = useState(false)
+
+  // Local state for pending filter changes (not yet applied)
+  const [pendingPriceFilters, setPendingPriceFilters] =
+    useState<PriceFilterState>(priceFilters)
+  const [pendingCategories, setPendingCategories] =
+    useState<Array<string>>(selectedCategories)
+
+  // Update pending filters when URL changes
+  useEffect(() => {
+    setPendingPriceFilters(priceFilters)
+  }, [priceFilters])
+
+  useEffect(() => {
+    setPendingCategories(selectedCategories)
+  }, [selectedCategories])
 
   // Always fetch all restaurants for now (used for seeding check only)
   const { data: allRestaurants } = useSuspenseQuery(
@@ -98,6 +130,7 @@ function Restaurants() {
     ...convexQuery(api.restaurantsGeo.queryRestaurantsInBounds, {
       bounds: geoQueryArgs,
       ...priceFilters, // Include all price filter parameters
+      categories: selectedCategories.length > 0 ? selectedCategories : undefined, // Include category filter
     }),
     placeholderData: (previousData) => previousData, // Keep previous data while loading
   })
@@ -189,23 +222,43 @@ function Restaurants() {
 
   const handleFilterChange = useCallback(
     (filters: PriceFilterState) => {
-      navigate({
-        search: (prev) => ({
-          ...prev,
-          minBrunchPrice: filters.minBrunchPrice,
-          maxBrunchPrice: filters.maxBrunchPrice,
-          minLunchPrice: filters.minLunchPrice,
-          maxLunchPrice: filters.maxLunchPrice,
-          minDinnerPrice: filters.minDinnerPrice,
-          maxDinnerPrice: filters.maxDinnerPrice,
-        }),
-        replace: true,
-      })
+      // Update pending state, don't navigate yet
+      setPendingPriceFilters(filters)
     },
-    [navigate],
+    [],
   )
 
+  const handleCategoryFilterChange = useCallback(
+    (categories: Array<string>) => {
+      // Update pending state, don't navigate yet
+      setPendingCategories(categories)
+    },
+    [],
+  )
+
+  const handleApplyFilters = useCallback(() => {
+    // Apply all pending filters and close panel
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        minBrunchPrice: pendingPriceFilters.minBrunchPrice,
+        maxBrunchPrice: pendingPriceFilters.maxBrunchPrice,
+        minLunchPrice: pendingPriceFilters.minLunchPrice,
+        maxLunchPrice: pendingPriceFilters.maxLunchPrice,
+        minDinnerPrice: pendingPriceFilters.minDinnerPrice,
+        maxDinnerPrice: pendingPriceFilters.maxDinnerPrice,
+        categories:
+          pendingCategories.length > 0 ? pendingCategories : undefined,
+      }),
+      replace: true,
+    })
+    setShowFilters(false)
+  }, [navigate, pendingPriceFilters, pendingCategories])
+
   const handleClearFilters = useCallback(() => {
+    // Clear all filters
+    setPendingPriceFilters({})
+    setPendingCategories([])
     navigate({
       search: (prev) => ({
         lat: prev.lat,
@@ -224,6 +277,26 @@ function Restaurants() {
       }
     }
   }, [])
+
+  // Click outside to close filters
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        filterPanelRef.current &&
+        !filterPanelRef.current.contains(event.target as Node) &&
+        showFilters
+      ) {
+        setShowFilters(false)
+      }
+    }
+
+    if (showFilters) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside)
+      }
+    }
+  }, [showFilters])
 
   return (
     <Flex direction="column" h="100vh" bg="bg.page">
@@ -277,7 +350,7 @@ function Restaurants() {
             initialZoom={searchParams.zoom}
           />
 
-          {/* Price Filter Panel */}
+          {/* Filter Panel */}
           <Box position="absolute" top={4} left={4} zIndex={1000}>
             {!showFilters ? (
               <IconButton
@@ -292,28 +365,53 @@ function Restaurants() {
                 🔍
               </IconButton>
             ) : (
-              <Box>
-                <PriceFilter
-                  onFilterChange={handleFilterChange}
-                  onClearFilters={handleClearFilters}
-                  onApply={() => setShowFilters(false)}
-                  initialValues={priceFilters}
-                />
-                <Box
-                  mt={2}
-                  bg="bg.surface"
-                  p={2}
-                  borderRadius="md"
-                  boxShadow="md"
-                  textAlign="center"
-                  cursor="pointer"
-                  onClick={() => setShowFilters(false)}
-                  _hover={{ bg: 'bg.subtle' }}
-                >
-                  <Text fontSize="sm" color="text.secondary">
-                    Hide Filters
-                  </Text>
-                </Box>
+              <Box
+                ref={filterPanelRef}
+                bg="bg.surface"
+                p={4}
+                borderRadius="md"
+                boxShadow="lg"
+                w="100%"
+                maxW="400px"
+              >
+                <VStack gap={4} align="stretch">
+                  {/* Price Filter */}
+                  <PriceFilter
+                    onFilterChange={handleFilterChange}
+                    onClearFilters={() => setPendingPriceFilters({})}
+                    initialValues={pendingPriceFilters}
+                    hideButtons={true}
+                  />
+
+                  {/* Category Filter */}
+                  <CategoryFilter
+                    onFilterChange={handleCategoryFilterChange}
+                    onClearFilters={() => setPendingCategories([])}
+                    initialValues={pendingCategories}
+                    hideButtons={true}
+                  />
+
+                  {/* Single set of buttons at the bottom */}
+                  <HStack gap={2} pt={2}>
+                    <Button
+                      bg="brand.solid"
+                      color="brand.contrast"
+                      size="sm"
+                      flex={1}
+                      onClick={handleApplyFilters}
+                    >
+                      Apply
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      flex={1}
+                      onClick={handleClearFilters}
+                    >
+                      Clear
+                    </Button>
+                  </HStack>
+                </VStack>
               </Box>
             )}
           </Box>

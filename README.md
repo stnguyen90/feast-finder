@@ -11,7 +11,8 @@ Feast Finder is a modern web application built with React, Convex, and React Lea
 - 📍 **Location Markers**: Each restaurant is marked on the map with its exact coordinates
 - 🔍 **Restaurant Details**: Click on any marker to view comprehensive restaurant information
 - 💲 **Price Filtering**: Filter restaurants by price range for brunch, lunch, or dinner
-- 🏷️ **Rich Metadata**: View ratings, categories, meal times, prices, and external links
+- 🏷️ **Category Filtering**: Filter restaurants by cuisine types (e.g., French, Italian, Mexican)
+- 📊 **Rich Metadata**: View ratings, categories, meal times, prices, and external links
 - 🌙 **Dark Mode Support**: Built-in dark mode for comfortable viewing
 - ⚡ **Real-time Updates**: Powered by Convex for real-time data synchronization
 - 📱 **Responsive Design**: Works seamlessly on desktop and mobile devices
@@ -39,6 +40,7 @@ Dynamic pages that show restaurants participating in specific events:
 Interactive map interface for exploring all restaurants:
 - Full-screen map with restaurant markers
 - Price filter panel for brunch, lunch, and dinner
+- Category filter panel to filter by cuisine types
 - Restaurant detail modals with comprehensive information
 - Geospatial viewport-based loading for performance
 
