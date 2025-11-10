@@ -63,6 +63,17 @@ export function CategoryFilter({
 
   const handleValueChange = (details: { value: Array<string> }) => {
     setSelectedCategories(details.value)
+    // Immediately update the parent component with new selection
+    onFilterChange(details.value)
+  }
+
+  const handleRemoveCategory = (categoryToRemove: string) => {
+    const newCategories = selectedCategories.filter(
+      (cat) => cat !== categoryToRemove,
+    )
+    setSelectedCategories(newCategories)
+    // Immediately update the parent component
+    onFilterChange(newCategories)
   }
 
   const handleApplyFilters = () => {
@@ -131,8 +142,17 @@ export function CategoryFilter({
               borderRadius="full"
               px={2}
               py={1}
+              cursor="pointer"
+              onClick={() => handleRemoveCategory(category)}
+              _hover={{ opacity: 0.8 }}
+              display="flex"
+              alignItems="center"
+              gap={1}
             >
               {category}
+              <Box as="span" fontSize="sm" fontWeight="bold">
+                ×
+              </Box>
             </Badge>
           ))}
         </Wrap>
