@@ -212,7 +212,7 @@ export const seedEvents = mutation({
     const eventData = [
       {
         name: 'SF Restaurant Week',
-        startDate: '2026-01-15T00:00:00.000Z',
+        startDate: '2025-01-15T00:00:00.000Z',
         endDate: '2026-01-31T23:59:59.999Z',
         latitude: 37.7749,
         longitude: -122.4194,

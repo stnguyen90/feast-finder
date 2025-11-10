@@ -244,9 +244,6 @@ function Restaurants() {
               </Heading>
             </Flex>
           </Link>
-          <Text color="text.inverted" fontSize="sm" mt={1}>
-            Discover amazing restaurants on an interactive map
-          </Text>
         </Box>
         <Box position="absolute" right={4}>
           <ColorModeToggle />

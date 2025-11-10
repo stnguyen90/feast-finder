@@ -1,5 +1,5 @@
 <svg width="32" height="32" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" fill="#4F46E5" rx="4"/>
+  <rect width="32" height="32" fill="#a20000" rx="4"/>
   <g transform="translate(8, 6)">
     <!-- Fork -->
     <rect x="4" y="0" width="2" height="18" fill="white" rx="1"/>

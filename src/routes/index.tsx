@@ -260,8 +260,8 @@ function LandingPage() {
                           mb={4}
                           fontSize="sm"
                           color="text.secondary"
-                          wrap="wrap"
-                          align="center"
+                          direction="column"
+                          align="flex-start"
                         >
                           <Flex align="center" gap={1}>
                             <FaCalendar />
@@ -282,8 +282,7 @@ function LandingPage() {
                           <Flex align="center" gap={1}>
                             <FaUtensils />
                             <Text>
-                              {event.restaurantCount}
-                              {' '}
+                              {event.restaurantCount}{' '}
                               {event.restaurantCount === 1
                                 ? 'restaurant'
                                 : 'restaurants'}
@@ -308,7 +307,7 @@ function LandingPage() {
                         )}
                         <Button asChild bg="brand.solid" color="brand.contrast" size="lg">
                           <RouterLink to="/restaurants">
-                            View Participating Restaurants
+                            View Restaurants
                           </RouterLink>
                         </Button>
                       </Box>
