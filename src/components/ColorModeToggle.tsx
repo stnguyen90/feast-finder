@@ -7,7 +7,10 @@ export function ColorModeToggle() {
   // Resolve the actual display mode (system -> light or dark)
   const getResolvedMode = () => {
     if (colorMode === 'system') {
-      return typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+      return typeof window !== 'undefined' &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light'
     }
     return colorMode
   }

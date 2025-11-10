@@ -24,6 +24,7 @@ export const restaurantsIndex = new GeospatialIndex<
 ```
 
 The geospatial index is configured with:
+
 - **Key**: Restaurant ID (`Id<'restaurants'>`)
 - **Filters**: Categories array for filtering by cuisine type
 - **Sort Key**: Restaurant rating (used for ordering results)
@@ -53,6 +54,7 @@ This registers the geospatial component with your Convex application.
 Efficiently retrieves only restaurants visible in the current map viewport.
 
 **Usage:**
+
 ```typescript
 const { data: result } = useSuspenseQuery(
   convexQuery(api.restaurantsGeo.queryRestaurantsInBounds, {
@@ -73,6 +75,7 @@ const { data: result } = useSuspenseQuery(
 ```
 
 **Implementation Details:**
+
 - Uses geospatial index rectangle query for efficient spatial lookup
 - Fetches full restaurant details for each ID returned by the index
 - Supports pagination via cursor parameter
@@ -85,6 +88,7 @@ const { data: result } = useSuspenseQuery(
 Finds restaurants closest to a specific point, useful for "find restaurants near me" functionality.
 
 **Usage:**
+
 ```typescript
 const { data: nearbyRestaurants } = useSuspenseQuery(
   convexQuery(api.restaurantsGeo.queryNearestRestaurants, {
@@ -99,6 +103,7 @@ const { data: nearbyRestaurants } = useSuspenseQuery(
 ```
 
 **Implementation Details:**
+
 - Uses geospatial index nearest neighbor search
 - Returns restaurants sorted by distance
 - Each result includes distance in meters from query point
@@ -117,9 +122,13 @@ export const addRestaurant = mutation({
   handler: async (ctx, args) => {
     const id = await ctx.db.insert('restaurants', args)
     // Automatically sync to geospatial index
-    await ctx.scheduler.runAfter(0, internal.restaurantsGeo.syncRestaurantToIndex, {
-      restaurantId: id,
-    })
+    await ctx.scheduler.runAfter(
+      0,
+      internal.restaurantsGeo.syncRestaurantToIndex,
+      {
+        restaurantId: id,
+      },
+    )
     return id
   },
 })
@@ -143,9 +152,13 @@ export const seedRestaurants = mutation({
 
     // Sync all to geospatial index
     for (const id of restaurantIds) {
-      await ctx.scheduler.runAfter(0, internal.restaurantsGeo.syncRestaurantToIndex, {
-        restaurantId: id,
-      })
+      await ctx.scheduler.runAfter(
+        0,
+        internal.restaurantsGeo.syncRestaurantToIndex,
+        {
+          restaurantId: id,
+        },
+      )
     }
   },
 })
@@ -189,7 +202,7 @@ function MapEventsHandler() {
       }
     },
   })
-  
+
   // Set initial bounds on mount
   useEffect(() => {
     if (onBoundsChange) {
@@ -202,7 +215,7 @@ function MapEventsHandler() {
       })
     }
   }, [map])
-  
+
   return null
 }
 ```
@@ -230,8 +243,8 @@ function Home() {
   )
 
   // Use geospatial results if bounds are set
-  const restaurants = mapBounds !== null 
-    ? geoRestaurantsResult.results 
+  const restaurants = mapBounds !== null
+    ? geoRestaurantsResult.results
     : allRestaurants
 
   const handleBoundsChange = useCallback((bounds: MapBounds) => {
@@ -280,6 +293,7 @@ The geospatial queries have been tested with:
 ### Data Format Changes
 
 The geospatial integration maintains backward compatibility with the existing schema:
+
 - No changes required to the `restaurants` table schema
 - Latitude and longitude fields remain unchanged
 - Geospatial index is a separate layer on top of existing data
@@ -287,6 +301,7 @@ The geospatial integration maintains backward compatibility with the existing sc
 ### First-Time Setup
 
 On first load with existing data:
+
 1. Application checks for existing restaurants
 2. If restaurants exist but not in geospatial index, runs one-time sync
 3. Uses localStorage to track if sync has completed
@@ -295,6 +310,7 @@ On first load with existing data:
 ### Troubleshooting
 
 If restaurants don't appear:
+
 1. Check browser console for sync status logs
 2. Clear localStorage key `geospatial-synced` to re-trigger sync
 3. Manually call `syncAllRestaurantsToIndex()` from Convex dashboard
@@ -310,6 +326,7 @@ If restaurants don't appear:
 ## Future Enhancements
 
 Potential improvements:
+
 1. Add category filtering to viewport queries
 2. Implement clustering for large numbers of nearby restaurants
 3. Add distance-based search radius UI control

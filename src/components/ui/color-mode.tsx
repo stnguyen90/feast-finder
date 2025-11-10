@@ -12,9 +12,12 @@ export function useColorMode() {
 
   useEffect(() => {
     const root = document.documentElement
-    const resolvedMode = colorMode === 'system' 
-      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-      : colorMode
+    const resolvedMode =
+      colorMode === 'system'
+        ? window.matchMedia('(prefers-color-scheme: dark)').matches
+          ? 'dark'
+          : 'light'
+        : colorMode
 
     root.classList.remove('light', 'dark')
     root.classList.add(resolvedMode)
@@ -40,9 +43,12 @@ export function useColorMode() {
   }
 
   const toggleColorMode = () => {
-    const resolvedMode = colorMode === 'system' 
-      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-      : colorMode
+    const resolvedMode =
+      colorMode === 'system'
+        ? window.matchMedia('(prefers-color-scheme: dark)').matches
+          ? 'dark'
+          : 'light'
+        : colorMode
     setColorMode(resolvedMode === 'light' ? 'dark' : 'light')
   }
 
@@ -74,7 +80,10 @@ export function useColorModeValue<T>(light: T, dark: T): T {
     // Watch for class changes on document element
     const observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
-        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+        if (
+          mutation.type === 'attributes' &&
+          mutation.attributeName === 'class'
+        ) {
           updateValue()
         }
       }

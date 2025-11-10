@@ -58,7 +58,9 @@ export function RestaurantDetail({
       />
       <DialogContent maxW="2xl" maxH="90vh" overflowY="auto" bg="bg.surface">
         <DialogHeader>
-          <Heading size="2xl" color="text.primary">{restaurant.name}</Heading>
+          <Heading size="2xl" color="text.primary">
+            {restaurant.name}
+          </Heading>
         </DialogHeader>
         <DialogCloseTrigger />
         <DialogBody pb={6}>
