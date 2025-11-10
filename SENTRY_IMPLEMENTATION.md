@@ -26,15 +26,7 @@ This document describes the Sentry integration implementation for Feast Finder, 
    - Request sanitization
    - Header filtering
 
-3. **src/routes/sentry-test.tsx**: Test page for verifying Sentry integration
-   - Error throwing demos
-   - Manual exception capture
-   - Message capture
-   - Console log testing
-   - Performance transaction testing
-   - Session replay demo
-
-4. **.env.local.example**: Environment variable template
+3. **.env.local.example**: Environment variable template
    - VITE_SENTRY_DSN
    - SENTRY_ORG
    - SENTRY_PROJECT
@@ -160,33 +152,17 @@ SENTRY_AUTH_TOKEN=your_sentry_auth_token
 
 ## Testing
 
-### Test Page: /sentry-test
-
-Navigate to `/sentry-test` to access the comprehensive test page with:
-
-1. **Error Tracking Tests**
-   - Throw Uncaught Error
-   - Capture Exception Manually
-   - Send Message to Sentry
-
-2. **Console Log Tests**
-   - Log Error to Console
-   - Log Warning to Console
-
-3. **Performance Tests**
-   - Trigger Performance Transaction
-
-4. **Session Replay Demo**
-   - Interactive element for replay testing
-
-5. **User Feedback**
-   - Look for feedback widget (usually bottom-right corner)
-
 ### Manual Testing
 
+You can test Sentry integration by triggering errors in your application:
+
 1. Start development server: `npm run dev`
-2. Navigate to `/sentry-test`
-3. Test each feature
+2. Navigate to any page in the application
+3. Trigger errors to test error capture:
+   - Throw an error in your code
+   - Use `Sentry.captureException()` to manually capture exceptions
+   - Use `Sentry.captureMessage()` to send messages
+   - Use `console.error()` or `console.warn()` to test log capture
 4. Check Sentry dashboard for captured events
 
 ### Production Testing
@@ -365,6 +341,6 @@ For production applications, consider upgrading to a paid plan based on usage.
 
 For issues or questions:
 1. Check this document
-2. Visit `/sentry-test` page for testing
-3. Review Sentry documentation
-4. Check Sentry dashboard for captured events
+2. Review Sentry documentation
+3. Check Sentry dashboard for captured events
+4. Test by triggering errors in your application

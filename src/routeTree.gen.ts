@@ -9,16 +9,10 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SentryTestRouteImport } from './routes/sentry-test'
 import { Route as RestaurantsRouteImport } from './routes/restaurants'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EventsEventNameRouteImport } from './routes/events/$eventName'
 
-const SentryTestRoute = SentryTestRouteImport.update({
-  id: '/sentry-test',
-  path: '/sentry-test',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const RestaurantsRoute = RestaurantsRouteImport.update({
   id: '/restaurants',
   path: '/restaurants',
@@ -38,46 +32,35 @@ const EventsEventNameRoute = EventsEventNameRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/restaurants': typeof RestaurantsRoute
-  '/sentry-test': typeof SentryTestRoute
   '/events/$eventName': typeof EventsEventNameRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/restaurants': typeof RestaurantsRoute
-  '/sentry-test': typeof SentryTestRoute
   '/events/$eventName': typeof EventsEventNameRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/restaurants': typeof RestaurantsRoute
-  '/sentry-test': typeof SentryTestRoute
   '/events/$eventName': typeof EventsEventNameRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/restaurants' | '/sentry-test' | '/events/$eventName'
+  fullPaths: '/' | '/restaurants' | '/events/$eventName'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/restaurants' | '/sentry-test' | '/events/$eventName'
-  id: '__root__' | '/' | '/restaurants' | '/sentry-test' | '/events/$eventName'
+  to: '/' | '/restaurants' | '/events/$eventName'
+  id: '__root__' | '/' | '/restaurants' | '/events/$eventName'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   RestaurantsRoute: typeof RestaurantsRoute
-  SentryTestRoute: typeof SentryTestRoute
   EventsEventNameRoute: typeof EventsEventNameRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/sentry-test': {
-      id: '/sentry-test'
-      path: '/sentry-test'
-      fullPath: '/sentry-test'
-      preLoaderRoute: typeof SentryTestRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/restaurants': {
       id: '/restaurants'
       path: '/restaurants'
@@ -105,7 +88,6 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   RestaurantsRoute: RestaurantsRoute,
-  SentryTestRoute: SentryTestRoute,
   EventsEventNameRoute: EventsEventNameRoute,
 }
 export const routeTree = rootRouteImport
