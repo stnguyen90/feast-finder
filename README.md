@@ -80,12 +80,14 @@ Each restaurant week event includes:
 - **React Leaflet**: Interactive map component
 - **Chakra UI v3**: Component library for UI
 - **Tailwind CSS v4**: Utility-first styling
+- **Sentry**: Error tracking, performance monitoring, and user feedback
 
 ### Backend
 
 - **Convex**: Serverless backend and database
 - **Convex Geospatial Component**: Efficient spatial indexing and queries
 - **TypeScript**: Type-safe code throughout
+- **Sentry**: Server-side error tracking and logging
 
 ### Deployment
 
@@ -133,6 +135,35 @@ This will:
 4. Start the Convex development server
 
 The app automatically seeds sample restaurant and event data on first load.
+
+### Sentry Setup (Optional)
+
+For error tracking and performance monitoring:
+
+1. Create a free Sentry account at [sentry.io](https://sentry.io)
+2. Create a new project for TanStack Start/React
+3. Copy your DSN from the project settings
+4. Add to `.env.local`:
+
+```bash
+VITE_SENTRY_DSN=your_sentry_dsn_here
+```
+
+**Features enabled:**
+- ✅ Error tracking (client & server)
+- ✅ Performance monitoring
+- ✅ Session replay (10% of sessions, 100% with errors)
+- ✅ User feedback widget
+- ✅ Console log capture (errors & warnings)
+
+For production source map uploads, also add:
+```bash
+SENTRY_ORG=your_sentry_org
+SENTRY_PROJECT=your_sentry_project
+SENTRY_AUTH_TOKEN=your_sentry_auth_token
+```
+
+See `.env.local.example` for a complete template.
 
 ## Project Structure
 

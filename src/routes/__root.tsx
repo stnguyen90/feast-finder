@@ -5,6 +5,7 @@ import {
   createRootRouteWithContext,
 } from '@tanstack/react-router'
 import * as React from 'react'
+import * as Sentry from '@sentry/tanstackstart-react'
 import type { QueryClient } from '@tanstack/react-query'
 import appCss from '~/styles/app.css?url'
 
@@ -79,9 +80,20 @@ export const Route = createRootRouteWithContext<{
 
 function RootComponent() {
   return (
-    <RootDocument>
-      <Outlet />
-    </RootDocument>
+    <Sentry.ErrorBoundary
+      fallback={({ error, resetError }) => (
+        <div style={{ padding: '2rem', textAlign: 'center' }}>
+          <h1>Something went wrong</h1>
+          <p>{error instanceof Error ? error.message : 'An unknown error occurred'}</p>
+          <button onClick={resetError}>Try again</button>
+        </div>
+      )}
+      showDialog
+    >
+      <RootDocument>
+        <Outlet />
+      </RootDocument>
+    </Sentry.ErrorBoundary>
   )
 }
 
