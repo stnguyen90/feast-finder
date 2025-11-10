@@ -56,6 +56,28 @@ export function PriceFilter({
     }
   }, [initialValues])
 
+  // Notify parent component whenever price values change
+  useEffect(() => {
+    const filters: PriceFilterState = {}
+
+    if (minBrunchPrice) filters.minBrunchPrice = parseFloat(minBrunchPrice)
+    if (maxBrunchPrice) filters.maxBrunchPrice = parseFloat(maxBrunchPrice)
+    if (minLunchPrice) filters.minLunchPrice = parseFloat(minLunchPrice)
+    if (maxLunchPrice) filters.maxLunchPrice = parseFloat(maxLunchPrice)
+    if (minDinnerPrice) filters.minDinnerPrice = parseFloat(minDinnerPrice)
+    if (maxDinnerPrice) filters.maxDinnerPrice = parseFloat(maxDinnerPrice)
+
+    onFilterChange(filters)
+  }, [
+    minBrunchPrice,
+    maxBrunchPrice,
+    minLunchPrice,
+    maxLunchPrice,
+    minDinnerPrice,
+    maxDinnerPrice,
+    onFilterChange,
+  ])
+
   const handleApplyFilters = () => {
     const filters: PriceFilterState = {}
 

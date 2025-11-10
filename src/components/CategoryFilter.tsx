@@ -10,7 +10,7 @@ import {
   createListCollection,
 } from '@chakra-ui/react'
 import { useEffect, useMemo, useState } from 'react'
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
 import { api } from '../../convex/_generated/api'
 
@@ -29,8 +29,8 @@ export function CategoryFilter({
   initialValues = [],
   hideButtons = false,
 }: CategoryFilterProps) {
-  // Fetch all available categories from the database
-  const { data: availableCategories } = useSuspenseQuery(
+  // Fetch all available categories from the database (use regular useQuery to prevent flicker)
+  const { data: availableCategories = [] } = useQuery(
     convexQuery(api.restaurants.listCategories, {}),
   )
 
