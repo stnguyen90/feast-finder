@@ -7,6 +7,16 @@ import { ChakraProvider } from '@chakra-ui/react'
 import { routeTree } from './routeTree.gen'
 import { system } from './theme'
 
+// Initialize Sentry on client-side
+if (typeof window !== 'undefined') {
+  import('./sentry.client.config')
+}
+
+// Initialize Sentry on server-side
+if (typeof window === 'undefined') {
+  import('./sentry.server.config')
+}
+
 export function getRouter() {
   const CONVEX_URL = (import.meta as any).env.VITE_CONVEX_URL!
   if (!CONVEX_URL) {
