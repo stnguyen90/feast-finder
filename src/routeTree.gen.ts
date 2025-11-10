@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as RestaurantsRouteImport } from './routes/restaurants'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as EventsEventNameRouteImport } from './routes/events/$eventName'
 
 const RestaurantsRoute = RestaurantsRouteImport.update({
   id: '/restaurants',
@@ -22,31 +23,40 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EventsEventNameRoute = EventsEventNameRouteImport.update({
+  id: '/events/$eventName',
+  path: '/events/$eventName',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/restaurants': typeof RestaurantsRoute
+  '/events/$eventName': typeof EventsEventNameRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/restaurants': typeof RestaurantsRoute
+  '/events/$eventName': typeof EventsEventNameRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/restaurants': typeof RestaurantsRoute
+  '/events/$eventName': typeof EventsEventNameRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/restaurants'
+  fullPaths: '/' | '/restaurants' | '/events/$eventName'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/restaurants'
-  id: '__root__' | '/' | '/restaurants'
+  to: '/' | '/restaurants' | '/events/$eventName'
+  id: '__root__' | '/' | '/restaurants' | '/events/$eventName'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   RestaurantsRoute: typeof RestaurantsRoute
+  EventsEventNameRoute: typeof EventsEventNameRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +75,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/events/$eventName': {
+      id: '/events/$eventName'
+      path: '/events/$eventName'
+      fullPath: '/events/$eventName'
+      preLoaderRoute: typeof EventsEventNameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   RestaurantsRoute: RestaurantsRoute,
+  EventsEventNameRoute: EventsEventNameRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
