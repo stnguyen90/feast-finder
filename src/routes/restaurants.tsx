@@ -5,8 +5,10 @@ import { useMutation } from 'convex/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Box,
+  Button,
   Center,
   Flex,
+  HStack,
   Heading,
   IconButton,
   Spinner,
@@ -18,6 +20,7 @@ import type { MapBounds, Restaurant } from '~/components/RestaurantMap'
 import type { PriceFilterState } from '~/components/PriceFilter'
 import { ColorModeToggle } from '~/components/ColorModeToggle'
 import { PriceFilter } from '~/components/PriceFilter'
+import { CategoryFilter } from '~/components/CategoryFilter'
 import { RestaurantDetail } from '~/components/RestaurantDetail'
 import { RestaurantMap } from '~/components/RestaurantMap'
 
@@ -29,6 +32,7 @@ interface SearchParams {
   maxLunchPrice?: number
   minDinnerPrice?: number
   maxDinnerPrice?: number
+  categories?: Array<string>
   lat?: number
   lng?: number
   zoom?: number
@@ -55,6 +59,11 @@ export const Route = createFileRoute('/restaurants')({
         : undefined,
       maxDinnerPrice: search.maxDinnerPrice
         ? Number(search.maxDinnerPrice)
+        : undefined,
+      categories: search.categories
+        ? Array.isArray(search.categories)
+          ? search.categories
+          : [search.categories]
         : undefined,
       lat: search.lat ? Number(search.lat) : undefined,
       lng: search.lng ? Number(search.lng) : undefined,
@@ -84,7 +93,16 @@ function Restaurants() {
     [searchParams],
   )
 
+  // Track category filter state from URL
+  const selectedCategories = useMemo(
+    () => searchParams.categories ?? [],
+    [searchParams.categories],
+  )
+
   const [showFilters, setShowFilters] = useState(false)
+  const [activeFilterTab, setActiveFilterTab] = useState<'price' | 'category'>(
+    'price',
+  )
 
   // Always fetch all restaurants for now (used for seeding check only)
   const { data: allRestaurants } = useSuspenseQuery(
@@ -98,6 +116,7 @@ function Restaurants() {
     ...convexQuery(api.restaurantsGeo.queryRestaurantsInBounds, {
       bounds: geoQueryArgs,
       ...priceFilters, // Include all price filter parameters
+      categories: selectedCategories.length > 0 ? selectedCategories : undefined, // Include category filter
     }),
     placeholderData: (previousData) => previousData, // Keep previous data while loading
   })
@@ -205,12 +224,35 @@ function Restaurants() {
     [navigate],
   )
 
+  const handleCategoryFilterChange = useCallback(
+    (categories: Array<string>) => {
+      navigate({
+        search: (prev) => ({
+          ...prev,
+          categories: categories.length > 0 ? categories : undefined,
+        }),
+        replace: true,
+      })
+    },
+    [navigate],
+  )
+
   const handleClearFilters = useCallback(() => {
     navigate({
       search: (prev) => ({
         lat: prev.lat,
         lng: prev.lng,
         zoom: prev.zoom,
+      }),
+      replace: true,
+    })
+  }, [navigate])
+
+  const handleClearCategoryFilters = useCallback(() => {
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        categories: undefined,
       }),
       replace: true,
     })
@@ -277,7 +319,7 @@ function Restaurants() {
             initialZoom={searchParams.zoom}
           />
 
-          {/* Price Filter Panel */}
+          {/* Filter Panel */}
           <Box position="absolute" top={4} left={4} zIndex={1000}>
             {!showFilters ? (
               <IconButton
@@ -293,12 +335,71 @@ function Restaurants() {
               </IconButton>
             ) : (
               <Box>
-                <PriceFilter
-                  onFilterChange={handleFilterChange}
-                  onClearFilters={handleClearFilters}
-                  onApply={() => setShowFilters(false)}
-                  initialValues={priceFilters}
-                />
+                {/* Filter tabs */}
+                <Box
+                  bg="bg.surface"
+                  borderRadius="md"
+                  boxShadow="md"
+                  mb={2}
+                  p={2}
+                >
+                  <HStack gap={2}>
+                    <Button
+                      size="sm"
+                      variant={activeFilterTab === 'price' ? 'solid' : 'ghost'}
+                      onClick={() => setActiveFilterTab('price')}
+                      bg={
+                        activeFilterTab === 'price'
+                          ? 'brand.solid'
+                          : 'transparent'
+                      }
+                      color={
+                        activeFilterTab === 'price'
+                          ? 'brand.contrast'
+                          : 'text.primary'
+                      }
+                    >
+                      Price
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={
+                        activeFilterTab === 'category' ? 'solid' : 'ghost'
+                      }
+                      onClick={() => setActiveFilterTab('category')}
+                      bg={
+                        activeFilterTab === 'category'
+                          ? 'brand.solid'
+                          : 'transparent'
+                      }
+                      color={
+                        activeFilterTab === 'category'
+                          ? 'brand.contrast'
+                          : 'text.primary'
+                      }
+                    >
+                      Categories
+                    </Button>
+                  </HStack>
+                </Box>
+
+                {/* Active filter content */}
+                {activeFilterTab === 'price' ? (
+                  <PriceFilter
+                    onFilterChange={handleFilterChange}
+                    onClearFilters={handleClearFilters}
+                    onApply={() => setShowFilters(false)}
+                    initialValues={priceFilters}
+                  />
+                ) : (
+                  <CategoryFilter
+                    onFilterChange={handleCategoryFilterChange}
+                    onClearFilters={handleClearCategoryFilters}
+                    onApply={() => setShowFilters(false)}
+                    initialValues={selectedCategories}
+                  />
+                )}
+
                 <Box
                   mt={2}
                   bg="bg.surface"
