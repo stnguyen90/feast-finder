@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as events from "../events.js";
 import type * as geospatial from "../geospatial.js";
 import type * as restaurants from "../restaurants.js";
 import type * as restaurantsGeo from "../restaurantsGeo.js";
@@ -28,6 +29,7 @@ import type {
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  events: typeof events;
   geospatial: typeof geospatial;
   restaurants: typeof restaurants;
   restaurantsGeo: typeof restaurantsGeo;

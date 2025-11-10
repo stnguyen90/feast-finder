@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react'
-import type { MapBounds } from '~/routes/index'
+
+// Type for map bounds
+export interface MapBounds {
+  north: number
+  south: number
+  east: number
+  west: number
+}
 
 export interface Restaurant {
   _id: string
@@ -24,7 +31,11 @@ export interface Restaurant {
 interface RestaurantMapProps {
   restaurants: Array<Restaurant>
   onSelectRestaurant: (restaurant: Restaurant) => void
-  onBoundsChange?: (bounds: MapBounds, center?: { lat: number; lng: number }, zoom?: number) => void
+  onBoundsChange?: (
+    bounds: MapBounds,
+    center?: { lat: number; lng: number },
+    zoom?: number,
+  ) => void
   initialCenter?: { lat: number; lng: number }
   initialZoom?: number
 }
@@ -44,10 +55,10 @@ export function RestaurantMap({
     Promise.all([
       import('leaflet/dist/leaflet.css'),
       import('react-leaflet'),
-      import('leaflet')
+      import('leaflet'),
     ]).then(([_, reactLeafletModule, L]) => {
       setReactLeaflet(reactLeafletModule)
-      
+
       // Create custom icon using the provided SVG
       const svgIcon = L.divIcon({
         html: `<svg width="25" height="41" viewBox="0 0 25 41" xmlns="http://www.w3.org/2000/svg">
@@ -59,7 +70,7 @@ export function RestaurantMap({
         iconAnchor: [12.5, 41],
         popupAnchor: [0, -41],
       })
-      
+
       setCustomIcon(svgIcon)
     })
   }, [])
@@ -73,7 +84,8 @@ export function RestaurantMap({
     )
   }
 
-  const { MapContainer, TileLayer, Marker, useMapEvents, ZoomControl } = ReactLeaflet
+  const { MapContainer, TileLayer, Marker, useMapEvents, ZoomControl } =
+    ReactLeaflet
 
   // Component to track map events
   function MapEventsHandler() {
@@ -83,36 +95,44 @@ export function RestaurantMap({
           const bounds = map.getBounds()
           const center = map.getCenter()
           const zoom = map.getZoom()
-          onBoundsChange({
-            north: bounds.getNorth(),
-            south: bounds.getSouth(),
-            east: bounds.getEast(),
-            west: bounds.getWest(),
-          }, { lat: center.lat, lng: center.lng }, zoom)
+          onBoundsChange(
+            {
+              north: bounds.getNorth(),
+              south: bounds.getSouth(),
+              east: bounds.getEast(),
+              west: bounds.getWest(),
+            },
+            { lat: center.lat, lng: center.lng },
+            zoom,
+          )
         }
       },
     })
-    
+
     // Set initial bounds on mount
     useEffect(() => {
       if (onBoundsChange) {
         const bounds = map.getBounds()
         const center = map.getCenter()
         const zoom = map.getZoom()
-        onBoundsChange({
-          north: bounds.getNorth(),
-          south: bounds.getSouth(),
-          east: bounds.getEast(),
-          west: bounds.getWest(),
-        }, { lat: center.lat, lng: center.lng }, zoom)
+        onBoundsChange(
+          {
+            north: bounds.getNorth(),
+            south: bounds.getSouth(),
+            east: bounds.getEast(),
+            west: bounds.getWest(),
+          },
+          { lat: center.lat, lng: center.lng },
+          zoom,
+        )
       }
     }, [map])
-    
+
     return null
   }
 
   // Use initial values from props or default to San Francisco
-  const center: [number, number] = initialCenter 
+  const center: [number, number] = initialCenter
     ? [initialCenter.lat, initialCenter.lng]
     : [37.7749, -122.4194]
   const zoom = initialZoom ?? 12

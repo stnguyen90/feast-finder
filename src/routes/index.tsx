@@ -1,202 +1,76 @@
-import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
-import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
+import { Link as RouterLink, createFileRoute } from '@tanstack/react-router'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
 import { useMutation } from 'convex/react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Box, Center, Flex, Heading, IconButton, Spinner, Text } from '@chakra-ui/react'
+import { useEffect, useState } from 'react'
+import {
+  Badge,
+  Box,
+  Button,
+  Center,
+  Container,
+  Flex,
+  Heading,
+  Link,
+  Spinner,
+  Text,
+  VisuallyHidden,
+} from '@chakra-ui/react'
+import { FaCalendar, FaFilter, FaGlobe, FaMapLocationDot, FaUtensils } from 'react-icons/fa6'
 import { api } from '../../convex/_generated/api'
-import type { PriceFilterState } from '~/components/PriceFilter'
-import type { Restaurant } from '~/components/RestaurantMap'
+import type { Id } from '../../convex/_generated/dataModel'
 import { ColorModeToggle } from '~/components/ColorModeToggle'
-import { PriceFilter } from '~/components/PriceFilter'
-import { RestaurantDetail } from '~/components/RestaurantDetail'
-import { RestaurantMap } from '~/components/RestaurantMap'
 
-// Define search params schema for URL state
-interface SearchParams {
-  minBrunchPrice?: number
-  maxBrunchPrice?: number
-  minLunchPrice?: number
-  maxLunchPrice?: number
-  minDinnerPrice?: number
-  maxDinnerPrice?: number
-  lat?: number
-  lng?: number
-  zoom?: number
+// Type for event data
+interface Event {
+  _id: Id<'events'>
+  _creationTime: number
+  name: string
+  startDate: string
+  endDate: string
+  latitude: number
+  longitude: number
+  websiteUrl?: string
+  syncTime: number
+  menuCount: number
+  restaurantCount: number
 }
 
 export const Route = createFileRoute('/')({
-  component: Home,
-  validateSearch: (search: Record<string, unknown>): SearchParams => {
-    return {
-      minBrunchPrice: search.minBrunchPrice ? Number(search.minBrunchPrice) : undefined,
-      maxBrunchPrice: search.maxBrunchPrice ? Number(search.maxBrunchPrice) : undefined,
-      minLunchPrice: search.minLunchPrice ? Number(search.minLunchPrice) : undefined,
-      maxLunchPrice: search.maxLunchPrice ? Number(search.maxLunchPrice) : undefined,
-      minDinnerPrice: search.minDinnerPrice ? Number(search.minDinnerPrice) : undefined,
-      maxDinnerPrice: search.maxDinnerPrice ? Number(search.maxDinnerPrice) : undefined,
-      lat: search.lat ? Number(search.lat) : undefined,
-      lng: search.lng ? Number(search.lng) : undefined,
-      zoom: search.zoom ? Number(search.zoom) : undefined,
-    }
-  },
+  component: LandingPage,
 })
 
-// Type for map bounds
-export interface MapBounds {
-  north: number
-  south: number
-  east: number
-  west: number
-}
-
-function Home() {
-  const navigate = useNavigate({ from: '/' })
-  const searchParams = useSearch({ from: '/' })
-  
-  // Track map bounds for geospatial queries
-  const [mapBounds, setMapBounds] = useState<MapBounds | null>(null)
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
-  
-  // Track price filter state from URL
-  const priceFilters: PriceFilterState = useMemo(() => ({
-    minBrunchPrice: searchParams.minBrunchPrice,
-    maxBrunchPrice: searchParams.maxBrunchPrice,
-    minLunchPrice: searchParams.minLunchPrice,
-    maxLunchPrice: searchParams.maxLunchPrice,
-    minDinnerPrice: searchParams.minDinnerPrice,
-    maxDinnerPrice: searchParams.maxDinnerPrice,
-  }), [searchParams])
-  
-  const [showFilters, setShowFilters] = useState(false)
-
-  // Always fetch all restaurants for now (used for seeding check only)
-  const { data: allRestaurants } = useSuspenseQuery(
-    convexQuery(api.restaurants.listRestaurants, {}),
+function LandingPage() {
+  // Fetch active events
+  const { data: events } = useSuspenseQuery(
+    convexQuery(api.events.listActiveEvents, {}),
   )
 
-  // Fetch restaurants with both geospatial and price filtering in a single query
-  // Use regular useQuery with placeholderData to prevent flickering
-  const geoQueryArgs = mapBounds ?? { north: 0, south: 0, east: 0, west: 0 }
-  const { data: geoRestaurantsResult } = useQuery({
-    ...convexQuery(api.restaurantsGeo.queryRestaurantsInBounds, {
-      bounds: geoQueryArgs,
-      ...priceFilters, // Include all price filter parameters
-    }),
-    placeholderData: (previousData) => previousData, // Keep previous data while loading
-  })
-
-  // Use geospatial results directly - filtering is done in database
-  const restaurants = useMemo(() => {
-    if (mapBounds !== null && geoRestaurantsResult) {
-      return geoRestaurantsResult.results
-    }
-    return allRestaurants
-  }, [mapBounds, geoRestaurantsResult, allRestaurants])
-
-  const [selectedRestaurant, setSelectedRestaurant] =
-    useState<Restaurant | null>(null)
-
-  const seedRestaurants = useMutation(api.seedData.seedRestaurants)
-  const syncAllToIndex = useMutation(api.restaurantsGeo.syncAllRestaurantsToIndex)
+  const seedEvents = useMutation(api.seedData.seedEvents)
   const [isSeeding, setIsSeeding] = useState(false)
+  const [hasAttemptedSeed, setHasAttemptedSeed] = useState(false)
 
-  // Auto-seed on first load if no restaurants exist
+  // Auto-seed events on first load if no events exist
   useEffect(() => {
-    if (allRestaurants.length === 0 && !isSeeding) {
+    if (events.length === 0 && !isSeeding && !hasAttemptedSeed) {
       setIsSeeding(true)
-      seedRestaurants({})
+      setHasAttemptedSeed(true)
+      seedEvents({})
         .then(() => {
-          console.log('Restaurants seeded successfully')
+          console.log('Events seeded successfully')
         })
         .catch((error) => {
-          console.error('Error seeding restaurants:', error)
+          console.error('Error seeding events:', error)
         })
         .finally(() => {
           setIsSeeding(false)
         })
     }
-  }, [allRestaurants.length, seedRestaurants, isSeeding])
-
-  // Sync existing restaurants to geospatial index on first load
-  useEffect(() => {
-    if (allRestaurants.length > 0 && !isSeeding) {
-      // Only sync once - check if we've already synced
-      const hasSynced = localStorage.getItem('geospatial-synced')
-      if (!hasSynced) {
-        console.log('Syncing restaurants to geospatial index...')
-        syncAllToIndex({})
-          .then((result) => {
-            console.log(`Synced ${result.synced} restaurants to geospatial index`)
-            localStorage.setItem('geospatial-synced', 'true')
-          })
-          .catch((error) => {
-            console.error('Error syncing to geospatial index:', error)
-          })
-      }
-    }
-  }, [allRestaurants.length, syncAllToIndex, isSeeding])
-
-  const handleBoundsChange = useCallback((bounds: MapBounds, center?: { lat: number; lng: number }, zoom?: number) => {
-    // Debounce bounds updates to prevent flickering during pan
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current)
-    }
-    debounceTimerRef.current = setTimeout(() => {
-      setMapBounds(bounds)
-      
-      // Update URL with map position if provided
-      if (center && zoom !== undefined) {
-        navigate({
-          search: (prev) => ({
-            ...prev,
-            lat: center.lat,
-            lng: center.lng,
-            zoom,
-          }),
-          replace: true,
-        })
-      }
-    }, 300) // 300ms debounce
-  }, [navigate])
-  
-  const handleFilterChange = useCallback((filters: PriceFilterState) => {
-    navigate({
-      search: (prev) => ({
-        ...prev,
-        minBrunchPrice: filters.minBrunchPrice,
-        maxBrunchPrice: filters.maxBrunchPrice,
-        minLunchPrice: filters.minLunchPrice,
-        maxLunchPrice: filters.maxLunchPrice,
-        minDinnerPrice: filters.minDinnerPrice,
-        maxDinnerPrice: filters.maxDinnerPrice,
-      }),
-      replace: true,
-    })
-  }, [navigate])
-  
-  const handleClearFilters = useCallback(() => {
-    navigate({
-      search: (prev) => ({
-        lat: prev.lat,
-        lng: prev.lng,
-        zoom: prev.zoom,
-      }),
-      replace: true,
-    })
-  }, [navigate])
-
-  // Cleanup debounce timer on unmount
-  useEffect(() => {
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current)
-      }
-    }
-  }, [])
+  }, [events.length, seedEvents, isSeeding, hasAttemptedSeed])
 
   return (
-    <Flex direction="column" h="100vh" bg="bg.page">
+    <Flex direction="column" minH="100vh" bg="bg.page">
+      {/* Header */}
       <Flex
         flexShrink={0}
         p={4}
@@ -206,93 +80,252 @@ function Home() {
         justify="space-between"
       >
         <Box flex={1} textAlign="center">
-          <Heading size="2xl" color="brand.contrast">
-            🍽️ Feast Finder
-          </Heading>
-          <Text color="text.inverted" fontSize="sm" mt={1}>
-            Discover amazing restaurants on an interactive map
-          </Text>
+          <Flex align="center" justify="center" gap={2}>
+            <FaUtensils size={32} color="var(--chakra-colors-brand-contrast)" />
+            <Heading size="2xl" color="brand.contrast">
+              Feast Finder
+            </Heading>
+          </Flex>
         </Box>
         <Box position="absolute" right={4}>
           <ColorModeToggle />
         </Box>
       </Flex>
 
-      {isSeeding ? (
-        <Center flex={1} color="text.secondary">
-          <Flex direction="column" align="center" gap={4}>
-            <Spinner size="xl" color="brand.solid" />
-            <Text>Loading restaurants...</Text>
-          </Flex>
-        </Center>
-      ) : allRestaurants.length === 0 ? (
-        <Center flex={1} color="text.secondary">
-          <Text>
-            No restaurants found. Please wait while we load some sample data...
-          </Text>
-        </Center>
-      ) : (
-        <Box flex={1} position="relative">
-          <RestaurantMap
-            restaurants={restaurants}
-            onSelectRestaurant={setSelectedRestaurant}
-            onBoundsChange={handleBoundsChange}
-            initialCenter={searchParams.lat && searchParams.lng ? { lat: searchParams.lat, lng: searchParams.lng } : undefined}
-            initialZoom={searchParams.zoom}
-          />
-          
-          {/* Price Filter Panel */}
-          <Box 
-            position="absolute" 
-            top={4} 
-            left={4} 
-            zIndex={1000}
+      <Container maxW="container.xl" py={12}>
+        {/* Hero Section */}
+        <Box textAlign="center" mb={16} position="relative">
+          <Heading size="5xl" mb={6} fontWeight="extrabold" color="text.primary">
+            Discover Your Next
+            <br />
+            <Box
+              as="span"
+              bgGradient="to-r"
+              gradientFrom="brand.solid"
+              gradientTo="purple.500"
+              bgClip="text"
+            >
+              Culinary Adventure
+            </Box>
+          </Heading>
+          <Text
+            fontSize="xl"
+            color="text.secondary"
+            mb={8}
+            maxW="2xl"
+            mx="auto"
+            lineHeight="tall"
           >
-            {!showFilters ? (
-              <IconButton
-                aria-label="Filters"
-                bg="bg.surface"
-                borderRadius="md"
-                boxShadow="md"
-                onClick={() => setShowFilters(true)}
-                _hover={{ bg: 'bg.subtle' }}
-                size="lg"
-              >
-                🔍
-              </IconButton>
-            ) : (
-              <Box>
-                <PriceFilter 
-                  onFilterChange={handleFilterChange}
-                  onClearFilters={handleClearFilters}
-                  onApply={() => setShowFilters(false)}
-                  initialValues={priceFilters}
-                />
-                <Box
-                  mt={2}
-                  bg="bg.surface"
-                  p={2}
-                  borderRadius="md"
-                  boxShadow="md"
-                  textAlign="center"
-                  cursor="pointer"
-                  onClick={() => setShowFilters(false)}
-                  _hover={{ bg: 'bg.subtle' }}
-                >
-                  <Text fontSize="sm" color="text.secondary">
-                    Hide Filters
-                  </Text>
-                </Box>
-              </Box>
-            )}
-          </Box>
-
-          <RestaurantDetail
-            restaurant={selectedRestaurant}
-            onClose={() => setSelectedRestaurant(null)}
-          />
+            Feast Finder helps you explore restaurant week events and discover
+            amazing dining experiences near you. Find exclusive prix-fixe menus,
+            special tastings, and culinary events in your area.
+          </Text>
+          <Button asChild bg="brand.solid" color="brand.contrast" size="xl">
+            <RouterLink to="/restaurants">Explore Restaurants</RouterLink>
+          </Button>
         </Box>
-      )}
+
+        {/* Features Section */}
+        <Box mb={16}>
+          <VisuallyHidden>
+            <Heading size="xl" textAlign="center" mb={8}>
+              Why Choose Feast Finder?
+            </Heading>
+          </VisuallyHidden>
+          <Flex direction={{ base: 'column', md: 'row' }} gap={8}>
+            <Box
+              flex={1}
+              p={6}
+              bg="bg.surface"
+              borderRadius="lg"
+              boxShadow="md"
+            >
+              <Box fontSize="4xl" mb={4} color="brand.solid">
+                <FaMapLocationDot />
+              </Box>
+              <Heading size="lg" mb={4} color="text.primary">
+                Interactive Map
+              </Heading>
+              <Text color="text.secondary">
+                Explore restaurants on an intuitive map interface. Pan, zoom,
+                and discover hidden culinary gems in your area.
+              </Text>
+            </Box>
+            <Box
+              flex={1}
+              p={6}
+              bg="bg.surface"
+              borderRadius="lg"
+              boxShadow="md"
+            >
+              <Box fontSize="4xl" mb={4} color="brand.solid">
+                <FaCalendar />
+              </Box>
+              <Heading size="lg" mb={4} color="text.primary">
+                Restaurant Week Events
+              </Heading>
+              <Text color="text.secondary">
+                Never miss a restaurant week event. Get notified about special
+                dining experiences, prix-fixe menus, and exclusive tastings.
+              </Text>
+            </Box>
+            <Box
+              flex={1}
+              p={6}
+              bg="bg.surface"
+              borderRadius="lg"
+              boxShadow="md"
+            >
+              <Box fontSize="4xl" mb={4} color="brand.solid">
+                <FaFilter />
+              </Box>
+              <Heading size="lg" mb={4} color="text.primary">
+                Easy Filtering
+              </Heading>
+              <Text color="text.secondary">
+                Filter restaurants by price, meal type, cuisine, and more to
+                easily find exactly what you're looking for.
+              </Text>
+            </Box>
+          </Flex>
+        </Box>
+
+        {/* Events Section */}
+        <Box>
+          <Heading size="xl" textAlign="center" mb={2} color="text.primary">
+            Upcoming Restaurant Week Events
+          </Heading>
+          <Text textAlign="center" color="text.secondary" mb={8}>
+            Join special dining events featuring exclusive menus and experiences
+          </Text>
+
+          {isSeeding ? (
+            <Center py={12}>
+              <Flex direction="column" align="center" gap={4}>
+                <Spinner size="xl" color="brand.solid" />
+                <Text color="text.secondary">Loading events...</Text>
+              </Flex>
+            </Center>
+          ) : events.length === 0 ? (
+            <Center py={12}>
+              <Box textAlign="center">
+                <Text fontSize="xl" color="text.secondary" mb={4}>
+                  No upcoming events at this time
+                </Text>
+                <Text color="text.secondary">
+                  Check back soon for new restaurant week events and special
+                  dining experiences!
+                </Text>
+              </Box>
+            </Center>
+          ) : (
+            <Flex direction="column" gap={6}>
+              {(events as Array<Event>).map((event: Event) => {
+                const startDate = new Date(event.startDate)
+                const endDate = new Date(event.endDate)
+                const isActive =
+                  new Date() >= startDate && new Date() <= endDate
+
+                return (
+                  <Box
+                    key={event._id}
+                    p={6}
+                    bg="bg.surface"
+                    borderRadius="lg"
+                    boxShadow="md"
+                    _hover={{ boxShadow: 'lg', transform: 'translateY(-2px)' }}
+                    transition="all 0.2s"
+                  >
+                    <Flex
+                      direction={{ base: 'column', md: 'row' }}
+                      gap={6}
+                      align="flex-start"
+                    >
+                      <Box flex={1}>
+                        <Flex align="center" gap={3} mb={4}>
+                          <Heading size="lg" color="text.primary">{event.name}</Heading>
+                          {isActive && (
+                            <Badge
+                              colorScheme="green"
+                              fontSize="sm"
+                              px={2}
+                              py={1}
+                            >
+                              Active Now
+                            </Badge>
+                          )}
+                        </Flex>
+                        <Flex
+                          gap={4}
+                          mb={4}
+                          fontSize="sm"
+                          color="text.secondary"
+                          direction="column"
+                          align="flex-start"
+                        >
+                          <Flex align="center" gap={1}>
+                            <FaCalendar />
+                            <Text>
+                              {startDate.toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                              })}{' '}
+                              -{' '}
+                              {endDate.toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                              })}
+                            </Text>
+                          </Flex>
+                          <Flex align="center" gap={1}>
+                            <FaUtensils />
+                            <Text>
+                              {event.restaurantCount}{' '}
+                              {event.restaurantCount === 1
+                                ? 'restaurant'
+                                : 'restaurants'}
+                            </Text>
+                          </Flex>
+                        </Flex>
+                        {event.websiteUrl && (
+                          <Box mb={4}>
+                            <Link
+                              href={event.websiteUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              color="link.primary"
+                              _hover={{ textDecoration: 'underline' }}
+                            >
+                              <Flex align="center" gap={1}>
+                                <FaGlobe />
+                                <span>Event Website</span>
+                              </Flex>
+                            </Link>
+                          </Box>
+                        )}
+                        <Button asChild bg="brand.solid" color="brand.contrast" size="lg">
+                          <RouterLink to="/restaurants">
+                            View Restaurants
+                          </RouterLink>
+                        </Button>
+                      </Box>
+                    </Flex>
+                  </Box>
+                )
+              })}
+            </Flex>
+          )}
+        </Box>
+      </Container>
+
+      {/* Footer */}
+      <Box mt="auto" py={8} bg="bg.subtle" textAlign="center">
+        <Text color="text.secondary">
+          © 2025 Feast Finder. Discover amazing restaurants near you.
+        </Text>
+      </Box>
     </Flex>
   )
 }

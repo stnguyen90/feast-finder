@@ -36,9 +36,7 @@ export function getRouter() {
       defaultNotFoundComponent: () => <p>not found</p>,
       Wrap: ({ children }) => (
         <ConvexProvider client={convexQueryClient.convexClient}>
-          <ChakraProvider value={system}>
-            {children}
-          </ChakraProvider>
+          <ChakraProvider value={system}>{children}</ChakraProvider>
         </ConvexProvider>
       ),
     }),

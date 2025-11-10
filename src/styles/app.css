@@ -16,7 +16,8 @@
 .dark .leaflet-control-zoom-in,
 .dark .leaflet-control-zoom-out,
 .dark .leaflet-control-attribution {
-  filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
+  filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3)
+    brightness(0.7);
 }
 
 /* Custom marker icon styles */

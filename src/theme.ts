@@ -33,7 +33,7 @@ const customConfig = defineConfig({
         'brand.subtle': {
           value: { _light: '#fecaca', _dark: '#991b1b' },
         },
-        
+
         // Background colors with proper contrast
         'bg.page': {
           value: { _light: '#f7fafc', _dark: '#1a202c' },
@@ -44,7 +44,7 @@ const customConfig = defineConfig({
         'bg.panel': {
           value: { _light: '#edf2f7', _dark: '#4a5568' },
         },
-        
+
         // Text colors with WCAG AA contrast
         'text.primary': {
           value: { _light: '#1a202c', _dark: '#f7fafc' },
@@ -58,12 +58,12 @@ const customConfig = defineConfig({
         'text.inverted': {
           value: { _light: '#ffffff', _dark: '#ffffff' },
         },
-        
+
         // Link colors with proper contrast
         'link.primary': {
           value: { _light: '#a20000', _dark: '#fca5a5' },
         },
-        
+
         // Badge colors with high contrast
         'badge.category.bg': {
           value: { _light: '#fecaca', _dark: '#7f1d1d' },

@@ -17,13 +17,30 @@ interface PriceFilterProps {
   initialValues?: PriceFilterState
 }
 
-export function PriceFilter({ onFilterChange, onClearFilters, onApply, initialValues }: PriceFilterProps) {
-  const [minBrunchPrice, setMinBrunchPrice] = useState<string>(initialValues?.minBrunchPrice?.toString() ?? '')
-  const [maxBrunchPrice, setMaxBrunchPrice] = useState<string>(initialValues?.maxBrunchPrice?.toString() ?? '')
-  const [minLunchPrice, setMinLunchPrice] = useState<string>(initialValues?.minLunchPrice?.toString() ?? '')
-  const [maxLunchPrice, setMaxLunchPrice] = useState<string>(initialValues?.maxLunchPrice?.toString() ?? '')
-  const [minDinnerPrice, setMinDinnerPrice] = useState<string>(initialValues?.minDinnerPrice?.toString() ?? '')
-  const [maxDinnerPrice, setMaxDinnerPrice] = useState<string>(initialValues?.maxDinnerPrice?.toString() ?? '')
+export function PriceFilter({
+  onFilterChange,
+  onClearFilters,
+  onApply,
+  initialValues,
+}: PriceFilterProps) {
+  const [minBrunchPrice, setMinBrunchPrice] = useState<string>(
+    initialValues?.minBrunchPrice?.toString() ?? '',
+  )
+  const [maxBrunchPrice, setMaxBrunchPrice] = useState<string>(
+    initialValues?.maxBrunchPrice?.toString() ?? '',
+  )
+  const [minLunchPrice, setMinLunchPrice] = useState<string>(
+    initialValues?.minLunchPrice?.toString() ?? '',
+  )
+  const [maxLunchPrice, setMaxLunchPrice] = useState<string>(
+    initialValues?.maxLunchPrice?.toString() ?? '',
+  )
+  const [minDinnerPrice, setMinDinnerPrice] = useState<string>(
+    initialValues?.minDinnerPrice?.toString() ?? '',
+  )
+  const [maxDinnerPrice, setMaxDinnerPrice] = useState<string>(
+    initialValues?.maxDinnerPrice?.toString() ?? '',
+  )
 
   // Update local state when initialValues change
   useEffect(() => {
@@ -39,16 +56,16 @@ export function PriceFilter({ onFilterChange, onClearFilters, onApply, initialVa
 
   const handleApplyFilters = () => {
     const filters: PriceFilterState = {}
-    
+
     if (minBrunchPrice) filters.minBrunchPrice = parseFloat(minBrunchPrice)
     if (maxBrunchPrice) filters.maxBrunchPrice = parseFloat(maxBrunchPrice)
     if (minLunchPrice) filters.minLunchPrice = parseFloat(minLunchPrice)
     if (maxLunchPrice) filters.maxLunchPrice = parseFloat(maxLunchPrice)
     if (minDinnerPrice) filters.minDinnerPrice = parseFloat(minDinnerPrice)
     if (maxDinnerPrice) filters.maxDinnerPrice = parseFloat(maxDinnerPrice)
-    
+
     onFilterChange(filters)
-    
+
     // Hide the filter panel after applying
     if (onApply) {
       onApply()
@@ -66,10 +83,10 @@ export function PriceFilter({ onFilterChange, onClearFilters, onApply, initialVa
   }
 
   return (
-    <Box 
-      bg="bg.surface" 
-      p={4} 
-      borderRadius="md" 
+    <Box
+      bg="bg.surface"
+      p={4}
+      borderRadius="md"
       boxShadow="md"
       w="100%"
       maxW="400px"
@@ -77,7 +94,7 @@ export function PriceFilter({ onFilterChange, onClearFilters, onApply, initialVa
       <Heading size="md" mb={4} color="text.primary">
         Price
       </Heading>
-      
+
       <VStack gap={4} align="stretch">
         {/* Brunch Price Filter */}
         <Box>
@@ -158,17 +175,17 @@ export function PriceFilter({ onFilterChange, onClearFilters, onApply, initialVa
         </Box>
 
         <HStack gap={2} pt={2}>
-          <Button 
-            colorScheme="blue" 
-            size="sm" 
+          <Button
+            colorScheme="blue"
+            size="sm"
             flex={1}
             onClick={handleApplyFilters}
           >
             Apply Filters
           </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             flex={1}
             onClick={handleClearFilters}
           >
