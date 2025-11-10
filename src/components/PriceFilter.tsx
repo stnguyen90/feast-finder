@@ -15,6 +15,7 @@ interface PriceFilterProps {
   onClearFilters: () => void
   onApply?: () => void
   initialValues?: PriceFilterState
+  hideButtons?: boolean
 }
 
 export function PriceFilter({
@@ -22,6 +23,7 @@ export function PriceFilter({
   onClearFilters,
   onApply,
   initialValues,
+  hideButtons = false,
 }: PriceFilterProps) {
   const [minBrunchPrice, setMinBrunchPrice] = useState<string>(
     initialValues?.minBrunchPrice?.toString() ?? '',
@@ -84,7 +86,7 @@ export function PriceFilter({
 
   return (
     <Box w="100%" maxW="400px">
-      <Heading size="sm" mb={2} color="text.primary">
+      <Heading size="md" mb={2} color="text.primary">
         Price
       </Heading>
 
@@ -173,25 +175,27 @@ export function PriceFilter({
           </HStack>
         </Box>
 
-        <HStack gap={2} pt={2}>
-          <Button
-            bg="brand.solid"
-            color="brand.contrast"
-            size="sm"
-            flex={1}
-            onClick={handleApplyFilters}
-          >
-            Apply
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            flex={1}
-            onClick={handleClearFilters}
-          >
-            Clear
-          </Button>
-        </HStack>
+        {!hideButtons && (
+          <HStack gap={2} pt={2}>
+            <Button
+              bg="brand.solid"
+              color="brand.contrast"
+              size="sm"
+              flex={1}
+              onClick={handleApplyFilters}
+            >
+              Apply
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              flex={1}
+              onClick={handleClearFilters}
+            >
+              Clear
+            </Button>
+          </HStack>
+        )}
       </VStack>
     </Box>
   )

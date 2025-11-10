@@ -5,8 +5,10 @@ import { useMutation } from 'convex/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Box,
+  Button,
   Center,
   Flex,
+  HStack,
   Heading,
   IconButton,
   Spinner,
@@ -361,25 +363,42 @@ function Restaurants() {
                 maxW="400px"
               >
                 <VStack gap={4} align="stretch">
-                  <Heading size="md" color="text.primary">
-                    Filters
-                  </Heading>
-
                   {/* Price Filter */}
                   <PriceFilter
                     onFilterChange={handleFilterChange}
                     onClearFilters={handleClearFilters}
-                    onApply={() => setShowFilters(false)}
                     initialValues={priceFilters}
+                    hideButtons={true}
                   />
 
                   {/* Category Filter */}
                   <CategoryFilter
                     onFilterChange={handleCategoryFilterChange}
                     onClearFilters={handleClearCategoryFilters}
-                    onApply={() => setShowFilters(false)}
                     initialValues={selectedCategories}
+                    hideButtons={true}
                   />
+
+                  {/* Single set of buttons at the bottom */}
+                  <HStack gap={2} pt={2}>
+                    <Button
+                      bg="brand.solid"
+                      color="brand.contrast"
+                      size="sm"
+                      flex={1}
+                      onClick={() => setShowFilters(false)}
+                    >
+                      Apply
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      flex={1}
+                      onClick={handleClearFilters}
+                    >
+                      Clear
+                    </Button>
+                  </HStack>
                 </VStack>
               </Box>
             )}

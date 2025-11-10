@@ -4,6 +4,7 @@ import {
   Combobox,
   HStack,
   Heading,
+  Portal,
   createListCollection,
 } from '@chakra-ui/react'
 import { useEffect, useState } from 'react'
@@ -16,6 +17,7 @@ interface CategoryFilterProps {
   onClearFilters: () => void
   onApply?: () => void
   initialValues?: Array<string>
+  hideButtons?: boolean
 }
 
 export function CategoryFilter({
@@ -23,6 +25,7 @@ export function CategoryFilter({
   onClearFilters,
   onApply,
   initialValues = [],
+  hideButtons = false,
 }: CategoryFilterProps) {
   // Fetch all available categories from the database
   const { data: availableCategories } = useSuspenseQuery(
@@ -37,10 +40,24 @@ export function CategoryFilter({
     setSelectedCategories(initialValues)
   }, [initialValues])
 
-  // Create collection for combobox
-  const collection = createListCollection({
-    items: availableCategories.map((cat) => ({ label: cat, value: cat })),
-  })
+  // Create collection for combobox with filtering
+  const [collection, setCollection] = useState(
+    createListCollection({
+      items: availableCategories.map((cat) => ({ label: cat, value: cat })),
+    }),
+  )
+
+  // Filter function for contains search
+  const handleInputChange = (value: string) => {
+    const filtered = availableCategories.filter((cat) =>
+      cat.toLowerCase().includes(value.toLowerCase()),
+    )
+    setCollection(
+      createListCollection({
+        items: filtered.map((cat) => ({ label: cat, value: cat })),
+      }),
+    )
+  }
 
   const handleApplyFilters = () => {
     onFilterChange(selectedCategories)
@@ -58,7 +75,7 @@ export function CategoryFilter({
 
   return (
     <Box w="100%" maxW="400px">
-      <Heading size="sm" mb={2} color="text.primary">
+      <Heading size="md" mb={2} color="text.primary">
         Categories
       </Heading>
 
@@ -67,47 +84,56 @@ export function CategoryFilter({
         multiple
         value={selectedCategories}
         onValueChange={(e) => setSelectedCategories(e.value)}
+        onInputValueChange={(e) => handleInputChange(e.inputValue)}
       >
         <Combobox.Control>
           <Combobox.Input
             placeholder="Select categories..."
             color="text.primary"
           />
-          <Combobox.Trigger>
-            <Combobox.IndicatorGroup>▼</Combobox.IndicatorGroup>
-          </Combobox.Trigger>
+          <Combobox.IndicatorGroup>
+            <Combobox.ClearTrigger />
+            <Combobox.Trigger />
+          </Combobox.IndicatorGroup>
         </Combobox.Control>
-        <Combobox.Positioner>
-          <Combobox.Content>
-            {availableCategories.map((category) => (
-              <Combobox.Item key={category} item={{ label: category, value: category }}>
-                <Combobox.ItemText>{category}</Combobox.ItemText>
-                <Combobox.ItemIndicator>✓</Combobox.ItemIndicator>
-              </Combobox.Item>
-            ))}
-          </Combobox.Content>
-        </Combobox.Positioner>
+        <Portal>
+          <Combobox.Positioner>
+            <Combobox.Content>
+              <Combobox.Empty>No items found</Combobox.Empty>
+              {collection.items.map((item) => (
+                <Combobox.Item key={item.value} item={item}>
+                  <Combobox.ItemText color="text.primary">
+                    {item.label}
+                  </Combobox.ItemText>
+                  <Combobox.ItemIndicator />
+                </Combobox.Item>
+              ))}
+            </Combobox.Content>
+          </Combobox.Positioner>
+        </Portal>
       </Combobox.Root>
 
-      <HStack gap={2} pt={3}>
-        <Button
-          bg="brand.solid"
-          color="brand.contrast"
-          size="sm"
-          flex={1}
-          onClick={handleApplyFilters}
-        >
-          Apply
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          flex={1}
-          onClick={handleClearFilters}
-        >
-          Clear
-        </Button>
-      </HStack>
+      {!hideButtons && (
+        <HStack gap={2} pt={3}>
+          <Button
+            bg="brand.solid"
+            color="brand.contrast"
+            size="sm"
+            flex={1}
+            onClick={handleApplyFilters}
+          >
+            Apply
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            flex={1}
+            onClick={handleClearFilters}
+          >
+            Clear
+          </Button>
+        </HStack>
+      )}
     </Box>
   )
 }
