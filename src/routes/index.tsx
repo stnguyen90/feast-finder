@@ -306,7 +306,10 @@ function LandingPage() {
                           </Box>
                         )}
                         <Button asChild bg="brand.solid" color="brand.contrast" size="lg">
-                          <RouterLink to="/restaurants">
+                          <RouterLink 
+                            to="/events/$eventName" 
+                            params={{ eventName: encodeURIComponent(event.name) }}
+                          >
                             View Restaurants
                           </RouterLink>
                         </Button>
