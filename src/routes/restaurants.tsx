@@ -5,14 +5,13 @@ import { useMutation } from 'convex/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Box,
-  Button,
   Center,
   Flex,
-  HStack,
   Heading,
   IconButton,
   Spinner,
   Text,
+  VStack,
 } from '@chakra-ui/react'
 import { FaUtensils } from 'react-icons/fa6'
 import { api } from '../../convex/_generated/api'
@@ -79,6 +78,7 @@ function Restaurants() {
   // Track map bounds for geospatial queries
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null)
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const filterPanelRef = useRef<HTMLDivElement | null>(null)
 
   // Track price filter state from URL
   const priceFilters: PriceFilterState = useMemo(
@@ -100,9 +100,6 @@ function Restaurants() {
   )
 
   const [showFilters, setShowFilters] = useState(false)
-  const [activeFilterTab, setActiveFilterTab] = useState<'price' | 'category'>(
-    'price',
-  )
 
   // Always fetch all restaurants for now (used for seeding check only)
   const { data: allRestaurants } = useSuspenseQuery(
@@ -267,6 +264,26 @@ function Restaurants() {
     }
   }, [])
 
+  // Click outside to close filters
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        filterPanelRef.current &&
+        !filterPanelRef.current.contains(event.target as Node) &&
+        showFilters
+      ) {
+        setShowFilters(false)
+      }
+    }
+
+    if (showFilters) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside)
+      }
+    }
+  }, [showFilters])
+
   return (
     <Flex direction="column" h="100vh" bg="bg.page">
       <Flex
@@ -334,87 +351,36 @@ function Restaurants() {
                 🔍
               </IconButton>
             ) : (
-              <Box>
-                {/* Filter tabs */}
-                <Box
-                  bg="bg.surface"
-                  borderRadius="md"
-                  boxShadow="md"
-                  mb={2}
-                  p={2}
-                >
-                  <HStack gap={2}>
-                    <Button
-                      size="sm"
-                      variant={activeFilterTab === 'price' ? 'solid' : 'ghost'}
-                      onClick={() => setActiveFilterTab('price')}
-                      bg={
-                        activeFilterTab === 'price'
-                          ? 'brand.solid'
-                          : 'transparent'
-                      }
-                      color={
-                        activeFilterTab === 'price'
-                          ? 'brand.contrast'
-                          : 'text.primary'
-                      }
-                    >
-                      Price
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant={
-                        activeFilterTab === 'category' ? 'solid' : 'ghost'
-                      }
-                      onClick={() => setActiveFilterTab('category')}
-                      bg={
-                        activeFilterTab === 'category'
-                          ? 'brand.solid'
-                          : 'transparent'
-                      }
-                      color={
-                        activeFilterTab === 'category'
-                          ? 'brand.contrast'
-                          : 'text.primary'
-                      }
-                    >
-                      Categories
-                    </Button>
-                  </HStack>
-                </Box>
+              <Box
+                ref={filterPanelRef}
+                bg="bg.surface"
+                p={4}
+                borderRadius="md"
+                boxShadow="lg"
+                w="100%"
+                maxW="400px"
+              >
+                <VStack gap={4} align="stretch">
+                  <Heading size="md" color="text.primary">
+                    Filters
+                  </Heading>
 
-                {/* Active filter content */}
-                {activeFilterTab === 'price' ? (
+                  {/* Price Filter */}
                   <PriceFilter
                     onFilterChange={handleFilterChange}
                     onClearFilters={handleClearFilters}
                     onApply={() => setShowFilters(false)}
                     initialValues={priceFilters}
                   />
-                ) : (
+
+                  {/* Category Filter */}
                   <CategoryFilter
                     onFilterChange={handleCategoryFilterChange}
                     onClearFilters={handleClearCategoryFilters}
                     onApply={() => setShowFilters(false)}
                     initialValues={selectedCategories}
                   />
-                )}
-
-                <Box
-                  mt={2}
-                  bg="bg.surface"
-                  p={2}
-                  borderRadius="md"
-                  boxShadow="md"
-                  textAlign="center"
-                  cursor="pointer"
-                  onClick={() => setShowFilters(false)}
-                  _hover={{ bg: 'bg.subtle' }}
-                >
-                  <Text fontSize="sm" color="text.secondary">
-                    Hide Filters
-                  </Text>
-                </Box>
+                </VStack>
               </Box>
             )}
           </Box>

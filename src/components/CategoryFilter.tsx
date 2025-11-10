@@ -1,10 +1,10 @@
 import {
   Box,
   Button,
-  Checkbox,
+  Combobox,
   HStack,
   Heading,
-  VStack,
+  createListCollection,
 } from '@chakra-ui/react'
 import { useEffect, useState } from 'react'
 import { useSuspenseQuery } from '@tanstack/react-query'
@@ -37,15 +37,10 @@ export function CategoryFilter({
     setSelectedCategories(initialValues)
   }, [initialValues])
 
-  const handleToggleCategory = (category: string) => {
-    setSelectedCategories((prev) => {
-      if (prev.includes(category)) {
-        return prev.filter((c) => c !== category)
-      } else {
-        return [...prev, category]
-      }
-    })
-  }
+  // Create collection for combobox
+  const collection = createListCollection({
+    items: availableCategories.map((cat) => ({ label: cat, value: cat })),
+  })
 
   const handleApplyFilters = () => {
     onFilterChange(selectedCategories)
@@ -62,57 +57,57 @@ export function CategoryFilter({
   }
 
   return (
-    <Box
-      bg="bg.surface"
-      p={4}
-      borderRadius="md"
-      boxShadow="md"
-      w="100%"
-      maxW="400px"
-    >
-      <Heading size="md" mb={4} color="text.primary">
+    <Box w="100%" maxW="400px">
+      <Heading size="sm" mb={2} color="text.primary">
         Categories
       </Heading>
 
-      <VStack gap={4} align="stretch">
-        {/* Category Checkboxes */}
-        <Box maxH="300px" overflowY="auto">
-          <VStack gap={2} align="stretch">
+      <Combobox.Root
+        collection={collection}
+        multiple
+        value={selectedCategories}
+        onValueChange={(e) => setSelectedCategories(e.value)}
+      >
+        <Combobox.Control>
+          <Combobox.Input
+            placeholder="Select categories..."
+            color="text.primary"
+          />
+          <Combobox.Trigger>
+            <Combobox.IndicatorGroup>▼</Combobox.IndicatorGroup>
+          </Combobox.Trigger>
+        </Combobox.Control>
+        <Combobox.Positioner>
+          <Combobox.Content>
             {availableCategories.map((category) => (
-              <Checkbox.Root
-                key={category}
-                checked={selectedCategories.includes(category)}
-                onCheckedChange={() => handleToggleCategory(category)}
-              >
-                <Checkbox.HiddenInput />
-                <Checkbox.Control>
-                  <Checkbox.Indicator />
-                </Checkbox.Control>
-                <Checkbox.Label>{category}</Checkbox.Label>
-              </Checkbox.Root>
+              <Combobox.Item key={category} item={{ label: category, value: category }}>
+                <Combobox.ItemText>{category}</Combobox.ItemText>
+                <Combobox.ItemIndicator>✓</Combobox.ItemIndicator>
+              </Combobox.Item>
             ))}
-          </VStack>
-        </Box>
+          </Combobox.Content>
+        </Combobox.Positioner>
+      </Combobox.Root>
 
-        <HStack gap={2} pt={2}>
-          <Button
-            colorScheme="blue"
-            size="sm"
-            flex={1}
-            onClick={handleApplyFilters}
-          >
-            Apply Filters
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            flex={1}
-            onClick={handleClearFilters}
-          >
-            Clear
-          </Button>
-        </HStack>
-      </VStack>
+      <HStack gap={2} pt={3}>
+        <Button
+          bg="brand.solid"
+          color="brand.contrast"
+          size="sm"
+          flex={1}
+          onClick={handleApplyFilters}
+        >
+          Apply
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          flex={1}
+          onClick={handleClearFilters}
+        >
+          Clear
+        </Button>
+      </HStack>
     </Box>
   )
 }

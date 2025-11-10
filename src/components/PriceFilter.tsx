@@ -83,19 +83,12 @@ export function PriceFilter({
   }
 
   return (
-    <Box
-      bg="bg.surface"
-      p={4}
-      borderRadius="md"
-      boxShadow="md"
-      w="100%"
-      maxW="400px"
-    >
-      <Heading size="md" mb={4} color="text.primary">
+    <Box w="100%" maxW="400px">
+      <Heading size="sm" mb={2} color="text.primary">
         Price
       </Heading>
 
-      <VStack gap={4} align="stretch">
+      <VStack gap={3} align="stretch">
         {/* Brunch Price Filter */}
         <Box>
           <Heading size="sm" mb={2} color="text.secondary">
@@ -109,6 +102,7 @@ export function PriceFilter({
               value={minBrunchPrice}
               onChange={(e) => setMinBrunchPrice(e.target.value)}
               size="sm"
+              color="text.primary"
             />
             <Box color="text.secondary">-</Box>
             <Input
@@ -118,6 +112,7 @@ export function PriceFilter({
               value={maxBrunchPrice}
               onChange={(e) => setMaxBrunchPrice(e.target.value)}
               size="sm"
+              color="text.primary"
             />
           </HStack>
         </Box>
@@ -135,6 +130,7 @@ export function PriceFilter({
               value={minLunchPrice}
               onChange={(e) => setMinLunchPrice(e.target.value)}
               size="sm"
+              color="text.primary"
             />
             <Box color="text.secondary">-</Box>
             <Input
@@ -144,6 +140,7 @@ export function PriceFilter({
               value={maxLunchPrice}
               onChange={(e) => setMaxLunchPrice(e.target.value)}
               size="sm"
+              color="text.primary"
             />
           </HStack>
         </Box>
@@ -161,6 +158,7 @@ export function PriceFilter({
               value={minDinnerPrice}
               onChange={(e) => setMinDinnerPrice(e.target.value)}
               size="sm"
+              color="text.primary"
             />
             <Box color="text.secondary">-</Box>
             <Input
@@ -170,18 +168,20 @@ export function PriceFilter({
               value={maxDinnerPrice}
               onChange={(e) => setMaxDinnerPrice(e.target.value)}
               size="sm"
+              color="text.primary"
             />
           </HStack>
         </Box>
 
         <HStack gap={2} pt={2}>
           <Button
-            colorScheme="blue"
+            bg="brand.solid"
+            color="brand.contrast"
             size="sm"
             flex={1}
             onClick={handleApplyFilters}
           >
-            Apply Filters
+            Apply
           </Button>
           <Button
             variant="outline"
