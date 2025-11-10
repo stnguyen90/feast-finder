@@ -25,11 +25,18 @@ The homepage showcases Feast Finder's purpose and features:
 - Hero section describing the app's benefits
 - Feature highlights (Interactive Map, Restaurant Week Events, Price Filtering)
 - Upcoming restaurant week events with detailed descriptions
-- Call-to-action buttons to explore restaurants
+- Call-to-action buttons to explore restaurants by event
 - Fallback messaging when no events are available
 
+### Event Pages (`/events/$eventName`)
+Dynamic pages that show restaurants participating in specific events:
+- Event information banner with dates and restaurant count
+- Interactive map showing only restaurants in that event
+- Full restaurant details via click-through modals
+- Event-specific filtering based on menu participation
+
 ### Restaurants Page (`/restaurants`)
-Interactive map interface for exploring restaurants:
+Interactive map interface for exploring all restaurants:
 - Full-screen map with restaurant markers
 - Price filter panel for brunch, lunch, and dinner
 - Restaurant detail modals with comprehensive information
@@ -147,7 +154,9 @@ feast-finder/
 │   ├── routes/
 │   │   ├── __root.tsx        # Root layout
 │   │   ├── index.tsx         # Landing page with events
-│   │   └── restaurants.tsx   # Interactive map page
+│   │   ├── restaurants.tsx   # Interactive map page
+│   │   └── events/
+│   │       └── $eventName.tsx # Dynamic event page
 │   └── styles/
 │       └── app.css          # Global styles
 └── public/                  # Static assets
