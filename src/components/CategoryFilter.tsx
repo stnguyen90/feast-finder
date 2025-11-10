@@ -1,13 +1,15 @@
 import {
+  Badge,
   Box,
   Button,
   Combobox,
   HStack,
   Heading,
   Portal,
+  Wrap,
   createListCollection,
 } from '@chakra-ui/react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
 import { api } from '../../convex/_generated/api'
@@ -34,29 +36,33 @@ export function CategoryFilter({
 
   const [selectedCategories, setSelectedCategories] =
     useState<Array<string>>(initialValues)
+  const [searchValue, setSearchValue] = useState('')
 
   // Update local state when initialValues change
   useEffect(() => {
     setSelectedCategories(initialValues)
   }, [initialValues])
 
-  // Create collection for combobox with filtering
-  const [collection, setCollection] = useState(
-    createListCollection({
-      items: availableCategories.map((cat) => ({ label: cat, value: cat })),
-    }),
+  // Filter categories based on search value
+  const filteredCategories = useMemo(
+    () =>
+      availableCategories.filter((cat) =>
+        cat.toLowerCase().includes(searchValue.toLowerCase()),
+      ),
+    [availableCategories, searchValue],
   )
 
-  // Filter function for contains search
-  const handleInputChange = (value: string) => {
-    const filtered = availableCategories.filter((cat) =>
-      cat.toLowerCase().includes(value.toLowerCase()),
-    )
-    setCollection(
+  // Create collection for combobox
+  const collection = useMemo(
+    () =>
       createListCollection({
-        items: filtered.map((cat) => ({ label: cat, value: cat })),
+        items: filteredCategories.map((cat) => ({ label: cat, value: cat })),
       }),
-    )
+    [filteredCategories],
+  )
+
+  const handleValueChange = (details: { value: Array<string> }) => {
+    setSelectedCategories(details.value)
   }
 
   const handleApplyFilters = () => {
@@ -82,9 +88,10 @@ export function CategoryFilter({
       <Combobox.Root
         collection={collection}
         multiple
+        closeOnSelect
         value={selectedCategories}
-        onValueChange={(e) => setSelectedCategories(e.value)}
-        onInputValueChange={(e) => handleInputChange(e.inputValue)}
+        onValueChange={handleValueChange}
+        onInputValueChange={(e) => setSearchValue(e.inputValue)}
       >
         <Combobox.Control>
           <Combobox.Input
@@ -112,6 +119,24 @@ export function CategoryFilter({
           </Combobox.Positioner>
         </Portal>
       </Combobox.Root>
+
+      {/* Show selected categories as badges */}
+      {selectedCategories.length > 0 && (
+        <Wrap gap={2} mt={2}>
+          {selectedCategories.map((category) => (
+            <Badge
+              key={category}
+              bg="badge.category.bg"
+              color="badge.category.text"
+              borderRadius="full"
+              px={2}
+              py={1}
+            >
+              {category}
+            </Badge>
+          ))}
+        </Wrap>
+      )}
 
       {!hideButtons && (
         <HStack gap={2} pt={3}>

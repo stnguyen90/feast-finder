@@ -103,6 +103,21 @@ function Restaurants() {
 
   const [showFilters, setShowFilters] = useState(false)
 
+  // Local state for pending filter changes (not yet applied)
+  const [pendingPriceFilters, setPendingPriceFilters] =
+    useState<PriceFilterState>(priceFilters)
+  const [pendingCategories, setPendingCategories] =
+    useState<Array<string>>(selectedCategories)
+
+  // Update pending filters when URL changes
+  useEffect(() => {
+    setPendingPriceFilters(priceFilters)
+  }, [priceFilters])
+
+  useEffect(() => {
+    setPendingCategories(selectedCategories)
+  }, [selectedCategories])
+
   // Always fetch all restaurants for now (used for seeding check only)
   const { data: allRestaurants } = useSuspenseQuery(
     convexQuery(api.restaurants.listRestaurants, {}),
@@ -207,51 +222,48 @@ function Restaurants() {
 
   const handleFilterChange = useCallback(
     (filters: PriceFilterState) => {
-      navigate({
-        search: (prev) => ({
-          ...prev,
-          minBrunchPrice: filters.minBrunchPrice,
-          maxBrunchPrice: filters.maxBrunchPrice,
-          minLunchPrice: filters.minLunchPrice,
-          maxLunchPrice: filters.maxLunchPrice,
-          minDinnerPrice: filters.minDinnerPrice,
-          maxDinnerPrice: filters.maxDinnerPrice,
-        }),
-        replace: true,
-      })
+      // Update pending state, don't navigate yet
+      setPendingPriceFilters(filters)
     },
-    [navigate],
+    [],
   )
 
   const handleCategoryFilterChange = useCallback(
     (categories: Array<string>) => {
-      navigate({
-        search: (prev) => ({
-          ...prev,
-          categories: categories.length > 0 ? categories : undefined,
-        }),
-        replace: true,
-      })
+      // Update pending state, don't navigate yet
+      setPendingCategories(categories)
     },
-    [navigate],
+    [],
   )
 
+  const handleApplyFilters = useCallback(() => {
+    // Apply all pending filters and close panel
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        minBrunchPrice: pendingPriceFilters.minBrunchPrice,
+        maxBrunchPrice: pendingPriceFilters.maxBrunchPrice,
+        minLunchPrice: pendingPriceFilters.minLunchPrice,
+        maxLunchPrice: pendingPriceFilters.maxLunchPrice,
+        minDinnerPrice: pendingPriceFilters.minDinnerPrice,
+        maxDinnerPrice: pendingPriceFilters.maxDinnerPrice,
+        categories:
+          pendingCategories.length > 0 ? pendingCategories : undefined,
+      }),
+      replace: true,
+    })
+    setShowFilters(false)
+  }, [navigate, pendingPriceFilters, pendingCategories])
+
   const handleClearFilters = useCallback(() => {
+    // Clear all filters
+    setPendingPriceFilters({})
+    setPendingCategories([])
     navigate({
       search: (prev) => ({
         lat: prev.lat,
         lng: prev.lng,
         zoom: prev.zoom,
-      }),
-      replace: true,
-    })
-  }, [navigate])
-
-  const handleClearCategoryFilters = useCallback(() => {
-    navigate({
-      search: (prev) => ({
-        ...prev,
-        categories: undefined,
       }),
       replace: true,
     })
@@ -366,16 +378,16 @@ function Restaurants() {
                   {/* Price Filter */}
                   <PriceFilter
                     onFilterChange={handleFilterChange}
-                    onClearFilters={handleClearFilters}
-                    initialValues={priceFilters}
+                    onClearFilters={() => setPendingPriceFilters({})}
+                    initialValues={pendingPriceFilters}
                     hideButtons={true}
                   />
 
                   {/* Category Filter */}
                   <CategoryFilter
                     onFilterChange={handleCategoryFilterChange}
-                    onClearFilters={handleClearCategoryFilters}
-                    initialValues={selectedCategories}
+                    onClearFilters={() => setPendingCategories([])}
+                    initialValues={pendingCategories}
                     hideButtons={true}
                   />
 
@@ -386,7 +398,7 @@ function Restaurants() {
                       color="brand.contrast"
                       size="sm"
                       flex={1}
-                      onClick={() => setShowFilters(false)}
+                      onClick={handleApplyFilters}
                     >
                       Apply
                     </Button>
