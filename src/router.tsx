@@ -3,6 +3,7 @@ import { QueryClient } from '@tanstack/react-query'
 import { routerWithQueryClient } from '@tanstack/react-router-with-query'
 import { ConvexQueryClient } from '@convex-dev/react-query'
 import { ConvexProvider } from 'convex/react'
+import { ConvexAuthProvider } from '@convex-dev/auth/react'
 import { ChakraProvider } from '@chakra-ui/react'
 import { routeTree } from './routeTree.gen'
 import { system } from './theme'
@@ -46,7 +47,9 @@ export function getRouter() {
       defaultNotFoundComponent: () => <p>not found</p>,
       Wrap: ({ children }) => (
         <ConvexProvider client={convexQueryClient.convexClient}>
-          <ChakraProvider value={system}>{children}</ChakraProvider>
+          <ConvexAuthProvider client={convexQueryClient.convexClient}>
+            <ChakraProvider value={system}>{children}</ChakraProvider>
+          </ConvexAuthProvider>
         </ConvexProvider>
       ),
     }),

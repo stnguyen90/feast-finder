@@ -1,7 +1,7 @@
 import { Link as RouterLink, createFileRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
-import { useMutation } from 'convex/react'
+import { Authenticated, Unauthenticated, useMutation, useQuery } from 'convex/react'
 import { useEffect, useState } from 'react'
 import {
   Badge,
@@ -20,6 +20,8 @@ import { FaCalendar, FaFilter, FaGlobe, FaMapLocationDot, FaUtensils } from 'rea
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { ColorModeToggle } from '~/components/ColorModeToggle'
+import { SignInModal } from '~/components/SignInModal'
+import { UserMenu } from '~/components/UserMenu'
 
 // Type for event data
 interface Event {
@@ -49,6 +51,7 @@ function LandingPage() {
   const seedEvents = useMutation(api.seedData.seedEvents)
   const [isSeeding, setIsSeeding] = useState(false)
   const [hasAttemptedSeed, setHasAttemptedSeed] = useState(false)
+  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
 
   // Auto-seed events on first load if no events exist
   useEffect(() => {
@@ -87,10 +90,30 @@ function LandingPage() {
             </Heading>
           </Flex>
         </Box>
-        <Box position="absolute" right={4}>
+        <Flex position="absolute" right={4} gap={2} align="center">
+          <Authenticated>
+            <AuthenticatedHeader />
+          </Authenticated>
+          <Unauthenticated>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsSignInModalOpen(true)}
+              color="brand.contrast"
+              borderColor="brand.contrast"
+              _hover={{ bg: 'rgba(255, 255, 255, 0.1)' }}
+            >
+              Sign In
+            </Button>
+          </Unauthenticated>
           <ColorModeToggle />
-        </Box>
+        </Flex>
       </Flex>
+
+      <SignInModal
+        isOpen={isSignInModalOpen}
+        onClose={() => setIsSignInModalOpen(false)}
+      />
 
       <Container maxW="container.xl" py={12}>
         {/* Hero Section */}
@@ -331,4 +354,18 @@ function LandingPage() {
       </Box>
     </Flex>
   )
+}
+
+// Component to display authenticated user header
+function AuthenticatedHeader() {
+  // Use the standard useQuery hook from convex/react for conditional rendering
+  // This will be undefined during SSR and populated on client
+  // @ts-expect-error - api.users will be available after convex codegen is run
+  const currentUser = useQuery(api.users?.getCurrentUser)
+  
+  if (!currentUser) {
+    return null
+  }
+
+  return <UserMenu userName={currentUser.name || 'User'} />
 }
