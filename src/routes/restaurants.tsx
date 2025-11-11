@@ -1,7 +1,7 @@
 import { Link, createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
-import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
+import { useSuspenseQuery, useQuery as useTanStackQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
-import { Authenticated, Unauthenticated, useMutation } from 'convex/react'
+import { Authenticated, Unauthenticated, useQuery as useConvexQuery, useMutation } from 'convex/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Box,
@@ -131,7 +131,7 @@ function Restaurants() {
   // Fetch restaurants with both geospatial and price filtering in a single query
   // Use regular useQuery with placeholderData to prevent flickering
   const geoQueryArgs = mapBounds ?? { north: 0, south: 0, east: 0, west: 0 }
-  const { data: geoRestaurantsResult } = useQuery({
+  const { data: geoRestaurantsResult } = useTanStackQuery({
     ...convexQuery(api.restaurantsGeo.queryRestaurantsInBounds, {
       bounds: geoQueryArgs,
       ...priceFilters, // Include all price filter parameters
@@ -453,15 +453,11 @@ function Restaurants() {
 
 // Component to display authenticated user header
 function AuthenticatedHeader() {
-  const currentUser = useQuery(
-    // @ts-expect-error - api.users will be available after convex codegen is run
-    typeof api.users !== 'undefined' ? api.users.getCurrentUser : undefined,
-  )
+  const currentUser = useConvexQuery(api.users.getCurrentUser)
   
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (!currentUser) {
     return null
   }
 
-  return <UserMenu userName={(currentUser as any).name || 'User'} />
+  return <UserMenu userName={currentUser.name || 'User'} />
 }

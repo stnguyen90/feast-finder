@@ -75,14 +75,14 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
   }
 
   return (
-    <DialogRoot open={isOpen} onOpenChange={handleClose}>
+    <DialogRoot open={isOpen} onOpenChange={handleClose} placement="center">
       <DialogBackdrop
         style={{
           backgroundColor: 'rgba(0, 0, 0, 0.3)',
           backdropFilter: 'blur(2px)',
         }}
       />
-      <DialogContent maxW="md" bg="bg.surface">
+      <DialogContent maxW="md" bg="bg.surface" color="text.primary">
         <DialogHeader>
           <DialogTitle color="text.primary">
             {mode === 'signin' ? 'Sign In' : 'Create Account'}
@@ -104,6 +104,8 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                     placeholder="Enter your name"
                     required
                     disabled={isLoading}
+                    color="text.primary"
+                    _placeholder={{ color: 'text.muted' }}
                   />
                 </Box>
               )}
@@ -118,6 +120,8 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                   placeholder="Enter your email"
                   required
                   disabled={isLoading}
+                  color="text.primary"
+                  _placeholder={{ color: 'text.muted' }}
                 />
               </Box>
               <Box>
@@ -131,6 +135,8 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                   placeholder="Enter your password"
                   required
                   disabled={isLoading}
+                  color="text.primary"
+                  _placeholder={{ color: 'text.muted' }}
                 />
               </Box>
               {error && (

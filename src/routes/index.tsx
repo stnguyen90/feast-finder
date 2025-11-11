@@ -358,14 +358,11 @@ function LandingPage() {
 
 // Component to display authenticated user header
 function AuthenticatedHeader() {
-  const currentUser = useQuery(
-    // @ts-expect-error - api.users will be available after convex codegen is run
-    typeof api.users !== 'undefined' ? api.users.getCurrentUser : undefined,
-  )
+  const currentUser = useQuery(api.users.getCurrentUser)
   
   if (!currentUser) {
     return null
   }
 
-  return <UserMenu userName={(currentUser as any).name || 'User'} />
+  return <UserMenu userName={currentUser.name || 'User'} />
 }
