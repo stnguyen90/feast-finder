@@ -343,11 +343,6 @@ function Restaurants() {
         </Flex>
       </Flex>
 
-      <SignInModal
-        isOpen={isSignInModalOpen}
-        onClose={() => setIsSignInModalOpen(false)}
-      />
-
       {isSeeding ? (
         <Center flex={1} color="text.secondary">
           <Flex direction="column" align="center" gap={4}>
@@ -444,6 +439,11 @@ function Restaurants() {
           <RestaurantDetail
             restaurant={selectedRestaurant}
             onClose={() => setSelectedRestaurant(null)}
+          />
+
+          <SignInModal
+            isOpen={isSignInModalOpen}
+            onClose={() => setIsSignInModalOpen(false)}
           />
         </Box>
       )}

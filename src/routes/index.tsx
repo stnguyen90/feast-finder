@@ -110,11 +110,6 @@ function LandingPage() {
         </Flex>
       </Flex>
 
-      <SignInModal
-        isOpen={isSignInModalOpen}
-        onClose={() => setIsSignInModalOpen(false)}
-      />
-
       <Container maxW="container.xl" py={12}>
         {/* Hero Section */}
         <Box textAlign="center" mb={16} position="relative">
@@ -352,6 +347,11 @@ function LandingPage() {
           © 2025 Feast Finder. Discover amazing restaurants near you.
         </Text>
       </Box>
+
+      <SignInModal
+        isOpen={isSignInModalOpen}
+        onClose={() => setIsSignInModalOpen(false)}
+      />
     </Flex>
   )
 }

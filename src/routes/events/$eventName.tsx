@@ -153,11 +153,6 @@ function EventRestaurants() {
         </Flex>
       </Flex>
 
-      <SignInModal
-        isOpen={isSignInModalOpen}
-        onClose={() => setIsSignInModalOpen(false)}
-      />
-
       {/* Event Info Banner */}
       <Box bg="bg.surface" p={4} boxShadow="sm">
         <Flex align="center" justify="center" gap={3} mb={2}>
@@ -236,6 +231,11 @@ function EventRestaurants() {
           <RestaurantDetail
             restaurant={selectedRestaurant}
             onClose={() => setSelectedRestaurant(null)}
+          />
+
+          <SignInModal
+            isOpen={isSignInModalOpen}
+            onClose={() => setIsSignInModalOpen(false)}
           />
         </Box>
       )}
