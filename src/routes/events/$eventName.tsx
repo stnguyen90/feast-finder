@@ -6,7 +6,6 @@ import { useState } from 'react'
 import {
   Badge,
   Box,
-  Button,
   Center,
   Flex,
   Heading,
@@ -75,16 +74,16 @@ function EventRestaurants() {
               <AuthenticatedHeader />
             </Authenticated>
             <Unauthenticated>
-              <Button
-                variant="outline"
-                size="sm"
+              <IconButton
+                aria-label="Sign In"
+                variant="ghost"
+                size="md"
                 onClick={() => setIsSignInModalOpen(true)}
                 color="brand.contrast"
-                borderColor="brand.contrast"
                 _hover={{ bg: 'rgba(255, 255, 255, 0.1)' }}
               >
-                Sign In
-              </Button>
+                <FaUser />
+              </IconButton>
             </Unauthenticated>
             <ColorModeToggle />
           </Flex>
@@ -155,48 +154,50 @@ function EventRestaurants() {
       </Flex>
 
       {/* Event Info Banner */}
-      <Box bg="bg.surface" p={4} boxShadow="sm">
-        <Flex align="center" justify="center" gap={3} mb={2}>
-          <Heading size="lg" color="text.primary">
-            {event.name}
-          </Heading>
-          {isActive && (
-            <Badge colorScheme="green" fontSize="sm" px={2} py={1}>
-              Active Now
-            </Badge>
-          )}
-        </Flex>
-        <Flex
-          justify="center"
-          gap={4}
-          fontSize="sm"
-          color="text.secondary"
-          wrap="wrap"
-        >
-          <Flex align="center" gap={1}>
-            <FaCalendar />
-            <Text>
-              {startDate.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-              })}{' '}
-              -{' '}
-              {endDate.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-              })}
-            </Text>
+      <Box bg="bg.surface" boxShadow="sm" flexShrink={0}>
+        <Box p={4}>
+          <Flex align="center" justify="center" gap={3} mb={2}>
+            <Heading size="lg" color="text.primary">
+              {event.name}
+            </Heading>
+            {isActive && (
+              <Badge colorScheme="green" fontSize="sm" px={2} py={1}>
+                Active Now
+              </Badge>
+            )}
           </Flex>
-          <Flex align="center" gap={1}>
-            <FaUtensils />
-            <Text>
-              {event.restaurantCount}{' '}
-              {event.restaurantCount === 1 ? 'restaurant' : 'restaurants'}
-            </Text>
+          <Flex
+            justify="center"
+            gap={4}
+            fontSize="sm"
+            color="text.secondary"
+            wrap="wrap"
+          >
+            <Flex align="center" gap={1}>
+              <FaCalendar />
+              <Text>
+                {startDate.toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}{' '}
+                -{' '}
+                {endDate.toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}
+              </Text>
+            </Flex>
+            <Flex align="center" gap={1}>
+              <FaUtensils />
+              <Text>
+                {event.restaurantCount}{' '}
+                {event.restaurantCount === 1 ? 'restaurant' : 'restaurants'}
+              </Text>
+            </Flex>
           </Flex>
-        </Flex>
+        </Box>
       </Box>
 
       {restaurants.length === 0 ? (

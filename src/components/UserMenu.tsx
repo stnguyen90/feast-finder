@@ -1,4 +1,4 @@
-import { Button, MenuContent, MenuItem, MenuRoot, MenuTrigger } from '@chakra-ui/react'
+import { IconButton, MenuContent, MenuItem, MenuPositioner, MenuRoot, MenuTrigger, Portal } from '@chakra-ui/react'
 import { FaSignOutAlt, FaUser } from 'react-icons/fa'
 import { useAuthActions } from '@convex-dev/auth/react'
 
@@ -14,19 +14,28 @@ export function UserMenu({ userName }: UserMenuProps) {
   }
 
   return (
-    <MenuRoot positioning={{ placement: 'bottom-end' }}>
+    <MenuRoot>
       <MenuTrigger asChild>
-        <Button variant="outline" size="sm">
+        <IconButton
+          aria-label={`User menu for ${userName}`}
+          variant="ghost"
+          size="md"
+          color="white"
+          _hover={{ bg: 'whiteAlpha.200' }}
+        >
           <FaUser />
-          <span>{userName}</span>
-        </Button>
+        </IconButton>
       </MenuTrigger>
-      <MenuContent>
-        <MenuItem value="signout" onClick={handleSignOut}>
-          <FaSignOutAlt />
-          <span>Sign Out</span>
-        </MenuItem>
-      </MenuContent>
+      <Portal>
+        <MenuPositioner>
+          <MenuContent>
+            <MenuItem value="signout" onClick={handleSignOut}>
+              <FaSignOutAlt />
+              <span>Sign Out</span>
+            </MenuItem>
+          </MenuContent>
+        </MenuPositioner>
+      </Portal>
     </MenuRoot>
   )
 }

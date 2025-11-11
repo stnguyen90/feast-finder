@@ -7,9 +7,11 @@ import {
   DialogCloseTrigger,
   DialogContent,
   DialogHeader,
+  DialogPositioner,
   DialogRoot,
   DialogTitle,
   Input,
+  Portal,
   Spinner,
   Text,
   VStack,
@@ -75,14 +77,16 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
   }
 
   return (
-    <DialogRoot open={isOpen} onOpenChange={handleClose} placement="center">
-      <DialogBackdrop
-        style={{
-          backgroundColor: 'rgba(0, 0, 0, 0.3)',
-          backdropFilter: 'blur(2px)',
-        }}
-      />
-      <DialogContent maxW="md" bg="bg.surface" color="text.primary">
+    <DialogRoot open={isOpen} onOpenChange={handleClose}>
+      <Portal>
+        <DialogBackdrop
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.3)',
+            backdropFilter: 'blur(2px)',
+          }}
+        />
+        <DialogPositioner>
+          <DialogContent maxW="md" bg="bg.surface" color="text.primary">
         <DialogHeader>
           <DialogTitle color="text.primary">
             {mode === 'signin' ? 'Sign In' : 'Create Account'}
@@ -175,6 +179,8 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
           </Box>
         </DialogBody>
       </DialogContent>
+        </DialogPositioner>
+      </Portal>
     </DialogRoot>
   )
 }

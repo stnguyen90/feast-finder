@@ -15,7 +15,7 @@ import {
   Text,
   VStack,
 } from '@chakra-ui/react'
-import { FaUtensils } from 'react-icons/fa6'
+import { FaUser, FaUtensils } from 'react-icons/fa6'
 import { api } from '../../convex/_generated/api'
 import type { MapBounds, Restaurant } from '~/components/RestaurantMap'
 import type { PriceFilterState } from '~/components/PriceFilter'
@@ -328,16 +328,16 @@ function Restaurants() {
             <AuthenticatedHeader />
           </Authenticated>
           <Unauthenticated>
-            <Button
-              variant="outline"
-              size="sm"
+            <IconButton
+              aria-label="Sign In"
+              variant="ghost"
+              size="md"
               onClick={() => setIsSignInModalOpen(true)}
               color="brand.contrast"
-              borderColor="brand.contrast"
               _hover={{ bg: 'rgba(255, 255, 255, 0.1)' }}
             >
-              Sign In
-            </Button>
+              <FaUser />
+            </IconButton>
           </Unauthenticated>
           <ColorModeToggle />
         </Flex>

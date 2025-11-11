@@ -11,12 +11,13 @@ import {
   Container,
   Flex,
   Heading,
+  IconButton,
   Link,
   Spinner,
   Text,
   VisuallyHidden,
 } from '@chakra-ui/react'
-import { FaCalendar, FaFilter, FaGlobe, FaMapLocationDot, FaUtensils } from 'react-icons/fa6'
+import { FaCalendar, FaFilter, FaGlobe, FaMapLocationDot, FaUser, FaUtensils } from 'react-icons/fa6'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { ColorModeToggle } from '~/components/ColorModeToggle'
@@ -95,16 +96,16 @@ function LandingPage() {
             <AuthenticatedHeader />
           </Authenticated>
           <Unauthenticated>
-            <Button
-              variant="outline"
-              size="sm"
+            <IconButton
+              aria-label="Sign In"
+              variant="ghost"
+              size="md"
               onClick={() => setIsSignInModalOpen(true)}
               color="brand.contrast"
-              borderColor="brand.contrast"
               _hover={{ bg: 'rgba(255, 255, 255, 0.1)' }}
             >
-              Sign In
-            </Button>
+              <FaUser />
+            </IconButton>
           </Unauthenticated>
           <ColorModeToggle />
         </Flex>
