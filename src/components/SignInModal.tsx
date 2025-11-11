@@ -76,10 +76,15 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
 
   return (
     <DialogRoot open={isOpen} onOpenChange={handleClose}>
-      <DialogBackdrop />
-      <DialogContent>
+      <DialogBackdrop
+        style={{
+          backgroundColor: 'rgba(0, 0, 0, 0.3)',
+          backdropFilter: 'blur(2px)',
+        }}
+      />
+      <DialogContent maxW="md" bg="bg.surface">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle color="text.primary">
             {mode === 'signin' ? 'Sign In' : 'Create Account'}
           </DialogTitle>
           <DialogCloseTrigger />
@@ -89,7 +94,7 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
             <VStack gap={4} align="stretch">
               {mode === 'signup' && (
                 <Box>
-                  <Text mb={2} fontSize="sm" fontWeight="medium">
+                  <Text mb={2} fontSize="sm" fontWeight="medium" color="text.primary">
                     Name
                   </Text>
                   <Input
@@ -103,7 +108,7 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                 </Box>
               )}
               <Box>
-                <Text mb={2} fontSize="sm" fontWeight="medium">
+                <Text mb={2} fontSize="sm" fontWeight="medium" color="text.primary">
                   Email
                 </Text>
                 <Input
@@ -116,7 +121,7 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                 />
               </Box>
               <Box>
-                <Text mb={2} fontSize="sm" fontWeight="medium">
+                <Text mb={2} fontSize="sm" fontWeight="medium" color="text.primary">
                   Password
                 </Text>
                 <Input

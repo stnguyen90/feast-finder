@@ -245,8 +245,10 @@ function EventRestaurants() {
 
 // Component to display authenticated user header
 function AuthenticatedHeader() {
-  // @ts-expect-error - api.users will be available after convex codegen is run
-  const currentUser = useQuery(api.users?.getCurrentUser)
+  const currentUser = useQuery(
+    // @ts-expect-error - api.users will be available after convex codegen is run
+    typeof api.users !== 'undefined' ? api.users.getCurrentUser : undefined,
+  )
   
   if (!currentUser) {
     return null
