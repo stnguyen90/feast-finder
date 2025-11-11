@@ -14,7 +14,7 @@ export function UserMenu({ userName }: UserMenuProps) {
   }
 
   return (
-    <MenuRoot>
+    <MenuRoot positioning={{ placement: 'bottom-end' }}>
       <MenuTrigger asChild>
         <Button variant="outline" size="sm">
           <FaUser />

@@ -10,9 +10,10 @@ import {
   Center,
   Flex,
   Heading,
+  IconButton,
   Text,
 } from '@chakra-ui/react'
-import { FaCalendar, FaUtensils } from 'react-icons/fa6'
+import { FaCalendar, FaUser, FaUtensils } from 'react-icons/fa6'
 import { api } from '../../../convex/_generated/api'
 import type { Restaurant } from '~/components/RestaurantMap'
 import { ColorModeToggle } from '~/components/ColorModeToggle'
@@ -138,16 +139,16 @@ function EventRestaurants() {
             <AuthenticatedHeader />
           </Authenticated>
           <Unauthenticated>
-            <Button
-              variant="outline"
-              size="sm"
+            <IconButton
+              aria-label="Sign In"
+              variant="ghost"
+              size="md"
               onClick={() => setIsSignInModalOpen(true)}
               color="brand.contrast"
-              borderColor="brand.contrast"
               _hover={{ bg: 'rgba(255, 255, 255, 0.1)' }}
             >
-              Sign In
-            </Button>
+              <FaUser />
+            </IconButton>
           </Unauthenticated>
           <ColorModeToggle />
         </Flex>
