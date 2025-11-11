@@ -15,9 +15,9 @@ The authentication system provides:
 
 ### Backend (Convex)
 
-#### Auth Configuration (`convex/auth.config.ts`)
+#### Auth Configuration (`convex/auth.ts`)
 - Configures Convex Auth with Password provider
-- Exports auth utilities: `auth`, `signIn`, `signOut`, `store`
+- Exports auth utilities: `auth`, `signIn`, `signOut`, `store`, `isAuthenticated`
 
 #### HTTP Routes (`convex/http.ts`)
 - Sets up HTTP endpoints for authentication
@@ -154,11 +154,11 @@ To add OAuth (Google, GitHub, etc.):
    npm install @auth/core
    ```
 
-2. Update `convex/auth.config.ts`:
+2. Update `convex/auth.ts`:
    ```typescript
    import { GitHub } from '@convex-dev/auth/providers/GitHub'
    
-   export const { auth, signIn, signOut, store } = convexAuth({
+   export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
      providers: [Password, GitHub],
    })
    ```
