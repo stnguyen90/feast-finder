@@ -15,8 +15,12 @@ The authentication system provides:
 
 ### Backend (Convex)
 
-#### Auth Configuration (`convex/auth.ts`)
-- Configures Convex Auth with Password provider
+#### Auth Configuration (`convex/auth.config.ts`)
+- Provider configuration file required by Convex Auth manual setup
+- Contains provider settings (domain, applicationID)
+
+#### Auth Initialization (`convex/auth.ts`)
+- Initializes Convex Auth with Password provider
 - Exports auth utilities: `auth`, `signIn`, `signOut`, `store`, `isAuthenticated`
 
 #### HTTP Routes (`convex/http.ts`)
@@ -115,26 +119,56 @@ Already included in package.json:
 "@auth/core": "latest"
 ```
 
-### 2. Configure Convex Dashboard
+### 2. Generate JWT Keys
+
+Run the following script to generate private and public keys:
+
+```bash
+node generateKeys.mjs
+```
+
+Create `generateKeys.mjs` with:
+
+```js
+import { exportJWK, exportPKCS8, generateKeyPair } from "jose";
+
+const keys = await generateKeyPair("RS256", {
+  extractable: true,
+});
+const privateKey = await exportPKCS8(keys.privateKey);
+const publicKey = await exportJWK(keys.publicKey);
+const jwks = JSON.stringify({ keys: [{ use: "sig", ...publicKey }] });
+
+process.stdout.write(
+  `JWT_PRIVATE_KEY="${privateKey.trimEnd().replace(/\n/g, " ")}"`,
+);
+process.stdout.write("\n");
+process.stdout.write(`JWKS=${jwks}`);
+process.stdout.write("\n");
+```
+
+Copy the entire output.
+
+### 3. Configure Convex Dashboard
 
 1. Go to Convex Dashboard: https://dashboard.convex.dev
 2. Select your project
 3. Navigate to Settings → Environment Variables
-4. Add `AUTH_SECRET` with a secure random value:
-   ```bash
-   openssl rand -base64 32
-   ```
+4. Add the following variables:
+   - `JWT_PRIVATE_KEY` - Paste from script output
+   - `JWKS` - Paste from script output
+   - `SITE_URL` (optional, only needed for OAuth, not passwords)
 
-### 3. Regenerate Types
+### 4. Regenerate Types
 
-After setting up AUTH_SECRET:
+After setting up environment variables:
 ```bash
 npx convex codegen
 ```
 
 This will generate proper TypeScript types for auth-related functions.
 
-### 4. Test Authentication
+### 5. Test Authentication
 
 1. Start the dev server: `npm run dev`
 2. Click "Sign In" button

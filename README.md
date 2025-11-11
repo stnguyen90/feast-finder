@@ -143,14 +143,17 @@ The app automatically seeds sample restaurant and event data on first load.
 
 Feast Finder uses Convex Auth for secure user authentication:
 
-1. After running `npx convex dev`, set up the authentication secret:
+1. Generate JWT keys by running `node generateKeys.mjs` (see AUTHENTICATION.md for script)
+
+2. After running `npx convex dev`, configure environment variables:
    - Go to your Convex dashboard at `https://dashboard.convex.dev`
    - Navigate to your project's Settings → Environment Variables
-   - Add a new environment variable: `AUTH_SECRET`
-   - Generate a secure random string (you can use `openssl rand -base64 32`)
-   - Save the environment variable
+   - Add `JWT_PRIVATE_KEY` and `JWKS` from the generated output
+   - Optionally add `SITE_URL` (only needed for OAuth, not for password auth)
 
-2. Run `npx convex codegen` to regenerate types after setting up authentication
+3. Run `npx convex codegen` to regenerate types after setting up authentication
+
+For complete setup instructions, see [AUTHENTICATION.md](./AUTHENTICATION.md).
 
 **Authentication Features:**
 - 🔐 Email and password sign-up and sign-in

@@ -16,10 +16,14 @@ All acceptance criteria from the issue have been met:
 
 #### New Files
 1. **`convex/auth.config.ts`**
-   - Configures Convex Auth with Password provider
-   - Exports auth utilities: `auth`, `signIn`, `signOut`, `store`
+   - Provider configuration file required by Convex Auth manual setup
+   - Contains provider settings (domain, applicationID)
 
-2. **`convex/http.ts`**
+2. **`convex/auth.ts`**
+   - Initializes Convex Auth with Password provider
+   - Exports auth utilities: `auth`, `signIn`, `signOut`, `store`, `isAuthenticated`
+
+3. **`convex/http.ts`**
    - Sets up HTTP endpoints for authentication
    - Routes auth callbacks through Convex
 
