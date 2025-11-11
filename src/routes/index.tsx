@@ -367,5 +367,5 @@ function AuthenticatedHeader() {
     return null
   }
 
-  return <UserMenu userName={currentUser.name || 'User'} />
+  return <UserMenu userName={(currentUser as any).name || 'User'} />
 }

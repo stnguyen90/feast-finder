@@ -1,7 +1,7 @@
 import { Link, createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
-import { useMutation } from 'convex/react'
+import { Authenticated, Unauthenticated, useMutation } from 'convex/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Box,
@@ -24,6 +24,8 @@ import { PriceFilter } from '~/components/PriceFilter'
 import { CategoryFilter } from '~/components/CategoryFilter'
 import { RestaurantDetail } from '~/components/RestaurantDetail'
 import { RestaurantMap } from '~/components/RestaurantMap'
+import { SignInModal } from '~/components/SignInModal'
+import { UserMenu } from '~/components/UserMenu'
 
 // Define search params schema for URL state
 interface SearchParams {
@@ -81,6 +83,9 @@ function Restaurants() {
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null)
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
   const filterPanelRef = useRef<HTMLDivElement | null>(null)
+  
+  // Authentication modal state
+  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
 
   // Track price filter state from URL
   const priceFilters: PriceFilterState = useMemo(
@@ -318,10 +323,30 @@ function Restaurants() {
             </Flex>
           </Link>
         </Box>
-        <Box position="absolute" right={4}>
+        <Flex position="absolute" right={4} gap={2} align="center">
+          <Authenticated>
+            <AuthenticatedHeader />
+          </Authenticated>
+          <Unauthenticated>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsSignInModalOpen(true)}
+              color="brand.contrast"
+              borderColor="brand.contrast"
+              _hover={{ bg: 'rgba(255, 255, 255, 0.1)' }}
+            >
+              Sign In
+            </Button>
+          </Unauthenticated>
           <ColorModeToggle />
-        </Box>
+        </Flex>
       </Flex>
+
+      <SignInModal
+        isOpen={isSignInModalOpen}
+        onClose={() => setIsSignInModalOpen(false)}
+      />
 
       {isSeeding ? (
         <Center flex={1} color="text.secondary">
@@ -424,4 +449,17 @@ function Restaurants() {
       )}
     </Flex>
   )
+}
+
+// Component to display authenticated user header
+function AuthenticatedHeader() {
+  // @ts-expect-error - api.users will be available after convex codegen is run
+  const currentUser = useQuery(api.users?.getCurrentUser)
+  
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  if (!currentUser) {
+    return null
+  }
+
+  return <UserMenu userName={(currentUser as any).name || 'User'} />
 }

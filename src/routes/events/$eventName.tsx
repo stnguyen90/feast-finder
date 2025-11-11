@@ -1,10 +1,12 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
+import { Authenticated, Unauthenticated, useQuery } from 'convex/react'
 import { useState } from 'react'
 import {
   Badge,
   Box,
+  Button,
   Center,
   Flex,
   Heading,
@@ -16,6 +18,8 @@ import type { Restaurant } from '~/components/RestaurantMap'
 import { ColorModeToggle } from '~/components/ColorModeToggle'
 import { RestaurantDetail } from '~/components/RestaurantDetail'
 import { RestaurantMap } from '~/components/RestaurantMap'
+import { SignInModal } from '~/components/SignInModal'
+import { UserMenu } from '~/components/UserMenu'
 
 export const Route = createFileRoute('/events/$eventName')({
   component: EventRestaurants,
@@ -39,6 +43,9 @@ function EventRestaurants() {
 
   const [selectedRestaurant, setSelectedRestaurant] =
     useState<Restaurant | null>(null)
+  
+  // Authentication modal state
+  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
 
   // If event not found, show error
   if (!event) {
@@ -62,9 +69,24 @@ function EventRestaurants() {
               </Flex>
             </Link>
           </Box>
-          <Box position="absolute" right={4}>
+          <Flex position="absolute" right={4} gap={2} align="center">
+            <Authenticated>
+              <AuthenticatedHeader />
+            </Authenticated>
+            <Unauthenticated>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsSignInModalOpen(true)}
+                color="brand.contrast"
+                borderColor="brand.contrast"
+                _hover={{ bg: 'rgba(255, 255, 255, 0.1)' }}
+              >
+                Sign In
+              </Button>
+            </Unauthenticated>
             <ColorModeToggle />
-          </Box>
+          </Flex>
         </Flex>
 
         <Center flex={1}>
@@ -111,10 +133,30 @@ function EventRestaurants() {
             </Flex>
           </Link>
         </Box>
-        <Box position="absolute" right={4}>
+        <Flex position="absolute" right={4} gap={2} align="center">
+          <Authenticated>
+            <AuthenticatedHeader />
+          </Authenticated>
+          <Unauthenticated>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsSignInModalOpen(true)}
+              color="brand.contrast"
+              borderColor="brand.contrast"
+              _hover={{ bg: 'rgba(255, 255, 255, 0.1)' }}
+            >
+              Sign In
+            </Button>
+          </Unauthenticated>
           <ColorModeToggle />
-        </Box>
+        </Flex>
       </Flex>
+
+      <SignInModal
+        isOpen={isSignInModalOpen}
+        onClose={() => setIsSignInModalOpen(false)}
+      />
 
       {/* Event Info Banner */}
       <Box bg="bg.surface" p={4} boxShadow="sm">
@@ -199,4 +241,16 @@ function EventRestaurants() {
       )}
     </Flex>
   )
+}
+
+// Component to display authenticated user header
+function AuthenticatedHeader() {
+  // @ts-expect-error - api.users will be available after convex codegen is run
+  const currentUser = useQuery(api.users?.getCurrentUser)
+  
+  if (!currentUser) {
+    return null
+  }
+
+  return <UserMenu userName={(currentUser as any).name || 'User'} />
 }
