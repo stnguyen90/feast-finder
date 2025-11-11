@@ -1,6 +1,6 @@
 import { v } from 'convex/values'
 import { query } from './_generated/server'
-import { auth } from './auth.config'
+import { auth } from './auth'
 
 export const getCurrentUser = query({
   args: {},
