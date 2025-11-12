@@ -6,6 +6,7 @@ Feast Finder is a modern web application built with React, Convex, and React Lea
 
 ## Features
 
+- 🔐 **User Authentication**: Sign up and sign in to create a personalized experience
 - 🎉 **Restaurant Week Events**: Browse upcoming restaurant week events with exclusive menus
 - 🗺️ **Interactive Map**: Explore restaurants on an OpenStreetMap-powered interactive map
 - 📍 **Location Markers**: Each restaurant is marked on the map with its exact coordinates
@@ -137,6 +138,29 @@ This will:
 4. Start the Convex development server
 
 The app automatically seeds sample restaurant and event data on first load.
+
+### Authentication Setup
+
+Feast Finder uses Convex Auth for secure user authentication:
+
+1. Generate JWT keys by running `node generateKeys.mjs` (see AUTHENTICATION.md for script)
+
+2. After running `npx convex dev`, configure environment variables:
+   - Go to your Convex dashboard at `https://dashboard.convex.dev`
+   - Navigate to your project's Settings → Environment Variables
+   - Add `JWT_PRIVATE_KEY` and `JWKS` from the generated output
+   - Optionally add `SITE_URL` (only needed for OAuth, not for password auth)
+
+3. Run `npx convex codegen` to regenerate types after setting up authentication
+
+For complete setup instructions, see [AUTHENTICATION.md](./AUTHENTICATION.md).
+
+**Authentication Features:**
+- 🔐 Email and password sign-up and sign-in
+- 👤 User profile display in header
+- 🚪 Sign out functionality
+- 🔄 Real-time authentication state updates
+- 🔒 Secure password hashing and session management
 
 ### Sentry Setup (Optional)
 

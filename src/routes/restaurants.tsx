@@ -1,5 +1,5 @@
-import { Link, createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
-import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
+import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
+import { useSuspenseQuery, useQuery as useTanStackQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
 import { useMutation } from 'convex/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -9,21 +9,20 @@ import {
   Center,
   Flex,
   HStack,
-  Heading,
   IconButton,
   Spinner,
   Text,
   VStack,
 } from '@chakra-ui/react'
-import { FaUtensils } from 'react-icons/fa6'
 import { api } from '../../convex/_generated/api'
 import type { MapBounds, Restaurant } from '~/components/RestaurantMap'
 import type { PriceFilterState } from '~/components/PriceFilter'
-import { ColorModeToggle } from '~/components/ColorModeToggle'
+import { Header } from '~/components/Header'
 import { PriceFilter } from '~/components/PriceFilter'
 import { CategoryFilter } from '~/components/CategoryFilter'
 import { RestaurantDetail } from '~/components/RestaurantDetail'
 import { RestaurantMap } from '~/components/RestaurantMap'
+import { SignInModal } from '~/components/SignInModal'
 
 // Define search params schema for URL state
 interface SearchParams {
@@ -81,6 +80,9 @@ function Restaurants() {
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null)
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
   const filterPanelRef = useRef<HTMLDivElement | null>(null)
+  
+  // Authentication modal state
+  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
 
   // Track price filter state from URL
   const priceFilters: PriceFilterState = useMemo(
@@ -126,7 +128,7 @@ function Restaurants() {
   // Fetch restaurants with both geospatial and price filtering in a single query
   // Use regular useQuery with placeholderData to prevent flickering
   const geoQueryArgs = mapBounds ?? { north: 0, south: 0, east: 0, west: 0 }
-  const { data: geoRestaurantsResult } = useQuery({
+  const { data: geoRestaurantsResult } = useTanStackQuery({
     ...convexQuery(api.restaurantsGeo.queryRestaurantsInBounds, {
       bounds: geoQueryArgs,
       ...priceFilters, // Include all price filter parameters
@@ -300,28 +302,7 @@ function Restaurants() {
 
   return (
     <Flex direction="column" h="100vh" bg="bg.page">
-      <Flex
-        flexShrink={0}
-        p={4}
-        bg="brand.solid"
-        boxShadow="sm"
-        align="center"
-        justify="space-between"
-      >
-        <Box flex={1} textAlign="center">
-          <Link to="/">
-            <Flex align="center" justify="center" gap={2}>
-              <FaUtensils size={32} color="var(--chakra-colors-brand-contrast)" />
-              <Heading size="2xl" color="brand.contrast">
-                Feast Finder
-              </Heading>
-            </Flex>
-          </Link>
-        </Box>
-        <Box position="absolute" right={4}>
-          <ColorModeToggle />
-        </Box>
-      </Flex>
+      <Header onSignInClick={() => setIsSignInModalOpen(true)} />
 
       {isSeeding ? (
         <Center flex={1} color="text.secondary">
@@ -420,8 +401,16 @@ function Restaurants() {
             restaurant={selectedRestaurant}
             onClose={() => setSelectedRestaurant(null)}
           />
+
+          <SignInModal
+            isOpen={isSignInModalOpen}
+            onClose={() => setIsSignInModalOpen(false)}
+          />
         </Box>
       )}
     </Flex>
   )
 }
+
+// Component to display authenticated user header
+

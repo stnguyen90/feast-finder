@@ -19,7 +19,8 @@ import {
 import { FaCalendar, FaFilter, FaGlobe, FaMapLocationDot, FaUtensils } from 'react-icons/fa6'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
-import { ColorModeToggle } from '~/components/ColorModeToggle'
+import { Header } from '~/components/Header'
+import { SignInModal } from '~/components/SignInModal'
 
 // Type for event data
 interface Event {
@@ -49,6 +50,7 @@ function LandingPage() {
   const seedEvents = useMutation(api.seedData.seedEvents)
   const [isSeeding, setIsSeeding] = useState(false)
   const [hasAttemptedSeed, setHasAttemptedSeed] = useState(false)
+  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
 
   // Auto-seed events on first load if no events exist
   useEffect(() => {
@@ -71,26 +73,7 @@ function LandingPage() {
   return (
     <Flex direction="column" minH="100vh" bg="bg.page">
       {/* Header */}
-      <Flex
-        flexShrink={0}
-        p={4}
-        bg="brand.solid"
-        boxShadow="sm"
-        align="center"
-        justify="space-between"
-      >
-        <Box flex={1} textAlign="center">
-          <Flex align="center" justify="center" gap={2}>
-            <FaUtensils size={32} color="var(--chakra-colors-brand-contrast)" />
-            <Heading size="2xl" color="brand.contrast">
-              Feast Finder
-            </Heading>
-          </Flex>
-        </Box>
-        <Box position="absolute" right={4}>
-          <ColorModeToggle />
-        </Box>
-      </Flex>
+      <Header onSignInClick={() => setIsSignInModalOpen(true)} />
 
       <Container maxW="container.xl" py={12}>
         {/* Hero Section */}
@@ -329,6 +312,14 @@ function LandingPage() {
           © 2025 Feast Finder. Discover amazing restaurants near you.
         </Text>
       </Box>
+
+      <SignInModal
+        isOpen={isSignInModalOpen}
+        onClose={() => setIsSignInModalOpen(false)}
+      />
     </Flex>
   )
 }
+
+// Component to display authenticated user header
+

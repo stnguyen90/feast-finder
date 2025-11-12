@@ -8,11 +8,14 @@
  * @module
  */
 
+import type * as auth from "../auth.js";
 import type * as events from "../events.js";
 import type * as geospatial from "../geospatial.js";
+import type * as http from "../http.js";
 import type * as restaurants from "../restaurants.js";
 import type * as restaurantsGeo from "../restaurantsGeo.js";
 import type * as seedData from "../seedData.js";
+import type * as users from "../users.js";
 
 import type {
   ApiFromModules,
@@ -29,11 +32,14 @@ import type {
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  auth: typeof auth;
   events: typeof events;
   geospatial: typeof geospatial;
+  http: typeof http;
   restaurants: typeof restaurants;
   restaurantsGeo: typeof restaurantsGeo;
   seedData: typeof seedData;
+  users: typeof users;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
 
