@@ -21,7 +21,8 @@ export function UserMenu({ userName }: UserMenuProps) {
           variant="ghost"
           size="md"
           color="white"
-          _hover={{ bg: 'whiteAlpha.200' }}
+          _hover={{ bg: 'red.800' }}
+          _open={{ bg: 'red.800' }}
         >
           <FaUser />
         </IconButton>

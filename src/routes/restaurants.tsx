@@ -1,7 +1,7 @@
-import { Link, createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
+import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
 import { useSuspenseQuery, useQuery as useTanStackQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
-import { Authenticated, Unauthenticated, useQuery as useConvexQuery, useMutation } from 'convex/react'
+import { useMutation } from 'convex/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Box,
@@ -9,23 +9,20 @@ import {
   Center,
   Flex,
   HStack,
-  Heading,
   IconButton,
   Spinner,
   Text,
   VStack,
 } from '@chakra-ui/react'
-import { FaUser, FaUtensils } from 'react-icons/fa6'
 import { api } from '../../convex/_generated/api'
 import type { MapBounds, Restaurant } from '~/components/RestaurantMap'
 import type { PriceFilterState } from '~/components/PriceFilter'
-import { ColorModeToggle } from '~/components/ColorModeToggle'
+import { Header } from '~/components/Header'
 import { PriceFilter } from '~/components/PriceFilter'
 import { CategoryFilter } from '~/components/CategoryFilter'
 import { RestaurantDetail } from '~/components/RestaurantDetail'
 import { RestaurantMap } from '~/components/RestaurantMap'
 import { SignInModal } from '~/components/SignInModal'
-import { UserMenu } from '~/components/UserMenu'
 
 // Define search params schema for URL state
 interface SearchParams {
@@ -305,43 +302,7 @@ function Restaurants() {
 
   return (
     <Flex direction="column" h="100vh" bg="bg.page">
-      <Flex
-        flexShrink={0}
-        p={4}
-        bg="brand.solid"
-        boxShadow="sm"
-        align="center"
-        justify="space-between"
-      >
-        <Box flex={1} textAlign="center">
-          <Link to="/">
-            <Flex align="center" justify="center" gap={2}>
-              <FaUtensils size={32} color="var(--chakra-colors-brand-contrast)" />
-              <Heading size="2xl" color="brand.contrast">
-                Feast Finder
-              </Heading>
-            </Flex>
-          </Link>
-        </Box>
-        <Flex position="absolute" right={4} gap={2} align="center">
-          <Authenticated>
-            <AuthenticatedHeader />
-          </Authenticated>
-          <Unauthenticated>
-            <IconButton
-              aria-label="Sign In"
-              variant="ghost"
-              size="md"
-              onClick={() => setIsSignInModalOpen(true)}
-              color="brand.contrast"
-              _hover={{ bg: 'rgba(255, 255, 255, 0.1)' }}
-            >
-              <FaUser />
-            </IconButton>
-          </Unauthenticated>
-          <ColorModeToggle />
-        </Flex>
-      </Flex>
+      <Header onSignInClick={() => setIsSignInModalOpen(true)} />
 
       {isSeeding ? (
         <Center flex={1} color="text.secondary">
@@ -452,12 +413,4 @@ function Restaurants() {
 }
 
 // Component to display authenticated user header
-function AuthenticatedHeader() {
-  const currentUser = useConvexQuery(api.users.getCurrentUser)
-  
-  if (!currentUser) {
-    return null
-  }
 
-  return <UserMenu userName={currentUser.name || 'User'} />
-}

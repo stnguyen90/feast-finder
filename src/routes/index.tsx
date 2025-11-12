@@ -1,7 +1,7 @@
 import { Link as RouterLink, createFileRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
-import { Authenticated, Unauthenticated, useMutation, useQuery } from 'convex/react'
+import { useMutation } from 'convex/react'
 import { useEffect, useState } from 'react'
 import {
   Badge,
@@ -11,18 +11,16 @@ import {
   Container,
   Flex,
   Heading,
-  IconButton,
   Link,
   Spinner,
   Text,
   VisuallyHidden,
 } from '@chakra-ui/react'
-import { FaCalendar, FaFilter, FaGlobe, FaMapLocationDot, FaUser, FaUtensils } from 'react-icons/fa6'
+import { FaCalendar, FaFilter, FaGlobe, FaMapLocationDot, FaUtensils } from 'react-icons/fa6'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
-import { ColorModeToggle } from '~/components/ColorModeToggle'
+import { Header } from '~/components/Header'
 import { SignInModal } from '~/components/SignInModal'
-import { UserMenu } from '~/components/UserMenu'
 
 // Type for event data
 interface Event {
@@ -75,41 +73,7 @@ function LandingPage() {
   return (
     <Flex direction="column" minH="100vh" bg="bg.page">
       {/* Header */}
-      <Flex
-        flexShrink={0}
-        p={4}
-        bg="brand.solid"
-        boxShadow="sm"
-        align="center"
-        justify="space-between"
-      >
-        <Box flex={1} textAlign="center">
-          <Flex align="center" justify="center" gap={2}>
-            <FaUtensils size={32} color="var(--chakra-colors-brand-contrast)" />
-            <Heading size="2xl" color="brand.contrast">
-              Feast Finder
-            </Heading>
-          </Flex>
-        </Box>
-        <Flex position="absolute" right={4} gap={2} align="center">
-          <Authenticated>
-            <AuthenticatedHeader />
-          </Authenticated>
-          <Unauthenticated>
-            <IconButton
-              aria-label="Sign In"
-              variant="ghost"
-              size="md"
-              onClick={() => setIsSignInModalOpen(true)}
-              color="brand.contrast"
-              _hover={{ bg: 'rgba(255, 255, 255, 0.1)' }}
-            >
-              <FaUser />
-            </IconButton>
-          </Unauthenticated>
-          <ColorModeToggle />
-        </Flex>
-      </Flex>
+      <Header onSignInClick={() => setIsSignInModalOpen(true)} />
 
       <Container maxW="container.xl" py={12}>
         {/* Hero Section */}
@@ -358,12 +322,4 @@ function LandingPage() {
 }
 
 // Component to display authenticated user header
-function AuthenticatedHeader() {
-  const currentUser = useQuery(api.users.getCurrentUser)
-  
-  if (!currentUser) {
-    return null
-  }
 
-  return <UserMenu userName={currentUser.name || 'User'} />
-}
