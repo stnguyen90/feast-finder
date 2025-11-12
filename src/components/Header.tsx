@@ -12,7 +12,7 @@ interface HeaderProps {
 
 function AuthenticatedHeader() {
   const currentUser = useQuery(api.users.getCurrentUser)
-  
+
   if (!currentUser) {
     return null
   }

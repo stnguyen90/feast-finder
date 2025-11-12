@@ -4,6 +4,23 @@
 
 Feast Finder is a modern web application built with React, Convex, and React Leaflet that helps users explore restaurant week events and discover dining experiences through an interactive map interface.
 
+## Built For TanStack Start Hackathon
+
+Feast Finder was created for the [TanStack Start Hackathon](https://www.convex.dev/hackathons/tanstack), showcasing the power of modern web technologies and seamless integrations.
+
+### Sponsors & Technologies
+
+This project leverages cutting-edge tools and services provided by our generous hackathon sponsors:
+
+- **[TanStack Start](https://tanstack.com/start)**: The core framework powering our full-stack application with server-side rendering, file-based routing, and seamless data fetching
+- **[Convex](https://www.convex.dev/)**: Our serverless database platform providing real-time data synchronization, backend functions, and geospatial indexing
+- **[CodeRabbit](https://coderabbit.ai/)**: AI-powered pull request review bot ensuring code quality and catching potential issues
+- **[Firecrawl](https://www.firecrawl.dev/)**: Used to extract structured data from restaurant week websites to populate our Convex database
+- **[Netlify](https://www.netlify.com/)**: Our web hosting platform with edge functions and continuous deployment
+- **[Autumn](https://www.getautumn.com/)**: Payment processing for premium access features
+- **[Sentry](https://sentry.io/)**: Integrated error tracking, performance monitoring, and user feedback for both client and server
+- **[Cloudflare](https://www.cloudflare.com/)**: Proxy layer providing analytics, DDoS protection, and intelligent caching
+
 ## Features
 
 - 🔐 **User Authentication**: Sign up and sign in to create a personalized experience
@@ -23,7 +40,9 @@ Feast Finder is a modern web application built with React, Convex, and React Lea
 ## Pages
 
 ### Landing Page (`/`)
+
 The homepage showcases Feast Finder's purpose and features:
+
 - Hero section describing the app's benefits
 - Feature highlights (Interactive Map, Restaurant Week Events, Price Filtering)
 - Upcoming restaurant week events with detailed descriptions
@@ -31,14 +50,18 @@ The homepage showcases Feast Finder's purpose and features:
 - Fallback messaging when no events are available
 
 ### Event Pages (`/events/$eventName`)
+
 Dynamic pages that show restaurants participating in specific events:
+
 - Event information banner with dates and restaurant count
 - Interactive map showing only restaurants in that event
 - Full restaurant details via click-through modals
 - Event-specific filtering based on menu participation
 
 ### Restaurants Page (`/restaurants`)
+
 Interactive map interface for exploring all restaurants:
+
 - Full-screen map with restaurant markers
 - Price filter panel for brunch, lunch, and dinner
 - Category filter panel to filter by cuisine types
@@ -156,6 +179,7 @@ Feast Finder uses Convex Auth for secure user authentication:
 For complete setup instructions, see [AUTHENTICATION.md](./AUTHENTICATION.md).
 
 **Authentication Features:**
+
 - 🔐 Email and password sign-up and sign-in
 - 👤 User profile display in header
 - 🚪 Sign out functionality
@@ -176,6 +200,7 @@ VITE_SENTRY_DSN=your_sentry_dsn_here
 ```
 
 **Features enabled:**
+
 - ✅ Error tracking (client & server)
 - ✅ Performance monitoring
 - ✅ Session replay (10% of sessions, 100% with errors)
@@ -183,6 +208,7 @@ VITE_SENTRY_DSN=your_sentry_dsn_here
 - ✅ Console log capture (errors & warnings)
 
 For production source map uploads, also add:
+
 ```bash
 SENTRY_ORG=your_sentry_org
 SENTRY_PROJECT=your_sentry_project

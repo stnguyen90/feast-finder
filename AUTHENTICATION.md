@@ -5,6 +5,7 @@ Feast Finder uses [Convex Auth](https://labs.convex.dev/auth) for secure user au
 ## Overview
 
 The authentication system provides:
+
 - User registration (sign-up) with email, password, and name
 - User login (sign-in) with email and password
 - User logout (sign-out)
@@ -16,45 +17,54 @@ The authentication system provides:
 ### Backend (Convex)
 
 #### Auth Configuration (`convex/auth.config.ts`)
+
 - Provider configuration file required by Convex Auth manual setup
 - Contains provider settings (domain, applicationID)
 
 #### Auth Initialization (`convex/auth.ts`)
+
 - Initializes Convex Auth with Password provider
 - Exports auth utilities: `auth`, `signIn`, `signOut`, `store`, `isAuthenticated`
 
 #### HTTP Routes (`convex/http.ts`)
+
 - Sets up HTTP endpoints for authentication
 - Handles auth callbacks and session management
 
 #### Schema (`convex/schema.ts`)
+
 - Includes auth tables from `@convex-dev/auth/server`
 - Stores user credentials and session data
 
 #### User Queries (`convex/users.ts`)
+
 - `getCurrentUser`: Query to get the currently authenticated user
 - Returns user info including name and email
 
 ### Frontend (React)
 
 #### Provider Setup (`src/router.tsx`)
+
 - Wraps app with `ConvexAuthProvider`
 - Provides authentication context to all components
 
 #### Components
 
 ##### SignInModal (`src/components/SignInModal.tsx`)
+
 - Modal dialog for authentication
 - Switches between sign-in and sign-up modes
 - Form validation and error handling
 - Integration with Convex Auth actions
 
 ##### UserMenu (`src/components/UserMenu.tsx`)
+
 - Dropdown menu for authenticated users
 - Displays user name
 - Provides sign-out functionality
 
 ##### AuthenticatedHeader (in route files)
+
 - Conditionally renders based on auth state
 - Shows "Sign In" button when not authenticated
 - Shows user menu when authenticated
@@ -62,6 +72,7 @@ The authentication system provides:
 ## User Flow
 
 ### Sign Up
+
 1. User clicks "Sign In" button in header
 2. Modal opens in sign-in mode
 3. User clicks "Don't have an account? Sign up"
@@ -71,6 +82,7 @@ The authentication system provides:
 7. Modal closes, user menu appears in header
 
 ### Sign In
+
 1. User clicks "Sign In" button in header
 2. Modal opens in sign-in mode
 3. User enters email and password
@@ -79,6 +91,7 @@ The authentication system provides:
 6. Modal closes, user menu appears in header
 
 ### Sign Out
+
 1. User clicks on their name in header
 2. Dropdown menu appears
 3. User clicks "Sign Out"
@@ -90,6 +103,7 @@ The authentication system provides:
 ### Authentication State Management
 
 The app uses Convex's built-in authentication state management:
+
 - `Authenticated` component: Renders children only when user is signed in
 - `Unauthenticated` component: Renders children only when user is signed out
 - `useQuery(api.users.getCurrentUser)`: Gets current user data
@@ -104,6 +118,7 @@ The app uses Convex's built-in authentication state management:
 ### Error Handling
 
 The SignInModal component handles:
+
 - Invalid credentials
 - Network errors
 - Validation errors
@@ -114,6 +129,7 @@ The SignInModal component handles:
 ### 1. Install Dependencies
 
 Already included in package.json:
+
 ```json
 "@convex-dev/auth": "latest",
 "@auth/core": "latest"
@@ -130,21 +146,21 @@ node generateKeys.mjs
 Create `generateKeys.mjs` with:
 
 ```js
-import { exportJWK, exportPKCS8, generateKeyPair } from "jose";
+import { exportJWK, exportPKCS8, generateKeyPair } from 'jose'
 
-const keys = await generateKeyPair("RS256", {
+const keys = await generateKeyPair('RS256', {
   extractable: true,
-});
-const privateKey = await exportPKCS8(keys.privateKey);
-const publicKey = await exportJWK(keys.publicKey);
-const jwks = JSON.stringify({ keys: [{ use: "sig", ...publicKey }] });
+})
+const privateKey = await exportPKCS8(keys.privateKey)
+const publicKey = await exportJWK(keys.publicKey)
+const jwks = JSON.stringify({ keys: [{ use: 'sig', ...publicKey }] })
 
 process.stdout.write(
-  `JWT_PRIVATE_KEY="${privateKey.trimEnd().replace(/\n/g, " ")}"`,
-);
-process.stdout.write("\n");
-process.stdout.write(`JWKS=${jwks}`);
-process.stdout.write("\n");
+  `JWT_PRIVATE_KEY="${privateKey.trimEnd().replace(/\n/g, ' ')}"`,
+)
+process.stdout.write('\n')
+process.stdout.write(`JWKS=${jwks}`)
+process.stdout.write('\n')
 ```
 
 Copy the entire output.
@@ -162,6 +178,7 @@ Copy the entire output.
 ### 4. Regenerate Types
 
 After setting up environment variables:
+
 ```bash
 npx convex codegen
 ```
@@ -184,14 +201,16 @@ This will generate proper TypeScript types for auth-related functions.
 To add OAuth (Google, GitHub, etc.):
 
 1. Install provider package:
+
    ```bash
    npm install @auth/core
    ```
 
 2. Update `convex/auth.ts`:
+
    ```typescript
    import { GitHub } from '@convex-dev/auth/providers/GitHub'
-   
+
    export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
      providers: [Password, GitHub],
    })
@@ -204,6 +223,7 @@ To add OAuth (Google, GitHub, etc.):
 To store additional user data:
 
 1. Update the user query in `convex/users.ts`:
+
    ```typescript
    export const getCurrentUser = query({
      args: {},
@@ -237,7 +257,7 @@ To require authentication for specific pages:
    export const Route = createFileRoute('/protected')({
      beforeLoad: async ({ context }) => {
        const user = await context.queryClient.ensureQueryData(
-         convexQuery(api.users.getCurrentUser, {})
+         convexQuery(api.users.getCurrentUser, {}),
        )
        if (!user) {
          throw redirect({ to: '/', search: { signIn: true } })
@@ -255,7 +275,8 @@ To require authentication for specific pages:
 
 ### User data not loading
 
-**Solution**: 
+**Solution**:
+
 1. Check Convex dashboard for errors
 2. Run `npx convex codegen`
 3. Verify `api.users.getCurrentUser` exists in generated API
@@ -263,6 +284,7 @@ To require authentication for specific pages:
 ### Sign-in not working
 
 **Checklist**:
+
 - [ ] AUTH_SECRET is set in Convex dashboard
 - [ ] Convex dev server is running
 - [ ] No console errors in browser

@@ -38,7 +38,7 @@ export const listCategories = query({
   returns: v.array(v.string()),
   handler: async (ctx) => {
     const restaurants = await ctx.db.query('restaurants').collect()
-    
+
     // Collect all categories from all restaurants
     const categorySet = new Set<string>()
     for (const restaurant of restaurants) {
@@ -46,7 +46,7 @@ export const listCategories = query({
         categorySet.add(category)
       }
     }
-    
+
     // Return sorted array of unique categories
     return Array.from(categorySet).sort()
   },

@@ -2,14 +2,7 @@ import { Link, createFileRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
 import { useState } from 'react'
-import {
-  Badge,
-  Box,
-  Center,
-  Flex,
-  Heading,
-  Text,
-} from '@chakra-ui/react'
+import { Badge, Box, Center, Flex, Heading, Text } from '@chakra-ui/react'
 import { FaCalendar, FaUtensils } from 'react-icons/fa6'
 import { api } from '../../../convex/_generated/api'
 import type { Restaurant } from '~/components/RestaurantMap'
@@ -24,7 +17,7 @@ export const Route = createFileRoute('/events/$eventName')({
 
 function EventRestaurants() {
   const { eventName } = Route.useParams()
-  
+
   // Decode the event name from URL
   const decodedEventName = decodeURIComponent(eventName)
 
@@ -35,12 +28,14 @@ function EventRestaurants() {
 
   // Fetch restaurants for this event
   const { data: restaurants } = useSuspenseQuery(
-    convexQuery(api.events.getRestaurantsForEvent, { eventName: decodedEventName }),
+    convexQuery(api.events.getRestaurantsForEvent, {
+      eventName: decodedEventName,
+    }),
   )
 
   const [selectedRestaurant, setSelectedRestaurant] =
     useState<Restaurant | null>(null)
-  
+
   // Authentication modal state
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
 
@@ -171,4 +166,3 @@ function EventRestaurants() {
 }
 
 // Component to display authenticated user header
-

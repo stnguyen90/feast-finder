@@ -59,11 +59,12 @@ The landing page is designed to introduce Feast Finder and showcase restaurant w
 ```
 
 **Landing Page Features:**
+
 - **Header**: Simple header with Feast Finder logo and dark mode toggle
 - **Hero Section**: Large heading, descriptive text, prominent CTA button
 - **Features Grid**: 3-column responsive grid (stacks on mobile)
 - **Events Section**: Vertical stack of event cards
-- **Event Cards**: 
+- **Event Cards**:
   - Event name with optional "Active Now" badge (green)
   - Location with emoji
   - Description text
@@ -245,8 +246,12 @@ When clicking on a marker again:
 - **Close Button**: aria-label="Close"
 - **Links**: target="\_blank" with rel="noopener noreferrer"
 - **Map**: Keyboard navigable via Leaflet defaults
-- **Color Contrast**: WCAG AA compliant
+- **Color Contrast**: WCAG AA compliant in both light and dark modes
 - **Focus States**: Visible focus indicators
+- **Readable Text**: All text must be legible in BOTH light and dark modes
+  - Use semantic color tokens (e.g., `text-gray-900 dark:text-gray-100`)
+  - Test color contrast ratios in both modes
+  - Avoid hardcoded colors that only work in one theme
 
 ## Animation & Transitions
 

@@ -1,5 +1,8 @@
 import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
-import { useSuspenseQuery, useQuery as useTanStackQuery } from '@tanstack/react-query'
+import {
+  useSuspenseQuery,
+  useQuery as useTanStackQuery,
+} from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
 import { useMutation } from 'convex/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -80,7 +83,7 @@ function Restaurants() {
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null)
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
   const filterPanelRef = useRef<HTMLDivElement | null>(null)
-  
+
   // Authentication modal state
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
 
@@ -132,7 +135,8 @@ function Restaurants() {
     ...convexQuery(api.restaurantsGeo.queryRestaurantsInBounds, {
       bounds: geoQueryArgs,
       ...priceFilters, // Include all price filter parameters
-      categories: selectedCategories.length > 0 ? selectedCategories : undefined, // Include category filter
+      categories:
+        selectedCategories.length > 0 ? selectedCategories : undefined, // Include category filter
     }),
     placeholderData: (previousData) => previousData, // Keep previous data while loading
   })
@@ -222,13 +226,10 @@ function Restaurants() {
     [navigate],
   )
 
-  const handleFilterChange = useCallback(
-    (filters: PriceFilterState) => {
-      // Update pending state, don't navigate yet
-      setPendingPriceFilters(filters)
-    },
-    [],
-  )
+  const handleFilterChange = useCallback((filters: PriceFilterState) => {
+    // Update pending state, don't navigate yet
+    setPendingPriceFilters(filters)
+  }, [])
 
   const handleCategoryFilterChange = useCallback(
     (categories: Array<string>) => {
@@ -413,4 +414,3 @@ function Restaurants() {
 }
 
 // Component to display authenticated user header
-

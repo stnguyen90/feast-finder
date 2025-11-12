@@ -1,4 +1,12 @@
-import { IconButton, MenuContent, MenuItem, MenuPositioner, MenuRoot, MenuTrigger, Portal } from '@chakra-ui/react'
+import {
+  IconButton,
+  MenuContent,
+  MenuItem,
+  MenuPositioner,
+  MenuRoot,
+  MenuTrigger,
+  Portal,
+} from '@chakra-ui/react'
 import { FaSignOutAlt, FaUser } from 'react-icons/fa'
 import { useAuthActions } from '@convex-dev/auth/react'
 
