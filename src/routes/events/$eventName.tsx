@@ -13,9 +13,10 @@ import {
 import { FaCalendar, FaUtensils } from 'react-icons/fa6'
 import { api } from '../../../convex/_generated/api'
 import type { Restaurant } from '~/components/RestaurantMap'
-import { ColorModeToggle } from '~/components/ColorModeToggle'
+import { Header } from '~/components/Header'
 import { RestaurantDetail } from '~/components/RestaurantDetail'
 import { RestaurantMap } from '~/components/RestaurantMap'
+import { SignInModal } from '~/components/SignInModal'
 
 export const Route = createFileRoute('/events/$eventName')({
   component: EventRestaurants,
@@ -39,33 +40,15 @@ function EventRestaurants() {
 
   const [selectedRestaurant, setSelectedRestaurant] =
     useState<Restaurant | null>(null)
+  
+  // Authentication modal state
+  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
 
   // If event not found, show error
   if (!event) {
     return (
       <Flex direction="column" h="100vh" bg="bg.page">
-        <Flex
-          flexShrink={0}
-          p={4}
-          bg="brand.solid"
-          boxShadow="sm"
-          align="center"
-          justify="space-between"
-        >
-          <Box flex={1} textAlign="center">
-            <Link to="/">
-              <Flex align="center" justify="center" gap={2}>
-                <FaUtensils size={32} color="var(--chakra-colors-brand-contrast)" />
-                <Heading size="2xl" color="brand.contrast">
-                  Feast Finder
-                </Heading>
-              </Flex>
-            </Link>
-          </Box>
-          <Box position="absolute" right={4}>
-            <ColorModeToggle />
-          </Box>
-        </Flex>
+        <Header onSignInClick={() => setIsSignInModalOpen(true)} />
 
         <Center flex={1}>
           <Box textAlign="center">
@@ -93,72 +76,53 @@ function EventRestaurants() {
 
   return (
     <Flex direction="column" h="100vh" bg="bg.page">
-      <Flex
-        flexShrink={0}
-        p={4}
-        bg="brand.solid"
-        boxShadow="sm"
-        align="center"
-        justify="space-between"
-      >
-        <Box flex={1} textAlign="center">
-          <Link to="/">
-            <Flex align="center" justify="center" gap={2}>
-              <FaUtensils size={32} color="var(--chakra-colors-brand-contrast)" />
-              <Heading size="2xl" color="brand.contrast">
-                Feast Finder
-              </Heading>
-            </Flex>
-          </Link>
-        </Box>
-        <Box position="absolute" right={4}>
-          <ColorModeToggle />
-        </Box>
-      </Flex>
+      <Header onSignInClick={() => setIsSignInModalOpen(true)} />
 
       {/* Event Info Banner */}
-      <Box bg="bg.surface" p={4} boxShadow="sm">
-        <Flex align="center" justify="center" gap={3} mb={2}>
-          <Heading size="lg" color="text.primary">
-            {event.name}
-          </Heading>
-          {isActive && (
-            <Badge colorScheme="green" fontSize="sm" px={2} py={1}>
-              Active Now
-            </Badge>
-          )}
-        </Flex>
-        <Flex
-          justify="center"
-          gap={4}
-          fontSize="sm"
-          color="text.secondary"
-          wrap="wrap"
-        >
-          <Flex align="center" gap={1}>
-            <FaCalendar />
-            <Text>
-              {startDate.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-              })}{' '}
-              -{' '}
-              {endDate.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-              })}
-            </Text>
+      <Box bg="bg.surface" boxShadow="sm" flexShrink={0}>
+        <Box p={4}>
+          <Flex align="center" justify="center" gap={3} mb={2}>
+            <Heading size="lg" color="text.primary">
+              {event.name}
+            </Heading>
+            {isActive && (
+              <Badge colorScheme="green" fontSize="sm" px={2} py={1}>
+                Active Now
+              </Badge>
+            )}
           </Flex>
-          <Flex align="center" gap={1}>
-            <FaUtensils />
-            <Text>
-              {event.restaurantCount}{' '}
-              {event.restaurantCount === 1 ? 'restaurant' : 'restaurants'}
-            </Text>
+          <Flex
+            justify="center"
+            gap={4}
+            fontSize="sm"
+            color="text.secondary"
+            wrap="wrap"
+          >
+            <Flex align="center" gap={1}>
+              <FaCalendar />
+              <Text>
+                {startDate.toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}{' '}
+                -{' '}
+                {endDate.toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}
+              </Text>
+            </Flex>
+            <Flex align="center" gap={1}>
+              <FaUtensils />
+              <Text>
+                {event.restaurantCount}{' '}
+                {event.restaurantCount === 1 ? 'restaurant' : 'restaurants'}
+              </Text>
+            </Flex>
           </Flex>
-        </Flex>
+        </Box>
       </Box>
 
       {restaurants.length === 0 ? (
@@ -195,8 +159,16 @@ function EventRestaurants() {
             restaurant={selectedRestaurant}
             onClose={() => setSelectedRestaurant(null)}
           />
+
+          <SignInModal
+            isOpen={isSignInModalOpen}
+            onClose={() => setIsSignInModalOpen(false)}
+          />
         </Box>
       )}
     </Flex>
   )
 }
+
+// Component to display authenticated user header
+

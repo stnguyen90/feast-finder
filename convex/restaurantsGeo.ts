@@ -23,6 +23,8 @@ export const queryRestaurantsInBounds = query({
     maxLunchPrice: v.optional(v.number()),
     minDinnerPrice: v.optional(v.number()),
     maxDinnerPrice: v.optional(v.number()),
+    // Category filter parameter
+    categories: v.optional(v.array(v.string())),
   },
   returns: v.object({
     results: v.array(
@@ -59,6 +61,7 @@ export const queryRestaurantsInBounds = query({
       maxLunchPrice,
       minDinnerPrice,
       maxDinnerPrice,
+      categories,
     } = args
 
     // Query geospatial index for restaurant IDs in the bounding box
@@ -98,6 +101,7 @@ export const queryRestaurantsInBounds = query({
     const hasDinnerFilter =
       minDinnerPrice !== undefined || maxDinnerPrice !== undefined
     const hasPriceFilters = hasBrunchFilter || hasLunchFilter || hasDinnerFilter
+    const hasCategoryFilter = categories !== undefined && categories.length > 0
 
     // Query database with combined geospatial and price filtering
     let restaurantsQuery = ctx.db.query('restaurants')
@@ -195,7 +199,15 @@ export const queryRestaurantsInBounds = query({
       })
     }
 
-    const restaurants = await restaurantsQuery.collect()
+    let restaurants = await restaurantsQuery.collect()
+
+    // Apply category filtering in memory
+    // This is efficient since we're only filtering a small subset from geospatial query
+    if (hasCategoryFilter) {
+      restaurants = restaurants.filter((restaurant) =>
+        restaurant.categories.some((category) => categories.includes(category)),
+      )
+    }
 
     return {
       results: restaurants,

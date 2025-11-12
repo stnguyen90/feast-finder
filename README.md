@@ -6,12 +6,14 @@ Feast Finder is a modern web application built with React, Convex, and React Lea
 
 ## Features
 
+- 🔐 **User Authentication**: Sign up and sign in to create a personalized experience
 - 🎉 **Restaurant Week Events**: Browse upcoming restaurant week events with exclusive menus
 - 🗺️ **Interactive Map**: Explore restaurants on an OpenStreetMap-powered interactive map
 - 📍 **Location Markers**: Each restaurant is marked on the map with its exact coordinates
 - 🔍 **Restaurant Details**: Click on any marker to view comprehensive restaurant information
 - 💲 **Price Filtering**: Filter restaurants by price range for brunch, lunch, or dinner
-- 🏷️ **Rich Metadata**: View ratings, categories, meal times, prices, and external links
+- 🏷️ **Category Filtering**: Filter restaurants by cuisine types (e.g., French, Italian, Mexican)
+- 📊 **Rich Metadata**: View ratings, categories, meal times, prices, and external links
 - 🌙 **Dark Mode Support**: Built-in dark mode for comfortable viewing
 - ⚡ **Real-time Updates**: Powered by Convex for real-time data synchronization
 - 📱 **Responsive Design**: Works seamlessly on desktop and mobile devices
@@ -39,6 +41,7 @@ Dynamic pages that show restaurants participating in specific events:
 Interactive map interface for exploring all restaurants:
 - Full-screen map with restaurant markers
 - Price filter panel for brunch, lunch, and dinner
+- Category filter panel to filter by cuisine types
 - Restaurant detail modals with comprehensive information
 - Geospatial viewport-based loading for performance
 
@@ -80,12 +83,14 @@ Each restaurant week event includes:
 - **React Leaflet**: Interactive map component
 - **Chakra UI v3**: Component library for UI
 - **Tailwind CSS v4**: Utility-first styling
+- **Sentry**: Error tracking, performance monitoring, and user feedback
 
 ### Backend
 
 - **Convex**: Serverless backend and database
 - **Convex Geospatial Component**: Efficient spatial indexing and queries
 - **TypeScript**: Type-safe code throughout
+- **Sentry**: Server-side error tracking and logging
 
 ### Deployment
 
@@ -133,6 +138,58 @@ This will:
 4. Start the Convex development server
 
 The app automatically seeds sample restaurant and event data on first load.
+
+### Authentication Setup
+
+Feast Finder uses Convex Auth for secure user authentication:
+
+1. Generate JWT keys by running `node generateKeys.mjs` (see AUTHENTICATION.md for script)
+
+2. After running `npx convex dev`, configure environment variables:
+   - Go to your Convex dashboard at `https://dashboard.convex.dev`
+   - Navigate to your project's Settings → Environment Variables
+   - Add `JWT_PRIVATE_KEY` and `JWKS` from the generated output
+   - Optionally add `SITE_URL` (only needed for OAuth, not for password auth)
+
+3. Run `npx convex codegen` to regenerate types after setting up authentication
+
+For complete setup instructions, see [AUTHENTICATION.md](./AUTHENTICATION.md).
+
+**Authentication Features:**
+- 🔐 Email and password sign-up and sign-in
+- 👤 User profile display in header
+- 🚪 Sign out functionality
+- 🔄 Real-time authentication state updates
+- 🔒 Secure password hashing and session management
+
+### Sentry Setup (Optional)
+
+For error tracking and performance monitoring:
+
+1. Create a free Sentry account at [sentry.io](https://sentry.io)
+2. Create a new project for TanStack Start/React
+3. Copy your DSN from the project settings
+4. Add to `.env.local`:
+
+```bash
+VITE_SENTRY_DSN=your_sentry_dsn_here
+```
+
+**Features enabled:**
+- ✅ Error tracking (client & server)
+- ✅ Performance monitoring
+- ✅ Session replay (10% of sessions, 100% with errors)
+- ✅ User feedback widget
+- ✅ Console log capture (errors & warnings)
+
+For production source map uploads, also add:
+```bash
+SENTRY_ORG=your_sentry_org
+SENTRY_PROJECT=your_sentry_project
+SENTRY_AUTH_TOKEN=your_sentry_auth_token
+```
+
+See `.env.local.example` for a complete template.
 
 ## Project Structure
 

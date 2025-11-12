@@ -32,6 +32,26 @@ export const listRestaurants = query({
   },
 })
 
+// Query to get all unique categories from restaurants
+export const listCategories = query({
+  args: {},
+  returns: v.array(v.string()),
+  handler: async (ctx) => {
+    const restaurants = await ctx.db.query('restaurants').collect()
+    
+    // Collect all categories from all restaurants
+    const categorySet = new Set<string>()
+    for (const restaurant of restaurants) {
+      for (const category of restaurant.categories) {
+        categorySet.add(category)
+      }
+    }
+    
+    // Return sorted array of unique categories
+    return Array.from(categorySet).sort()
+  },
+})
+
 // Query to filter restaurants by price ranges
 export const listRestaurantsWithPriceFilter = query({
   args: {

@@ -15,6 +15,7 @@ interface PriceFilterProps {
   onClearFilters: () => void
   onApply?: () => void
   initialValues?: PriceFilterState
+  hideButtons?: boolean
 }
 
 export function PriceFilter({
@@ -22,6 +23,7 @@ export function PriceFilter({
   onClearFilters,
   onApply,
   initialValues,
+  hideButtons = false,
 }: PriceFilterProps) {
   const [minBrunchPrice, setMinBrunchPrice] = useState<string>(
     initialValues?.minBrunchPrice?.toString() ?? '',
@@ -54,6 +56,28 @@ export function PriceFilter({
     }
   }, [initialValues])
 
+  // Notify parent component whenever price values change
+  useEffect(() => {
+    const filters: PriceFilterState = {}
+
+    if (minBrunchPrice) filters.minBrunchPrice = parseFloat(minBrunchPrice)
+    if (maxBrunchPrice) filters.maxBrunchPrice = parseFloat(maxBrunchPrice)
+    if (minLunchPrice) filters.minLunchPrice = parseFloat(minLunchPrice)
+    if (maxLunchPrice) filters.maxLunchPrice = parseFloat(maxLunchPrice)
+    if (minDinnerPrice) filters.minDinnerPrice = parseFloat(minDinnerPrice)
+    if (maxDinnerPrice) filters.maxDinnerPrice = parseFloat(maxDinnerPrice)
+
+    onFilterChange(filters)
+  }, [
+    minBrunchPrice,
+    maxBrunchPrice,
+    minLunchPrice,
+    maxLunchPrice,
+    minDinnerPrice,
+    maxDinnerPrice,
+    onFilterChange,
+  ])
+
   const handleApplyFilters = () => {
     const filters: PriceFilterState = {}
 
@@ -83,19 +107,12 @@ export function PriceFilter({
   }
 
   return (
-    <Box
-      bg="bg.surface"
-      p={4}
-      borderRadius="md"
-      boxShadow="md"
-      w="100%"
-      maxW="400px"
-    >
-      <Heading size="md" mb={4} color="text.primary">
+    <Box w="100%" maxW="400px">
+      <Heading size="md" mb={2} color="text.primary">
         Price
       </Heading>
 
-      <VStack gap={4} align="stretch">
+      <VStack gap={3} align="stretch">
         {/* Brunch Price Filter */}
         <Box>
           <Heading size="sm" mb={2} color="text.secondary">
@@ -109,6 +126,7 @@ export function PriceFilter({
               value={minBrunchPrice}
               onChange={(e) => setMinBrunchPrice(e.target.value)}
               size="sm"
+              color="text.primary"
             />
             <Box color="text.secondary">-</Box>
             <Input
@@ -118,6 +136,7 @@ export function PriceFilter({
               value={maxBrunchPrice}
               onChange={(e) => setMaxBrunchPrice(e.target.value)}
               size="sm"
+              color="text.primary"
             />
           </HStack>
         </Box>
@@ -135,6 +154,7 @@ export function PriceFilter({
               value={minLunchPrice}
               onChange={(e) => setMinLunchPrice(e.target.value)}
               size="sm"
+              color="text.primary"
             />
             <Box color="text.secondary">-</Box>
             <Input
@@ -144,6 +164,7 @@ export function PriceFilter({
               value={maxLunchPrice}
               onChange={(e) => setMaxLunchPrice(e.target.value)}
               size="sm"
+              color="text.primary"
             />
           </HStack>
         </Box>
@@ -161,6 +182,7 @@ export function PriceFilter({
               value={minDinnerPrice}
               onChange={(e) => setMinDinnerPrice(e.target.value)}
               size="sm"
+              color="text.primary"
             />
             <Box color="text.secondary">-</Box>
             <Input
@@ -170,28 +192,32 @@ export function PriceFilter({
               value={maxDinnerPrice}
               onChange={(e) => setMaxDinnerPrice(e.target.value)}
               size="sm"
+              color="text.primary"
             />
           </HStack>
         </Box>
 
-        <HStack gap={2} pt={2}>
-          <Button
-            colorScheme="blue"
-            size="sm"
-            flex={1}
-            onClick={handleApplyFilters}
-          >
-            Apply Filters
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            flex={1}
-            onClick={handleClearFilters}
-          >
-            Clear
-          </Button>
-        </HStack>
+        {!hideButtons && (
+          <HStack gap={2} pt={2}>
+            <Button
+              bg="brand.solid"
+              color="brand.contrast"
+              size="sm"
+              flex={1}
+              onClick={handleApplyFilters}
+            >
+              Apply
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              flex={1}
+              onClick={handleClearFilters}
+            >
+              Clear
+            </Button>
+          </HStack>
+        )}
       </VStack>
     </Box>
   )
