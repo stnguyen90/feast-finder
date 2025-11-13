@@ -314,9 +314,16 @@ function Restaurants() {
   // Click outside to close filters
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement
+      
+      // Don't close if clicking on the header
+      if (target.closest('header') || target.closest('[role="banner"]')) {
+        return
+      }
+      
       if (
         filterPanelRef.current &&
-        !filterPanelRef.current.contains(event.target as Node) &&
+        !filterPanelRef.current.contains(target) &&
         showFilters
       ) {
         setShowFilters(false)
