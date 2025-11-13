@@ -7,16 +7,19 @@ import { convexQuery } from '@convex-dev/react-query'
 import { useMutation } from 'convex/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
+  Badge,
   Box,
   Button,
   Center,
   Flex,
   HStack,
   IconButton,
+  Link,
   Spinner,
   Text,
   VStack,
 } from '@chakra-ui/react'
+import { useCustomer } from 'autumn-js/react'
 import { api } from '../../convex/_generated/api'
 import type { MapBounds, Restaurant } from '~/components/RestaurantMap'
 import type { PriceFilterState } from '~/components/PriceFilter'
@@ -26,6 +29,7 @@ import { CategoryFilter } from '~/components/CategoryFilter'
 import { RestaurantDetail } from '~/components/RestaurantDetail'
 import { RestaurantMap } from '~/components/RestaurantMap'
 import { SignInModal } from '~/components/SignInModal'
+import { PREMIUM_FEATURES } from '~/lib/premiumFeatures'
 
 // Define search params schema for URL state
 interface SearchParams {
@@ -105,6 +109,15 @@ function Restaurants() {
     () => searchParams.categories ?? [],
     [searchParams.categories],
   )
+
+  // Check premium access for advanced filters
+  const { customer, check } = useCustomer()
+
+  // Check if user has access to advanced filters
+  const hasAdvancedFilters = useMemo(() => {
+    const result = check({ featureId: PREMIUM_FEATURES.ADVANCED_FILTERS })
+    return result.data.allowed
+  }, [check, customer])
 
   const [showFilters, setShowFilters] = useState(false)
 
@@ -357,12 +370,41 @@ function Restaurants() {
                 maxW="400px"
               >
                 <VStack gap={4} align="stretch">
+                  {/* Premium Badge */}
+                  {!hasAdvancedFilters && (
+                    <Flex
+                      align="center"
+                      justify="space-between"
+                      bg="brand.subtle"
+                      p={3}
+                      borderRadius="md"
+                    >
+                      <HStack gap={2}>
+                        <Badge colorPalette="yellow" size="sm">
+                          ⭐ Premium
+                        </Badge>
+                        <Text fontSize="sm" color="text.secondary">
+                          Advanced filters
+                        </Text>
+                      </HStack>
+                      <Link
+                        href="#"
+                        fontSize="sm"
+                        color="brand.solid"
+                        fontWeight="medium"
+                      >
+                        Upgrade
+                      </Link>
+                    </Flex>
+                  )}
+
                   {/* Price Filter */}
                   <PriceFilter
                     onFilterChange={handleFilterChange}
                     onClearFilters={() => setPendingPriceFilters({})}
                     initialValues={pendingPriceFilters}
                     hideButtons={true}
+                    disabled={!hasAdvancedFilters}
                   />
 
                   {/* Category Filter */}
@@ -371,6 +413,7 @@ function Restaurants() {
                     onClearFilters={() => setPendingCategories([])}
                     initialValues={pendingCategories}
                     hideButtons={true}
+                    disabled={!hasAdvancedFilters}
                   />
 
                   {/* Single set of buttons at the bottom */}

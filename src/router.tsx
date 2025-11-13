@@ -4,6 +4,7 @@ import { routerWithQueryClient } from '@tanstack/react-router-with-query'
 import { ConvexQueryClient } from '@convex-dev/react-query'
 import { ConvexProvider } from 'convex/react'
 import { ConvexAuthProvider } from '@convex-dev/auth/react'
+import { AutumnProvider } from 'autumn-js/react'
 import { ChakraProvider } from '@chakra-ui/react'
 import { routeTree } from './routeTree.gen'
 import { system } from './theme'
@@ -48,7 +49,9 @@ export function getRouter() {
       Wrap: ({ children }) => (
         <ConvexProvider client={convexQueryClient.convexClient}>
           <ConvexAuthProvider client={convexQueryClient.convexClient}>
-            <ChakraProvider value={system}>{children}</ChakraProvider>
+            <AutumnProvider>
+              <ChakraProvider value={system}>{children}</ChakraProvider>
+            </AutumnProvider>
           </ConvexAuthProvider>
         </ConvexProvider>
       ),

@@ -20,6 +20,7 @@ interface CategoryFilterProps {
   onApply?: () => void
   initialValues?: Array<string>
   hideButtons?: boolean
+  disabled?: boolean
 }
 
 export function CategoryFilter({
@@ -28,6 +29,7 @@ export function CategoryFilter({
   onApply,
   initialValues = [],
   hideButtons = false,
+  disabled = false,
 }: CategoryFilterProps) {
   // Fetch all available categories from the database (use regular useQuery to prevent flicker)
   const { data: availableCategories = [] } = useQuery(
@@ -103,11 +105,13 @@ export function CategoryFilter({
         value={selectedCategories}
         onValueChange={handleValueChange}
         onInputValueChange={(e) => setSearchValue(e.inputValue)}
+        disabled={disabled}
       >
         <Combobox.Control>
           <Combobox.Input
             placeholder="Select categories..."
             color="text.primary"
+            disabled={disabled}
           />
           <Combobox.IndicatorGroup>
             <Combobox.ClearTrigger />
