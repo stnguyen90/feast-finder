@@ -16,7 +16,13 @@ import {
   Text,
   VisuallyHidden,
 } from '@chakra-ui/react'
-import { FaCalendar, FaFilter, FaGlobe, FaMapLocationDot, FaUtensils } from 'react-icons/fa6'
+import {
+  FaCalendar,
+  FaFilter,
+  FaGlobe,
+  FaMapLocationDot,
+  FaUtensils,
+} from 'react-icons/fa6'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { Header } from '~/components/Header'
@@ -78,7 +84,12 @@ function LandingPage() {
       <Container maxW="container.xl" py={12}>
         {/* Hero Section */}
         <Box textAlign="center" mb={16} position="relative">
-          <Heading size="5xl" mb={6} fontWeight="extrabold" color="text.primary">
+          <Heading
+            size="5xl"
+            mb={6}
+            fontWeight="extrabold"
+            color="text.primary"
+          >
             Discover Your Next
             <br />
             <Box
@@ -226,7 +237,9 @@ function LandingPage() {
                     >
                       <Box flex={1}>
                         <Flex align="center" gap={3} mb={4}>
-                          <Heading size="lg" color="text.primary">{event.name}</Heading>
+                          <Heading size="lg" color="text.primary">
+                            {event.name}
+                          </Heading>
                           {isActive && (
                             <Badge
                               colorScheme="green"
@@ -288,10 +301,17 @@ function LandingPage() {
                             </Link>
                           </Box>
                         )}
-                        <Button asChild bg="brand.solid" color="brand.contrast" size="lg">
-                          <RouterLink 
-                            to="/events/$eventName" 
-                            params={{ eventName: encodeURIComponent(event.name) }}
+                        <Button
+                          asChild
+                          bg="brand.solid"
+                          color="brand.contrast"
+                          size="lg"
+                        >
+                          <RouterLink
+                            to="/events/$eventName"
+                            params={{
+                              eventName: encodeURIComponent(event.name),
+                            }}
                           >
                             View Restaurants
                           </RouterLink>
@@ -322,4 +342,3 @@ function LandingPage() {
 }
 
 // Component to display authenticated user header
-

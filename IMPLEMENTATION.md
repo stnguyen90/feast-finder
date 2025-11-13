@@ -3,6 +3,7 @@
 ## Application Overview
 
 Feast Finder is an interactive restaurant discovery application with two main pages:
+
 1. **Landing Page** (`/`): Showcases restaurant week events and app features
 2. **Restaurants Page** (`/restaurants`): Interactive map for exploring restaurants
 

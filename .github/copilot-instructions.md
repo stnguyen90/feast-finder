@@ -41,12 +41,16 @@ dist/                    # Build output
 - **UI-DESIGN.md** - Design spec: layout, colors, typography, interactions
 - **CODEGEN_NOTE.md** - Important note about regenerating Convex types
 
-**When making changes, update relevant docs if you modify:**
+**CRITICAL: When making ANY code changes, you MUST update the relevant documentation files:**
 
-- Features/tech stack → README.md
-- Component architecture → IMPLEMENTATION.md
-- UI/styling → UI-DESIGN.md
-- Convex schema/functions → may need CODEGEN_NOTE.md updates
+- Features/tech stack changes → README.md
+- Component architecture changes → IMPLEMENTATION.md
+- UI/styling changes → UI-DESIGN.md
+- Convex schema/functions changes → may need CODEGEN_NOTE.md updates
+- Authentication changes → AUTHENTICATION.md
+- Geospatial/location changes → GEOSPATIAL.md
+
+**Documentation is NOT optional. It MUST be kept synchronized with code at all times.**
 
 ## Commands (Node.js v22 required)
 
@@ -201,6 +205,10 @@ npm run start  # netlify dev (runs local Netlify dev server)
 - Global: Edit `src/styles/app.css`
 - Components: Use Tailwind utility classes
 - No `tailwind.config.js` needed (v4 via Vite plugin)
+- **ALWAYS ensure text is readable in BOTH dark mode AND light mode**
+  - Test color contrast in both modes
+  - Use semantic color tokens that adapt (e.g., `text-gray-900 dark:text-gray-100`)
+  - Avoid hardcoded colors that only work in one mode
 
 ## Pre-Completion Checklist
 
@@ -213,7 +221,14 @@ Before marking task complete:
 5. ✅ Run `npx convex codegen` after Convex changes (if possible)
 6. ✅ Don't commit: `node_modules/`, `.netlify/`, `.env.local`
 7. ✅ **Take screenshots**: For any UI changes, take screenshots and include them in the PR description
-8. ✅ **Update docs**: If you change features, update README.md, IMPLEMENTATION.md, or UI-DESIGN.md
+8. ✅ **ALWAYS update ALL relevant markdown files** when code changes:
+   - README.md: Features, tech stack, setup instructions, sample data
+   - IMPLEMENTATION.md: Components, backend functions, user flow, technical details
+   - UI-DESIGN.md: Layout, colors, typography, interactions, visual design
+   - AUTHENTICATION.md: Auth setup, configuration, user flow (if auth changes)
+   - GEOSPATIAL.md: Geospatial queries, indexing (if location features change)
+   - Other relevant docs: Keep all documentation synchronized with code changes
+9. ✅ **Verify dark/light mode**: Ensure all text and UI elements are readable in both color modes
 
 ## Files You Should Never Edit
 

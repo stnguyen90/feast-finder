@@ -101,7 +101,7 @@ export const getEventByName = query({
   handler: async (ctx, args) => {
     const allEvents = await ctx.db.query('events').collect()
     const event = allEvents.find((e) => e.name === args.name)
-    
+
     if (!event) {
       return null
     }
@@ -152,7 +152,7 @@ export const getRestaurantsForEvent = query({
     // Find the event by name
     const allEvents = await ctx.db.query('events').collect()
     const event = allEvents.find((e) => e.name === args.eventName)
-    
+
     if (!event) {
       return []
     }
