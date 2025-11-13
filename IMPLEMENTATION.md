@@ -65,7 +65,52 @@ Users can discover restaurant week events on the landing page and explore partic
 - Close button to dismiss
 - Dark mode support
 
-### 5. Backend (Convex)
+### 5. Premium Access with Autumn
+
+**Purpose**: Gate advanced filtering features behind premium subscription
+
+- **Integration**: Uses Autumn for subscription management and feature gating
+- **Feature ID**: `advanced-filters`
+- **Free Tier**: Map browsing with viewport filtering only
+- **Premium Tier**: Access to price and category filters
+
+#### Components Modified
+
+**Filter Panel (`src/routes/restaurants.tsx`)**:
+- Checks premium access using `useCustomer` hook from Autumn
+- Displays premium badge when user lacks access
+- Disables filter inputs for non-premium users
+- Shows "Upgrade" link to prompt subscription
+
+**Price Filter (`src/components/PriceFilter.tsx`)**:
+- Added `disabled` prop to support premium gating
+- All input fields respect disabled state
+- Maintains visual consistency when disabled
+
+**Category Filter (`src/components/CategoryFilter.tsx`)**:
+- Added `disabled` prop to support premium gating
+- Combobox respects disabled state
+- Prevents interaction when user lacks premium access
+
+#### Autumn Integration Files
+
+**`convex/autumn.ts`**:
+- Initializes Autumn client with Convex Auth integration
+- Uses `auth.getUserId()` to identify customers
+- Exports all Autumn API functions (check, track, attach, etc.)
+- Requires `AUTUMN_SECRET_KEY` environment variable
+
+**`src/lib/premiumFeatures.ts`**:
+- Defines feature ID constants
+- Type-safe feature IDs for consistency
+- Currently includes `ADVANCED_FILTERS`
+
+**`src/router.tsx`**:
+- Wraps app with `AutumnProvider`
+- Positioned inside `ConvexAuthProvider`
+- Enables Autumn hooks throughout the app
+
+### 6. Backend (Convex)
 
 #### Schema (schema.ts)
 
@@ -201,6 +246,16 @@ Defines restaurants table with:
 9. User clicks X or outside modal to close
 10. User can select another restaurant
 
+### Premium User Flow
+
+1. User navigates to `/restaurants`
+2. If not premium, sees disabled filters with premium badge
+3. User clicks "Upgrade" link (future: redirects to pricing/checkout)
+4. After subscribing via Autumn/Stripe, user refreshes page
+5. Premium check succeeds, filters become enabled
+6. User can now filter by price and categories
+7. Multiple filters can be combined for precise search
+
 ## Technical Highlights
 
 - **Type Safety**: Full TypeScript with strict types
@@ -213,6 +268,8 @@ Defines restaurants table with:
 - **Geospatial Indexing**: Efficient location-based queries using S2 cell indexing
 - **Viewport-Based Loading**: Dynamic restaurant fetching based on map bounds
 - **Performance Optimized**: Only loads restaurants visible in current viewport
+- **Premium Access**: Autumn integration for subscription management and feature gating
+- **Payment Processing**: Stripe integration via Autumn for seamless billing
 
 ## Build & Deployment
 
@@ -227,10 +284,19 @@ Defines restaurants table with:
 ### Modified:
 
 - `convex/schema.ts` - Added events table to restaurant data model
+- `convex/convex.config.ts` - Added Autumn component registration
 - `convex/restaurants.ts` - Backend queries and mutations (added geospatial sync)
 - `convex/seedData.ts` - Seed functions (added event seeding and geospatial sync)
 - `src/routes/index.tsx` - **Completely reimplemented as landing page** with event showcase
+- `src/routes/restaurants.tsx` - Added premium access checks and filter gating
 - `src/components/RestaurantMap.tsx` - Map component (moved MapBounds type here)
+- `src/components/PriceFilter.tsx` - Added disabled prop for premium gating
+- `src/components/CategoryFilter.tsx` - Added disabled prop for premium gating
+- `src/router.tsx` - Added AutumnProvider wrapper
+- `package.json` - Added Autumn packages (@useautumn/convex, autumn-js)
+- `.env.local.example` - Added AUTUMN_SECRET_KEY configuration
+- `README.md` - Updated with premium features and Autumn setup
+- `IMPLEMENTATION.md` - Updated with Autumn integration details
 - `package.json` - Added geospatial component dependency
 - `README.md` - Updated with landing page, events, and new page structure
 - `IMPLEMENTATION.md` - Updated with event features and new user flow
@@ -238,11 +304,14 @@ Defines restaurants table with:
 ### Created:
 
 - `convex/events.ts` - Event query and mutation functions
+- `convex/autumn.ts` - Autumn client initialization and API exports
 - `src/routes/restaurants.tsx` - **New route** with interactive map (moved from index.tsx)
-- `convex/convex.config.ts` - Convex app configuration with geospatial component
+- `convex/convex.config.ts` - Convex app configuration with geospatial and Autumn components
 - `convex/geospatial.ts` - Geospatial index setup
 - `convex/restaurantsGeo.ts` - Geospatial query functions
+- `src/lib/premiumFeatures.ts` - Premium feature ID constants
 - `GEOSPATIAL.md` - Comprehensive geospatial integration documentation
+- `AUTUMN_INTEGRATION.md` - Comprehensive Autumn integration documentation
 - `src/components/RestaurantDetail.tsx` - Detail modal component
 - `src/components/ColorModeToggle.tsx` - Theme toggle component
 - `src/components/PriceFilter.tsx` - Price filtering component with min/max inputs
