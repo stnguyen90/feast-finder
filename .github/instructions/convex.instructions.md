@@ -4,6 +4,13 @@ applyTo: '**/*.ts,**/*.tsx,**/*.js,**/*.jsx'
 
 # Convex guidelines
 
+## Code Generation
+
+- **ALWAYS** run `npx convex codegen` after making ANY changes to files in the `convex/` directory.
+- This includes creating new files, modifying existing functions, updating schemas, or adding components.
+- Running codegen ensures TypeScript types are up-to-date and prevents type errors.
+- Do NOT use `@ts-expect-error` or `@ts-ignore` to suppress type errors related to Convex generated types - run codegen instead.
+
 ## Function guidelines
 
 ### New function syntax

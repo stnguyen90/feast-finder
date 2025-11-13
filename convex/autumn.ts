@@ -10,7 +10,6 @@ import { auth } from './auth'
  * 3. Run `npx convex codegen` to regenerate types
  */
 
-// @ts-expect-error - autumn component will be available after running npx convex dev
 export const autumn = new Autumn(components.autumn, {
   secretKey: process.env.AUTUMN_SECRET_KEY ?? '',
   identify: async (ctx: any) => {
