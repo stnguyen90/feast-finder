@@ -14,7 +14,6 @@ import {
   Flex,
   HStack,
   IconButton,
-  Link,
   Spinner,
   Text,
   VStack,
@@ -111,7 +110,7 @@ function Restaurants() {
   )
 
   // Check premium access for advanced filters
-  const { customer, check } = useCustomer()
+  const { customer, check, checkout } = useCustomer()
 
   // Check if user has access to advanced filters
   const hasAdvancedFilters = useMemo(() => {
@@ -119,13 +118,13 @@ function Restaurants() {
     return result.data.allowed
   }, [check, customer])
 
-  // Check if free user is using more than one filter
+  // Check if free user is using one or more filters
   const isUsingMultipleFilters = useMemo(() => {
     const priceFilterCount = Object.values(priceFilters).filter(
       (v) => v !== undefined,
     ).length
     const categoryCount = selectedCategories.length
-    return priceFilterCount + categoryCount > 1
+    return priceFilterCount + categoryCount >= 1
   }, [priceFilters, selectedCategories])
 
   // Determine if filters should be disabled
@@ -220,6 +219,12 @@ function Restaurants() {
       }
     }
   }, [allRestaurants.length, syncAllToIndex, isSeeding])
+
+  const handleUpgrade = useCallback(async () => {
+    await checkout({
+      productId: 'premium',
+    })
+  }, [checkout])
 
   const handleBoundsChange = useCallback(
     (
@@ -401,14 +406,15 @@ function Restaurants() {
                             : 'Use multiple filters with premium'}
                         </Text>
                       </HStack>
-                      <Link
-                        href="#"
-                        fontSize="sm"
+                      <Button
+                        onClick={handleUpgrade}
+                        variant="ghost"
+                        size="sm"
                         color="brand.solid"
                         fontWeight="medium"
                       >
                         Upgrade
-                      </Link>
+                      </Button>
                     </Flex>
                   )}
 

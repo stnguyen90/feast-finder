@@ -11,7 +11,6 @@ import {
   HStack,
   Heading,
   IconButton,
-  Link,
   Text,
   VStack,
 } from '@chakra-ui/react'
@@ -98,7 +97,7 @@ function EventRestaurants() {
   )
 
   // Check premium access for advanced filters
-  const { customer, check } = useCustomer()
+  const { customer, check, checkout } = useCustomer()
 
   // Check if user has access to advanced filters
   const hasAdvancedFilters = useMemo(() => {
@@ -106,13 +105,13 @@ function EventRestaurants() {
     return result.data.allowed
   }, [check, customer])
 
-  // Check if free user is using more than one filter
+  // Check if free user is using one or more filters
   const isUsingMultipleFilters = useMemo(() => {
     const priceFilterCount = Object.values(priceFilters).filter(
       (v) => v !== undefined,
     ).length
     const categoryCount = selectedCategories.length
-    return priceFilterCount + categoryCount > 1
+    return priceFilterCount + categoryCount >= 1
   }, [priceFilters, selectedCategories])
 
   // Determine if filters should be disabled
@@ -230,6 +229,12 @@ function EventRestaurants() {
 
   // Authentication modal state
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
+
+  const handleUpgrade = useCallback(async () => {
+    await checkout({
+      productId: 'premium',
+    })
+  }, [checkout])
 
   const handleFilterChange = useCallback((filters: PriceFilterState) => {
     setPendingPriceFilters(filters)
@@ -456,14 +461,15 @@ function EventRestaurants() {
                             : 'Use multiple filters with premium'}
                         </Text>
                       </HStack>
-                      <Link
-                        href="#"
-                        fontSize="sm"
+                      <Button
+                        onClick={handleUpgrade}
+                        variant="ghost"
+                        size="sm"
                         color="brand.solid"
                         fontWeight="medium"
                       >
                         Upgrade
-                      </Link>
+                      </Button>
                     </Flex>
                   )}
 
@@ -503,13 +509,6 @@ function EventRestaurants() {
                       onClick={handleClearFilters}
                     >
                       Clear
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowFilters(false)}
-                    >
-                      Hide
                     </Button>
                   </HStack>
                 </VStack>
