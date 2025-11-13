@@ -14,11 +14,12 @@ Successfully integrated Autumn for premium access management in Feast Finder. Th
 - Map-based browsing with geospatial viewport filtering
 - View restaurant details
 - Basic map interactions
+- **One filter allowed**: Can use ONE price value OR ONE category at a time
 
 **Premium Tier:**
-- Price range filtering (brunch, lunch, dinner)
-- Category filtering (cuisine types)
-- Multi-filter combinations
+- Price range filtering (multiple values for brunch, lunch, dinner)
+- Category filtering (multiple cuisine types)
+- Multi-filter combinations (unlimited)
 - All free tier features
 
 ## Technical Implementation

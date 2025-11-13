@@ -71,15 +71,17 @@ Users can discover restaurant week events on the landing page and explore partic
 
 - **Integration**: Uses Autumn for subscription management and feature gating
 - **Feature ID**: `advanced-filters`
-- **Free Tier**: Map browsing with viewport filtering only
-- **Premium Tier**: Access to price and category filters
+- **Free Tier**: Map browsing with viewport filtering + ONE filter at a time
+- **Premium Tier**: Unlimited filters (multiple price ranges + multiple categories)
 
 #### Components Modified
 
 **Filter Panel (`src/routes/restaurants.tsx`)**:
 - Checks premium access using `useCustomer` hook from Autumn
-- Displays premium badge when user lacks access
-- Disables filter inputs for non-premium users
+- Counts active filters (price values + categories)
+- Displays premium badge when user has 2+ filters without premium
+- Disables additional filters when free user already has one active
+- Shows dynamic message based on filter usage
 - Shows "Upgrade" link to prompt subscription
 
 **Price Filter (`src/components/PriceFilter.tsx`)**:

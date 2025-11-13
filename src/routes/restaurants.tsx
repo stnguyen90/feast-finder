@@ -119,6 +119,18 @@ function Restaurants() {
     return result.data.allowed
   }, [check, customer])
 
+  // Check if free user is using more than one filter
+  const isUsingMultipleFilters = useMemo(() => {
+    const priceFilterCount = Object.values(priceFilters).filter(
+      (v) => v !== undefined,
+    ).length
+    const categoryCount = selectedCategories.length
+    return priceFilterCount + categoryCount > 1
+  }, [priceFilters, selectedCategories])
+
+  // Determine if filters should be disabled
+  const shouldDisableFilters = !hasAdvancedFilters && isUsingMultipleFilters
+
   const [showFilters, setShowFilters] = useState(false)
 
   // Local state for pending filter changes (not yet applied)
@@ -384,7 +396,9 @@ function Restaurants() {
                           ⭐ Premium
                         </Badge>
                         <Text fontSize="sm" color="text.secondary">
-                          Advanced filters
+                          {isUsingMultipleFilters
+                            ? 'Multiple filters require premium'
+                            : 'Use multiple filters with premium'}
                         </Text>
                       </HStack>
                       <Link
@@ -404,7 +418,7 @@ function Restaurants() {
                     onClearFilters={() => setPendingPriceFilters({})}
                     initialValues={pendingPriceFilters}
                     hideButtons={true}
-                    disabled={!hasAdvancedFilters}
+                    disabled={shouldDisableFilters}
                   />
 
                   {/* Category Filter */}
@@ -413,7 +427,7 @@ function Restaurants() {
                     onClearFilters={() => setPendingCategories([])}
                     initialValues={pendingCategories}
                     hideButtons={true}
-                    disabled={!hasAdvancedFilters}
+                    disabled={shouldDisableFilters}
                   />
 
                   {/* Single set of buttons at the bottom */}

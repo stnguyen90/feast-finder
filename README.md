@@ -39,9 +39,16 @@ This project leverages cutting-edge tools and services provided by our generous 
 
 ### Premium Features ⭐
 
-- 💲 **Advanced Price Filtering**: Filter restaurants by price range for brunch, lunch, or dinner
-- 🏷️ **Category Filtering**: Filter restaurants by cuisine types (e.g., French, Italian, Mexican)
-- 🔀 **Multi-Filter Search**: Combine price and category filters simultaneously for precise results
+**Free Tier:**
+- 💲 **Single Filter**: Filter by ONE price range OR ONE category at a time
+- 🏷️ **Basic Filtering**: Choose one cuisine type or one meal price range
+- 🗺️ **Map Filtering**: Always available - filter by map viewport
+
+**Premium Tier:**
+- 💲 **Advanced Price Filtering**: Filter restaurants by multiple price ranges (brunch, lunch, and dinner) simultaneously
+- 🏷️ **Multi-Category Filtering**: Filter by multiple cuisine types at once
+- 🔀 **Combined Search**: Combine price and category filters for precise results
+- 📊 **Unlimited Filters**: Use as many filters as you want together
 
 Premium access is managed through [Autumn](https://docs.useautumn.com) for seamless subscription and payment handling.
 

@@ -91,20 +91,23 @@ const hasAdvancedFilters = useMemo(() => {
 **Free Users**:
 - Can view restaurants on map
 - Can filter by map viewport (geospatial bounds)
+- Can use ONE filter at a time (one price value OR one category)
 
 **Premium Users**:
 - All free features
-- Filter by price ranges (brunch, lunch, dinner)
-- Filter by categories (cuisine types)
-- Combine multiple filters simultaneously
+- Filter by multiple price ranges (brunch, lunch, dinner) simultaneously
+- Filter by multiple categories (cuisine types) at once
+- Combine price and category filters together
+- Use unlimited number of filters
 
 ### Implementation Details
 
 The filter panel in `/restaurants` displays:
-1. **Premium Badge**: Shows when user doesn't have access
-2. **Upgrade Link**: Prompts non-premium users to upgrade
-3. **Disabled Inputs**: Price and category filters are disabled without premium access
-4. **Visual Feedback**: Uses Chakra UI's badge component with yellow color palette
+1. **Premium Badge**: Shows when user is using multiple filters without premium access
+2. **Dynamic Message**: "Use multiple filters with premium" or "Multiple filters require premium"
+3. **Upgrade Link**: Prompts non-premium users to upgrade
+4. **Smart Disabling**: Filters become disabled only when user tries to use more than one
+5. **Visual Feedback**: Uses Chakra UI's badge component with yellow color palette
 
 ## Setup Instructions
 

@@ -9,27 +9,29 @@
 
 #### When User Does NOT Have Premium Access
 
-The filter panel displays:
+The filter panel behavior:
 
-1. **Premium Badge Section** (NEW)
-   - Yellow "⭐ Premium" badge
-   - Text: "Advanced filters"
-   - Blue "Upgrade" link on the right
-   - Light background (brand.subtle color)
-   - Rounded corners with padding
+1. **No Filters Active** (Free user can start filtering)
+   - Premium badge shows: "Use multiple filters with premium"
+   - All filter inputs are enabled
+   - User can select ONE price value OR ONE category
+   - Filters remain enabled until user adds a second filter
 
-2. **Disabled Price Filter**
-   - All input fields are greyed out
-   - User cannot type in min/max prices
-   - Visual indication that feature requires premium
+2. **One Filter Active** (Free user using their allowed filter)
+   - Premium badge shows: "Use multiple filters with premium"  
+   - All filter inputs remain enabled
+   - User can continue using their single filter
+   - If user adds a second filter, filters become disabled
 
-3. **Disabled Category Filter**
-   - Combobox dropdown is disabled
-   - User cannot select categories
-   - Consistent disabled styling
+3. **Multiple Filters Active** (Free user exceeded limit)
+   - Premium badge shows: "Multiple filters require premium"
+   - All filter inputs become disabled (greyed out)
+   - User must clear filters or upgrade to premium
+   - Visual indication that premium is required
 
 4. **Apply and Clear Buttons**
-   - Still visible but filters remain empty
+   - Always visible and functional
+   - User can clear filters to re-enable inputs
    - Maintains consistent layout
 
 #### When User HAS Premium Access
@@ -58,12 +60,26 @@ The filter panel displays:
 
 ### User Experience Flow
 
+**For Free Users:**
+
 1. User clicks 🔍 filter button
-2. Panel opens showing premium badge
-3. User sees disabled price and category filters
-4. User understands premium is required
-5. User clicks "Upgrade" link (future: goes to pricing)
-6. After subscribing, filters become enabled
+2. Panel opens showing premium badge: "Use multiple filters with premium"
+3. User sees enabled price and category filters
+4. User selects one price range (e.g., "Brunch $20-$30")
+5. Filters remain enabled - user has used their 1 free filter
+6. User tries to add a category filter
+7. Once second filter is added, inputs become disabled
+8. Badge changes to: "Multiple filters require premium"
+9. User must clear filters or upgrade to continue
+10. User clicks "Upgrade" link (future: goes to pricing)
+
+**For Premium Users:**
+
+1. User clicks 🔍 filter button
+2. Panel opens with no premium badge
+3. User can select unlimited filters
+4. Multiple price ranges + multiple categories work together
+5. No restrictions on filter usage
 
 ### Technical Implementation
 
@@ -76,6 +92,19 @@ const hasAdvancedFilters = useMemo(() => {
   const result = check({ featureId: PREMIUM_FEATURES.ADVANCED_FILTERS })
   return result.data.allowed
 }, [check, customer])
+
+// Count active filters
+const isUsingMultipleFilters = useMemo(() => {
+  const priceFilterCount = Object.values(priceFilters).filter(
+    (v) => v !== undefined,
+  ).length
+  const categoryCount = selectedCategories.length
+  return priceFilterCount + categoryCount > 1
+}, [priceFilters, selectedCategories])
+
+// Disable if free user has 2+ filters
+const shouldDisableFilters = !hasAdvancedFilters && isUsingMultipleFilters
+
 ```
 
 **Badge Render:**
@@ -84,7 +113,11 @@ const hasAdvancedFilters = useMemo(() => {
   <Flex align="center" justify="space-between" bg="brand.subtle" p={3} borderRadius="md">
     <HStack gap={2}>
       <Badge colorPalette="yellow" size="sm">⭐ Premium</Badge>
-      <Text fontSize="sm" color="text.secondary">Advanced filters</Text>
+      <Text fontSize="sm" color="text.secondary">
+        {isUsingMultipleFilters
+          ? 'Multiple filters require premium'
+          : 'Use multiple filters with premium'}
+      </Text>
     </HStack>
     <Link href="#" fontSize="sm" color="brand.solid" fontWeight="medium">
       Upgrade
@@ -95,23 +128,26 @@ const hasAdvancedFilters = useMemo(() => {
 
 **Disabled Props:**
 ```typescript
-<PriceFilter disabled={!hasAdvancedFilters} ... />
-<CategoryFilter disabled={!hasAdvancedFilters} ... />
+<PriceFilter disabled={shouldDisableFilters} ... />
+<CategoryFilter disabled={shouldDisableFilters} ... />
 ```
 
 ## Benefits
 
 ### For Users
-- Clear visual indication of premium features
-- No confusion about why filters don't work
+- Can try filtering for free (1 filter allowed)
+- Clear visual indication when limit is reached
+- No confusion about why filters become disabled
 - Easy path to upgrade with visible link
 - Non-intrusive premium prompt
+- Gradual introduction to premium value
 
 ### For Business
-- Drives premium conversions
-- Clear value proposition
+- Higher conversion (users experience filtering first)
+- Clear value proposition (users see what they're missing)
 - Professional implementation
-- Matches modern SaaS patterns
+- Matches modern SaaS freemium patterns
+- Reduces friction for new users
 
 ## Accessibility
 
