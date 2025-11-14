@@ -3,6 +3,7 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
+  Alert,
   Badge,
   Box,
   Button,
@@ -105,8 +106,8 @@ function EventRestaurants() {
     return result.data.allowed
   }, [check, customer])
 
-  // Check if free user is using one or more filters
-  const isUsingMultipleFilters = useMemo(() => {
+  // Check if free user is using any filters
+  const isUsingAnyFilters = useMemo(() => {
     const priceFilterCount = Object.values(priceFilters).filter(
       (v) => v !== undefined,
     ).length
@@ -115,7 +116,7 @@ function EventRestaurants() {
   }, [priceFilters, selectedCategories])
 
   // Determine if filters should be disabled
-  const shouldDisableFilters = !hasAdvancedFilters && isUsingMultipleFilters
+  const shouldDisableFilters = !hasAdvancedFilters && isUsingAnyFilters
 
   const [showFilters, setShowFilters] = useState(false)
   const filterPanelRef = useRef<HTMLDivElement | null>(null)
@@ -442,35 +443,24 @@ function EventRestaurants() {
                 maxW="400px"
               >
                 <VStack gap={4} align="stretch">
-                  {/* Premium Badge */}
+                  {/* Premium Alert */}
                   {!hasAdvancedFilters && (
-                    <Flex
-                      align="center"
-                      justify="space-between"
-                      bg="brand.subtle"
-                      p={3}
-                      borderRadius="md"
-                    >
-                      <HStack gap={2}>
-                        <Badge colorPalette="yellow" size="sm">
-                          ⭐ Premium
-                        </Badge>
-                        <Text fontSize="sm" color="text.secondary">
-                          {isUsingMultipleFilters
-                            ? 'Multiple filters require premium'
-                            : 'Use multiple filters with premium'}
-                        </Text>
-                      </HStack>
+                    <Alert.Root status="info" variant="subtle">
+                      <Alert.Content>
+                        <Alert.Description>
+                          Upgrade to use multiple filters
+                        </Alert.Description>
+                      </Alert.Content>
                       <Button
                         onClick={handleUpgrade}
                         variant="ghost"
                         size="sm"
-                        color="brand.solid"
-                        fontWeight="medium"
+                        colorPalette="blue"
+                        _hover={{ bg: 'blue.100' }}
                       >
                         Upgrade
                       </Button>
-                    </Flex>
+                    </Alert.Root>
                   )}
 
                   {/* Price Filter */}
@@ -499,6 +489,7 @@ function EventRestaurants() {
                       size="sm"
                       flex={1}
                       onClick={handleApplyFilters}
+                      disabled={shouldDisableFilters}
                     >
                       Apply
                     </Button>

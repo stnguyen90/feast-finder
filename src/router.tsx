@@ -2,12 +2,24 @@ import { createRouter } from '@tanstack/react-router'
 import { QueryClient } from '@tanstack/react-query'
 import { routerWithQueryClient } from '@tanstack/react-router-with-query'
 import { ConvexQueryClient } from '@convex-dev/react-query'
-import { ConvexProvider } from 'convex/react'
+import { ConvexProvider, useConvex } from 'convex/react'
 import { ConvexAuthProvider } from '@convex-dev/auth/react'
 import { AutumnProvider } from 'autumn-js/react'
 import { ChakraProvider } from '@chakra-ui/react'
+import { api } from '../convex/_generated/api'
 import { routeTree } from './routeTree.gen'
 import { system } from './theme'
+
+// Wrapper component to provide Autumn with Convex context
+function AutumnWrapper({ children }: { children: React.ReactNode }) {
+  const convex = useConvex()
+
+  return (
+    <AutumnProvider convex={convex} convexApi={(api as any).autumn}>
+      {children}
+    </AutumnProvider>
+  )
+}
 
 // Initialize Sentry on client-side
 if (typeof window !== 'undefined') {
@@ -49,9 +61,9 @@ export function getRouter() {
       Wrap: ({ children }) => (
         <ConvexProvider client={convexQueryClient.convexClient}>
           <ConvexAuthProvider client={convexQueryClient.convexClient}>
-            <AutumnProvider>
+            <AutumnWrapper>
               <ChakraProvider value={system}>{children}</ChakraProvider>
-            </AutumnProvider>
+            </AutumnWrapper>
           </ConvexAuthProvider>
         </ConvexProvider>
       ),
