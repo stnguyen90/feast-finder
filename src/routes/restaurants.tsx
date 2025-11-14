@@ -112,6 +112,9 @@ function Restaurants() {
   // Check premium access for advanced filters
   const { customer, check, checkout } = useCustomer()
 
+  // Check if user is signed in (customer will be null if not signed in)
+  const isSignedIn = customer !== null
+
   // Check if user has access to advanced filters
   const hasAdvancedFilters = useMemo(() => {
     const result = check({ featureId: PREMIUM_FEATURES.ADVANCED_FILTERS })
@@ -146,6 +149,24 @@ function Restaurants() {
   useEffect(() => {
     setPendingCategories(selectedCategories)
   }, [selectedCategories])
+
+  // Check if pending changes would reduce filter count (enabling Apply)
+  const isPendingReducingFilters = useMemo(() => {
+    const currentFilterCount = Object.values(priceFilters).filter(
+      (v) => v !== undefined,
+    ).length + selectedCategories.length
+    
+    const pendingFilterCount = Object.values(pendingPriceFilters).filter(
+      (v) => v !== undefined,
+    ).length + pendingCategories.length
+    
+    return pendingFilterCount < currentFilterCount
+  }, [priceFilters, selectedCategories, pendingPriceFilters, pendingCategories])
+
+  // Apply button should be enabled if:
+  // 1. User has premium (not shouldDisableFilters)
+  // 2. OR user is removing filters (isPendingReducingFilters)
+  const shouldDisableApplyButton = shouldDisableFilters && !isPendingReducingFilters
 
   // Always fetch all restaurants for now (used for seeding check only)
   const { data: allRestaurants } = useSuspenseQuery(
@@ -397,19 +418,29 @@ function Restaurants() {
                   {/* Premium Alert */}
                   {!hasAdvancedFilters && (
                     <Alert.Root status="info" variant="subtle">
+                      <Alert.Indicator />
                       <Alert.Content>
+                        <Alert.Title>Advanced filters</Alert.Title>
                         <Alert.Description>
-                          Upgrade to use multiple filters
+                          {isSignedIn
+                            ? 'Upgrade to use multiple filters'
+                            : 'Premium access is required to use multiple filters'}
                         </Alert.Description>
                       </Alert.Content>
                       <Button
-                        onClick={handleUpgrade}
+                        onClick={
+                          isSignedIn
+                            ? handleUpgrade
+                            : () => setIsSignInModalOpen(true)
+                        }
                         variant="ghost"
                         size="sm"
                         colorPalette="blue"
-                        _hover={{ bg: 'blue.100' }}
+                        _hover={{
+                          bg: { base: 'blue.200', _dark: 'blue.800' },
+                        }}
                       >
-                        Upgrade
+                        {isSignedIn ? 'Upgrade' : 'Sign In'}
                       </Button>
                     </Alert.Root>
                   )}
@@ -440,7 +471,7 @@ function Restaurants() {
                       size="sm"
                       flex={1}
                       onClick={handleApplyFilters}
-                      disabled={shouldDisableFilters}
+                      disabled={shouldDisableApplyButton}
                     >
                       Apply
                     </Button>

@@ -1,6 +1,5 @@
 import { Autumn } from '@useautumn/convex'
 import { components } from './_generated/api'
-import { auth } from './auth'
 
 /**
  * IMPORTANT: Before using Autumn integration, you must:
@@ -13,22 +12,14 @@ import { auth } from './auth'
 export const autumn = new Autumn(components.autumn, {
   secretKey: process.env.AUTUMN_SECRET_KEY ?? '',
   identify: async (ctx: any) => {
-    const userId = await auth.getUserId(ctx)
-    if (!userId) {
-      return null
-    }
-
-    // Get user data from database
-    const user = await ctx.db.get(userId)
-    if (!user) {
-      return null
-    }
+    const user = await ctx.auth.getUserIdentity()
+    if (!user) return null
 
     return {
-      customerId: userId,
+      customerId: user.subject as string,
       customerData: {
-        name: user.name ?? undefined,
-        email: user.email ?? undefined,
+        name: user.name as string,
+        email: user.email as string,
       },
     }
   },
