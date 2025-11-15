@@ -1,9 +1,10 @@
 'use node'
 
-import { generateText } from 'ai'
+import { generateObject } from 'ai'
 import { createOpenAI } from '@ai-sdk/openai'
+import { z } from 'zod'
 import { v } from 'convex/values'
-import { action, internalAction } from './_generated/server'
+import { internalAction } from './_generated/server'
 import { internal } from './_generated/api'
 
 /**
@@ -64,17 +65,27 @@ export const enrichRestaurantData = internalAction({
       rating: restaurant.rating,
     }
 
+    // Define the output schema using Zod
+    const enrichmentSchema = z.object({
+      address: z.string().optional(),
+      openTableUrl: z.string().optional(),
+      websiteUrl: z.string().optional(),
+      yelpUrl: z.string().optional(),
+      latitude: z.number().optional(),
+      longitude: z.number().optional(),
+      rating: z.number().optional(),
+      categories: z.array(z.string()).optional(),
+    })
+
     try {
-      const { text } = await generateText({
+      const { object: enrichedData } = await generateObject({
         model: openai(model),
+        schema: enrichmentSchema,
         system: `Given the restaurant name and address, validate the address, openTableUrl, websiteUrl, yelpUrl, latitude, longitude, and rating are correct. If not, set it and then return the updated JSON and nothing else.`,
         prompt: JSON.stringify(restaurantData),
       })
 
-      console.log('AI response:', text)
-
-      // Parse the AI response
-      const enrichedData = JSON.parse(text)
+      console.log('AI response:', enrichedData)
 
       // Update the restaurant with enriched data
       await ctx.runMutation(internal.restaurants.updateRestaurantFromEnrichment, {
@@ -100,19 +111,4 @@ export const enrichRestaurantData = internalAction({
   },
 })
 
-/**
- * Public action to manually trigger restaurant enrichment
- * Can be called from the Convex dashboard
- */
-export const manuallyEnrichRestaurant = action({
-  args: {
-    restaurantId: v.id('restaurants'),
-  },
-  returns: v.null(),
-  handler: async (ctx, args) => {
-    await ctx.runAction(internal.restaurantEnrichment.enrichRestaurantData, {
-      restaurantId: args.restaurantId,
-    })
-    return null
-  },
-})
+
