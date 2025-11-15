@@ -529,28 +529,28 @@ export const updateRestaurantFromEnrichment = internalMutation({
     // Only update fields that are provided and not already set
     const updates: Record<string, any> = {}
     
-    if (args.enrichedData.address && !restaurant.address) {
+    if (args.enrichedData.address) {
       updates.address = args.enrichedData.address
     }
-    if (args.enrichedData.openTableUrl && !restaurant.openTableUrl) {
+    if (args.enrichedData.openTableUrl) {
       updates.openTableUrl = args.enrichedData.openTableUrl
     }
-    if (args.enrichedData.websiteUrl && !restaurant.websiteUrl) {
+    if (args.enrichedData.websiteUrl) {
       updates.websiteUrl = args.enrichedData.websiteUrl
     }
-    if (args.enrichedData.yelpUrl && !restaurant.yelpUrl) {
+    if (args.enrichedData.yelpUrl) {
       updates.yelpUrl = args.enrichedData.yelpUrl
     }
-    if (args.enrichedData.latitude !== undefined && !restaurant.latitude) {
+    if (args.enrichedData.latitude !== undefined) {
       updates.latitude = args.enrichedData.latitude
     }
-    if (args.enrichedData.longitude !== undefined && !restaurant.longitude) {
+    if (args.enrichedData.longitude !== undefined) {
       updates.longitude = args.enrichedData.longitude
     }
-    if (args.enrichedData.rating !== undefined && !restaurant.rating) {
+    if (args.enrichedData.rating !== undefined) {
       updates.rating = args.enrichedData.rating
     }
-    if (args.enrichedData.categories && args.enrichedData.categories.length > 0 && (!restaurant.categories || restaurant.categories.length === 0)) {
+    if (args.enrichedData.categories && args.enrichedData.categories.length > 0) {
       updates.categories = args.enrichedData.categories
     }
 
