@@ -1,10 +1,7 @@
 import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
-import {
-  useSuspenseQuery,
-  useQuery as useTanStackQuery,
-} from '@tanstack/react-query'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
-import { useMutation } from 'convex/react'
+import { useAction, useMutation } from 'convex/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Alert,
@@ -173,18 +170,34 @@ function Restaurants() {
     convexQuery(api.restaurants.listRestaurants, {}),
   )
 
-  // Fetch restaurants with both geospatial and price filtering in a single query
-  // Use regular useQuery with placeholderData to prevent flickering
-  const geoQueryArgs = mapBounds ?? { north: 0, south: 0, east: 0, west: 0 }
-  const { data: geoRestaurantsResult } = useTanStackQuery({
-    ...convexQuery(api.restaurantsGeo.queryRestaurantsInBounds, {
-      bounds: geoQueryArgs,
-      ...priceFilters, // Include all price filter parameters
-      categories:
-        selectedCategories.length > 0 ? selectedCategories : undefined, // Include category filter
-    }),
-    placeholderData: (previousData) => previousData, // Keep previous data while loading
-  })
+  // Use action for server-side validated restaurant fetching
+  const queryRestaurantsAction = useAction(api.restaurantsGeo.queryRestaurantsInBoundsWithAuth)
+  const [geoRestaurantsResult, setGeoRestaurantsResult] = useState<{
+    results: Array<Restaurant>
+    nextCursor?: string
+  } | null>(null)
+
+  // Fetch restaurants when bounds or filters change
+  useEffect(() => {
+    if (!mapBounds) return
+
+    const fetchRestaurants = async () => {
+      try {
+        const result = await queryRestaurantsAction({
+          bounds: mapBounds,
+          ...priceFilters,
+          categories: selectedCategories.length > 0 ? selectedCategories : undefined,
+        })
+        setGeoRestaurantsResult(result)
+      } catch (error) {
+        console.error('Error fetching restaurants:', error)
+        // On error (e.g., premium required), clear results
+        setGeoRestaurantsResult({ results: [] })
+      }
+    }
+
+    fetchRestaurants()
+  }, [mapBounds, priceFilters, selectedCategories, queryRestaurantsAction])
 
   // Use geospatial results directly - filtering is done in database
   const restaurants = useMemo(() => {
