@@ -13,6 +13,7 @@ import type * as events from "../events.js";
 import type * as firecrawl from "../firecrawl.js";
 import type * as geospatial from "../geospatial.js";
 import type * as http from "../http.js";
+import type * as restaurantEnrichment from "../restaurantEnrichment.js";
 import type * as restaurants from "../restaurants.js";
 import type * as restaurantsGeo from "../restaurantsGeo.js";
 import type * as seedData from "../seedData.js";
@@ -38,6 +39,7 @@ declare const fullApi: ApiFromModules<{
   firecrawl: typeof firecrawl;
   geospatial: typeof geospatial;
   http: typeof http;
+  restaurantEnrichment: typeof restaurantEnrichment;
   restaurants: typeof restaurants;
   restaurantsGeo: typeof restaurantsGeo;
   seedData: typeof seedData;

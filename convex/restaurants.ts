@@ -1,5 +1,5 @@
 import { v } from 'convex/values'
-import { internalMutation, mutation, query } from './_generated/server'
+import { internalMutation, internalQuery, mutation, query } from './_generated/server'
 import { internal } from './_generated/api'
 import type { Id } from './_generated/dataModel'
 
@@ -207,6 +207,37 @@ export const getRestaurant = query({
   },
 })
 
+// Internal query to get a single restaurant by ID (for internal use)
+export const getRestaurantInternal = internalQuery({
+  args: {
+    id: v.id('restaurants'),
+  },
+  returns: v.union(
+    v.object({
+      _id: v.id('restaurants'),
+      _creationTime: v.number(),
+      key: v.optional(v.string()),
+      name: v.string(),
+      rating: v.optional(v.number()),
+      latitude: v.optional(v.number()),
+      longitude: v.optional(v.number()),
+      address: v.optional(v.string()),
+      websiteUrl: v.optional(v.string()),
+      yelpUrl: v.optional(v.string()),
+      openTableUrl: v.optional(v.string()),
+      categories: v.optional(v.array(v.string())),
+      brunchPrice: v.optional(v.number()),
+      lunchPrice: v.optional(v.number()),
+      dinnerPrice: v.optional(v.number()),
+    }),
+    v.null(),
+  ),
+  handler: async (ctx, args) => {
+    const restaurant = await ctx.db.get(args.id)
+    return restaurant
+  },
+})
+
 // Mutation to add a new restaurant
 export const addRestaurant = mutation({
   args: {
@@ -344,10 +375,24 @@ export const storeScrapedRestaurants = internalMutation({
           )
         }
 
+        // Trigger AI enrichment for new restaurants
+        await ctx.scheduler.runAfter(
+          0,
+          internal.restaurantEnrichment.enrichRestaurantData,
+          {
+            restaurantId,
+          },
+        )
+
         console.log(`Created new restaurant: ${restaurantData.name}`)
       }
 
       restaurantsProcessed++
+
+      // Track prices from menus for updating the restaurant
+      let brunchPrice: number | undefined
+      let lunchPrice: number | undefined
+      let dinnerPrice: number | undefined
 
       // Process menus for this restaurant
       if (restaurantData.menus && restaurantData.menus.length > 0) {
@@ -367,6 +412,15 @@ export const storeScrapedRestaurants = internalMutation({
               `Skipping menu for ${restaurantData.name}: invalid meal type "${menuData.meal}"`,
             )
             continue
+          }
+
+          // Track prices for updating restaurant
+          if (mealType === 'brunch') {
+            brunchPrice = menuData.price
+          } else if (mealType === 'lunch') {
+            lunchPrice = menuData.price
+          } else if (mealType === 'dinner') {
+            dinnerPrice = menuData.price
           }
 
           // Check if this menu already exists (deterministic check)
@@ -411,6 +465,24 @@ export const storeScrapedRestaurants = internalMutation({
           menusProcessed++
         }
       }
+
+      // Update restaurant prices based on menu data
+      if (brunchPrice !== undefined || lunchPrice !== undefined || dinnerPrice !== undefined) {
+        const priceUpdates: {
+          brunchPrice?: number
+          lunchPrice?: number
+          dinnerPrice?: number
+        } = {}
+        
+        if (brunchPrice !== undefined) priceUpdates.brunchPrice = brunchPrice
+        if (lunchPrice !== undefined) priceUpdates.lunchPrice = lunchPrice
+        if (dinnerPrice !== undefined) priceUpdates.dinnerPrice = dinnerPrice
+        
+        await ctx.db.patch(restaurantId, priceUpdates)
+        console.log(
+          `Updated prices for ${restaurantData.name}: ${JSON.stringify(priceUpdates)}`,
+        )
+      }
     }
 
     console.log(
@@ -426,5 +498,81 @@ export const storeScrapedRestaurants = internalMutation({
       restaurantsProcessed,
       menusProcessed,
     }
+  },
+})
+
+/**
+ * Internal mutation to update restaurant from AI enrichment
+ */
+export const updateRestaurantFromEnrichment = internalMutation({
+  args: {
+    restaurantId: v.id('restaurants'),
+    enrichedData: v.object({
+      address: v.optional(v.string()),
+      openTableUrl: v.optional(v.string()),
+      websiteUrl: v.optional(v.string()),
+      yelpUrl: v.optional(v.string()),
+      latitude: v.optional(v.number()),
+      longitude: v.optional(v.number()),
+      rating: v.optional(v.number()),
+      categories: v.optional(v.array(v.string())),
+    }),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const restaurant = await ctx.db.get(args.restaurantId)
+    if (!restaurant) {
+      console.error(`Restaurant ${args.restaurantId} not found`)
+      return null
+    }
+
+    // Only update fields that are provided and not already set
+    const updates: Record<string, any> = {}
+    
+    if (args.enrichedData.address && !restaurant.address) {
+      updates.address = args.enrichedData.address
+    }
+    if (args.enrichedData.openTableUrl && !restaurant.openTableUrl) {
+      updates.openTableUrl = args.enrichedData.openTableUrl
+    }
+    if (args.enrichedData.websiteUrl && !restaurant.websiteUrl) {
+      updates.websiteUrl = args.enrichedData.websiteUrl
+    }
+    if (args.enrichedData.yelpUrl && !restaurant.yelpUrl) {
+      updates.yelpUrl = args.enrichedData.yelpUrl
+    }
+    if (args.enrichedData.latitude !== undefined && !restaurant.latitude) {
+      updates.latitude = args.enrichedData.latitude
+    }
+    if (args.enrichedData.longitude !== undefined && !restaurant.longitude) {
+      updates.longitude = args.enrichedData.longitude
+    }
+    if (args.enrichedData.rating !== undefined && !restaurant.rating) {
+      updates.rating = args.enrichedData.rating
+    }
+    if (args.enrichedData.categories && args.enrichedData.categories.length > 0 && (!restaurant.categories || restaurant.categories.length === 0)) {
+      updates.categories = args.enrichedData.categories
+    }
+
+    // Only patch if there are updates
+    if (Object.keys(updates).length > 0) {
+      await ctx.db.patch(args.restaurantId, updates)
+      console.log(`Enriched restaurant ${restaurant.name} with: ${JSON.stringify(updates)}`)
+      
+      // If coordinates were added, sync to geospatial index
+      if (updates.latitude !== undefined && updates.longitude !== undefined) {
+        await ctx.scheduler.runAfter(
+          0,
+          internal.restaurantsGeo.syncRestaurantToIndex,
+          {
+            restaurantId: args.restaurantId,
+          },
+        )
+      }
+    } else {
+      console.log(`No enrichment needed for restaurant ${restaurant.name}`)
+    }
+
+    return null
   },
 })
