@@ -15,8 +15,10 @@ export const autumn = new Autumn(components.autumn, {
     const user = await ctx.auth.getUserIdentity()
     if (!user) return null
 
+    // Extract userId from subject (format: "<userId>|<sessionId>")
+    const userId = user.subject.split('|')[0]
     return {
-      customerId: user.subject as string,
+      customerId: userId,
       customerData: {
         name: user.name as string,
         email: user.email as string,

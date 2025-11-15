@@ -476,21 +476,23 @@ function EventRestaurants() {
                             : 'Premium access is required to use multiple filters'}
                         </Alert.Description>
                       </Alert.Content>
-                      <Button
-                        onClick={
-                          isSignedIn
-                            ? handleUpgrade
-                            : () => setIsSignInModalOpen(true)
-                        }
-                        variant="ghost"
-                        size="sm"
-                        colorPalette="blue"
-                        _hover={{
-                          bg: { base: 'blue.200', _dark: 'blue.800' },
-                        }}
-                      >
-                        {isSignedIn ? 'Upgrade' : 'Sign In'}
-                      </Button>
+                      <Flex alignItems="center">
+                        <Button
+                          onClick={
+                            isSignedIn
+                              ? handleUpgrade
+                              : () => setIsSignInModalOpen(true)
+                          }
+                          variant="ghost"
+                          size="sm"
+                          colorPalette="blue"
+                          _hover={{
+                            bg: { base: 'blue.200', _dark: 'blue.800' },
+                          }}
+                        >
+                          {isSignedIn ? 'Upgrade' : 'Sign In'}
+                        </Button>
+                      </Flex>
                     </Alert.Root>
                   )}
 
