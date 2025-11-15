@@ -12,13 +12,17 @@ import { useAuthActions } from '@convex-dev/auth/react'
 
 interface UserMenuProps {
   userName: string
+  onSignOut?: () => void
 }
 
-export function UserMenu({ userName }: UserMenuProps) {
+export function UserMenu({ userName, onSignOut }: UserMenuProps) {
   const { signOut } = useAuthActions()
 
   const handleSignOut = async () => {
     await signOut()
+    if (onSignOut) {
+      onSignOut()
+    }
   }
 
   return (

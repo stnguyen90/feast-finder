@@ -98,7 +98,7 @@ function EventRestaurants() {
   )
 
   // Check premium access for advanced filters
-  const { customer, check, checkout } = useCustomer()
+  const { customer, check, checkout, refetch } = useCustomer()
 
   // Check if user is signed in (customer will be null if not signed in)
   // Recompute whenever customer changes (e.g., after sign in)
@@ -106,9 +106,10 @@ function EventRestaurants() {
 
   // Check if user has access to advanced filters
   const hasAdvancedFilters = useMemo(() => {
+    if (!customer) return false
     const result = check({ featureId: PREMIUM_FEATURES.ADVANCED_FILTERS })
     return result.data.allowed
-  }, [check, customer])
+  }, [customer, check])
 
   // Check if free user is using any filters
   const isUsingAnyFilters = useMemo(() => {
@@ -257,6 +258,7 @@ function EventRestaurants() {
     await checkout({
       productId: 'premium',
       successUrl: window.location.href,
+      forceCheckout: true,
     })
   }, [checkout])
 
@@ -322,7 +324,7 @@ function EventRestaurants() {
   if (!event) {
     return (
       <Flex direction="column" h="100vh" bg="bg.page">
-        <Header onSignInClick={() => setIsSignInModalOpen(true)} />
+        <Header onSignInClick={() => setIsSignInModalOpen(true)} onSignOut={() => refetch()} />
 
         <Center flex={1}>
           <Box textAlign="center">
@@ -350,7 +352,7 @@ function EventRestaurants() {
 
   return (
     <Flex direction="column" h="100vh" bg="bg.page">
-      <Header onSignInClick={() => setIsSignInModalOpen(true)} />
+      <Header onSignInClick={() => setIsSignInModalOpen(true)} onSignOut={() => refetch()} />
 
       {/* Event Info Banner */}
       <Box bg="bg.surface" boxShadow="sm" flexShrink={0}>
@@ -548,6 +550,10 @@ function EventRestaurants() {
           <SignInModal
             isOpen={isSignInModalOpen}
             onClose={() => setIsSignInModalOpen(false)}
+            onSuccess={() => {
+              setIsSignInModalOpen(false)
+              refetch()
+            }}
           />
         </Box>
       )}
