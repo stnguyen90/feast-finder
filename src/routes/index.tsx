@@ -73,7 +73,7 @@ function LandingPage() {
               as="span"
               bgGradient="to-r"
               gradientFrom="brand.solid"
-              gradientTo="purple.500"
+              gradientTo="brand.subtle"
               bgClip="text"
             >
               Culinary Adventure
