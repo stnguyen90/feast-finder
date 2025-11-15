@@ -1,9 +1,10 @@
 import { v } from 'convex/values'
-import { mutation } from './_generated/server'
+import { internalMutation } from './_generated/server'
 import { internal } from './_generated/api'
 
-// Mutation to seed sample restaurant data
-export const seedRestaurants = mutation({
+// Internal mutation to seed sample restaurant data
+// This can only be called from backend, not from frontend
+export const seedRestaurants = internalMutation({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {
@@ -164,8 +165,9 @@ export const seedRestaurants = mutation({
   },
 })
 
-// Mutation to seed sample restaurant week events
-export const seedEvents = mutation({
+// Internal mutation to seed sample restaurant week events
+// This can only be called from backend, not from frontend
+export const seedEvents = internalMutation({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {

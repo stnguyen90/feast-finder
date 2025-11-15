@@ -23,20 +23,35 @@ This project leverages cutting-edge tools and services provided by our generous 
 
 ## Features
 
+### Free Features
+
 - 🔐 **User Authentication**: Sign up and sign in to create a personalized experience
 - 🎉 **Restaurant Week Events**: Browse upcoming restaurant week events with exclusive menus
 - 🕷️ **Web Scraping Integration**: Automatically extract restaurant data from event websites using Firecrawl
 - 🗺️ **Interactive Map**: Explore restaurants on an OpenStreetMap-powered interactive map
 - 📍 **Location Markers**: Each restaurant is marked on the map with its exact coordinates
 - 🔍 **Restaurant Details**: Click on any marker to view comprehensive restaurant information
-- 💲 **Price Filtering**: Filter restaurants by price range for brunch, lunch, or dinner
-- 🏷️ **Category Filtering**: Filter restaurants by cuisine types (e.g., French, Italian, Mexican)
 - 📊 **Rich Metadata**: View ratings, categories, meal times, prices, and external links
 - 🌙 **Dark Mode Support**: Built-in dark mode for comfortable viewing
 - ⚡ **Real-time Updates**: Powered by Convex for real-time data synchronization
 - 📱 **Responsive Design**: Works seamlessly on desktop and mobile devices
 - 🌍 **Geospatial Indexing**: Efficient location-based queries using Convex Geospatial Component
 - 🎯 **Viewport-Based Loading**: Dynamically fetches restaurants visible in the current map view
+
+### Premium Features ⭐
+
+**Free Tier:**
+- 💲 **Single Filter**: Filter by ONE price range OR ONE category at a time
+- 🏷️ **Basic Filtering**: Choose one cuisine type or one meal price range
+- 🗺️ **Map Filtering**: Always available - filter by map viewport
+
+**Premium Tier:**
+- 💲 **Advanced Price Filtering**: Filter restaurants by multiple price ranges (brunch, lunch, and dinner) simultaneously
+- 🏷️ **Multi-Category Filtering**: Filter by multiple cuisine types at once
+- 🔀 **Combined Search**: Combine price and category filters for precise results
+- 📊 **Unlimited Filters**: Use as many filters as you want together
+
+Premium access is managed through [Autumn](https://docs.useautumn.com) for seamless subscription and payment handling.
 
 ## Pages
 
@@ -186,6 +201,37 @@ For complete setup instructions, see [AUTHENTICATION.md](./AUTHENTICATION.md).
 - 🚪 Sign out functionality
 - 🔄 Real-time authentication state updates
 - 🔒 Secure password hashing and session management
+
+### Autumn Setup (Premium Features)
+
+Feast Finder uses [Autumn](https://docs.useautumn.com) for premium access management:
+
+1. Sign up for Autumn at [app.useautumn.com](https://app.useautumn.com)
+
+2. Get your API key from the Autumn Dashboard:
+   - Navigate to Settings → API Keys
+   - Copy your test secret key (starts with `am_sk_`)
+
+3. Add to Convex Dashboard environment variables:
+   - Go to `https://dashboard.convex.dev`
+   - Navigate to your project's Settings → Environment Variables
+   - Add `AUTUMN_SECRET_KEY` with your Autumn API key
+
+4. Run `npx convex dev` and `npx convex codegen` to generate Autumn component types
+
+5. Create products in Autumn Dashboard:
+   - Create a "Free" tier (base product)
+   - Create a "Premium" tier with feature: `advanced-filters`
+   - Set pricing and connect Stripe
+
+For complete setup instructions, see [AUTUMN_INTEGRATION.md](./AUTUMN_INTEGRATION.md).
+
+**Premium Features:**
+
+- ⭐ Advanced filtering by price and category
+- 🔀 Multi-filter search capabilities
+- 💳 Seamless Stripe payment integration
+- 📊 Usage tracking and analytics
 
 ### Sentry Setup (Optional)
 

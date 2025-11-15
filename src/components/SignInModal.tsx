@@ -21,11 +21,12 @@ import { useAuthActions } from '@convex-dev/auth/react'
 interface SignInModalProps {
   isOpen: boolean
   onClose: () => void
+  onSuccess?: () => void
 }
 
 type AuthMode = 'signin' | 'signup'
 
-export function SignInModal({ isOpen, onClose }: SignInModalProps) {
+export function SignInModal({ isOpen, onClose, onSuccess }: SignInModalProps) {
   const [mode, setMode] = useState<AuthMode>('signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -50,7 +51,11 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
       setEmail('')
       setPassword('')
       setName('')
-      onClose()
+      if (onSuccess) {
+        onSuccess()
+      } else {
+        onClose()
+      }
     } catch (err) {
       setError(
         err instanceof Error

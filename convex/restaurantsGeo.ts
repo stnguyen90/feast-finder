@@ -1,6 +1,8 @@
 import { v } from 'convex/values'
-import { internalMutation, mutation, query } from './_generated/server'
+import { action, internalMutation, mutation, query } from './_generated/server'
+import { api } from './_generated/api'
 import { restaurantsIndex } from './geospatial'
+import { autumn } from './autumn'
 
 /**
  * Query restaurants within a bounding box (map viewport) with optional price filtering
@@ -62,6 +64,20 @@ export const queryRestaurantsInBounds = query({
       categories,
     } = args
 
+    // Determine which price filters are active
+    const hasBrunchFilter =
+      minBrunchPrice !== undefined || maxBrunchPrice !== undefined
+    const hasLunchFilter =
+      minLunchPrice !== undefined || maxLunchPrice !== undefined
+    const hasDinnerFilter =
+      minDinnerPrice !== undefined || maxDinnerPrice !== undefined
+    const hasPriceFilters = hasBrunchFilter || hasLunchFilter || hasDinnerFilter
+    const hasCategoryFilter = categories !== undefined && categories.length > 0
+
+    // Note: Server-side premium access validation cannot be done in queries
+    // because autumn.check() uses fetch internally, which isn't allowed in queries.
+    // Use the action-based queryRestaurantsInBoundsWithAuth for server-side validation.
+
     // Query geospatial index for restaurant IDs in the bounding box
     const geoResults = await restaurantsIndex.query(
       ctx,
@@ -90,16 +106,6 @@ export const queryRestaurantsInBounds = query({
         nextCursor: geoResults.nextCursor,
       }
     }
-
-    // Determine which price filters are active
-    const hasBrunchFilter =
-      minBrunchPrice !== undefined || maxBrunchPrice !== undefined
-    const hasLunchFilter =
-      minLunchPrice !== undefined || maxLunchPrice !== undefined
-    const hasDinnerFilter =
-      minDinnerPrice !== undefined || maxDinnerPrice !== undefined
-    const hasPriceFilters = hasBrunchFilter || hasLunchFilter || hasDinnerFilter
-    const hasCategoryFilter = categories !== undefined && categories.length > 0
 
     // Query database with combined geospatial and price filtering
     let restaurantsQuery = ctx.db.query('restaurants')
@@ -335,5 +341,113 @@ export const syncAllRestaurantsToIndex = mutation({
     }
 
     return { synced }
+  },
+})
+
+/**
+ * Action to query restaurants with server-side premium access validation
+ * This action validates filter usage against Autumn premium access before returning results
+ */
+export const queryRestaurantsInBoundsWithAuth = action({
+  args: {
+    bounds: v.object({
+      north: v.number(),
+      south: v.number(),
+      east: v.number(),
+      west: v.number(),
+    }),
+    limit: v.optional(v.number()),
+    cursor: v.optional(v.string()),
+    // Price filter parameters
+    minBrunchPrice: v.optional(v.number()),
+    maxBrunchPrice: v.optional(v.number()),
+    minLunchPrice: v.optional(v.number()),
+    maxLunchPrice: v.optional(v.number()),
+    minDinnerPrice: v.optional(v.number()),
+    maxDinnerPrice: v.optional(v.number()),
+    // Category filter parameter
+    categories: v.optional(v.array(v.string())),
+  },
+  returns: v.object({
+    results: v.array(
+      v.object({
+        _id: v.id('restaurants'),
+        _creationTime: v.number(),
+        key: v.optional(v.string()),
+        name: v.string(),
+        rating: v.optional(v.number()),
+        latitude: v.optional(v.number()),
+        longitude: v.optional(v.number()),
+        address: v.optional(v.string()),
+        websiteUrl: v.optional(v.string()),
+        yelpUrl: v.optional(v.string()),
+        openTableUrl: v.optional(v.string()),
+        categories: v.optional(v.array(v.string())),
+        brunchPrice: v.optional(v.number()),
+        lunchPrice: v.optional(v.number()),
+        dinnerPrice: v.optional(v.number()),
+      }),
+    ),
+    nextCursor: v.optional(v.string()),
+  }),
+  handler: async (ctx, args): Promise<{
+    results: Array<{
+      _id: any
+      _creationTime: number
+      key?: string
+      name: string
+      rating?: number
+      latitude?: number
+      longitude?: number
+      address?: string
+      websiteUrl?: string
+      yelpUrl?: string
+      openTableUrl?: string
+      categories?: Array<string>
+      brunchPrice?: number
+      lunchPrice?: number
+      dinnerPrice?: number
+    }>
+    nextCursor?: string
+  }> => {
+    const {
+      minBrunchPrice,
+      maxBrunchPrice,
+      minLunchPrice,
+      maxLunchPrice,
+      minDinnerPrice,
+      maxDinnerPrice,
+      categories,
+    } = args
+
+    // Determine which price filters are active
+    const hasBrunchFilter =
+      minBrunchPrice !== undefined || maxBrunchPrice !== undefined
+    const hasLunchFilter =
+      minLunchPrice !== undefined || maxLunchPrice !== undefined
+    const hasDinnerFilter =
+      minDinnerPrice !== undefined || maxDinnerPrice !== undefined
+    const hasCategoryFilter = categories !== undefined && categories.length > 0
+
+    // Count total active filters
+    const priceFilterCount = [hasBrunchFilter, hasLunchFilter, hasDinnerFilter].filter(Boolean).length
+    const categoryFilterCount = hasCategoryFilter ? 1 : 0
+    const totalFilters = priceFilterCount + categoryFilterCount
+
+    // Server-side check: If user is using multiple filters, verify premium access
+    if (totalFilters > 1) {
+      const result = await autumn.check(ctx, {
+        featureId: 'advanced-filters',
+      })
+
+      if (result.error || !result.data?.allowed) {
+        throw new Error(
+          'Premium access required to use multiple filters. Please upgrade to continue.',
+        )
+      }
+    }
+
+    // Call the query to fetch restaurants
+    return await ctx.runQuery(api.restaurantsGeo.queryRestaurantsInBounds, args)
   },
 })

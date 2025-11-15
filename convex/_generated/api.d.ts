@@ -9,6 +9,7 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as autumn from "../autumn.js";
 import type * as events from "../events.js";
 import type * as firecrawl from "../firecrawl.js";
 import type * as geospatial from "../geospatial.js";
@@ -35,6 +36,7 @@ import type {
  */
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  autumn: typeof autumn;
   events: typeof events;
   firecrawl: typeof firecrawl;
   geospatial: typeof geospatial;
@@ -194,4 +196,5 @@ export declare const components: {
       >;
     };
   };
+  autumn: {};
 };

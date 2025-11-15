@@ -8,19 +8,20 @@ import { UserMenu } from './UserMenu'
 
 interface HeaderProps {
   onSignInClick: () => void
+  onSignOut?: () => void
 }
 
-function AuthenticatedHeader() {
+function AuthenticatedHeader({ onSignOut }: { onSignOut?: () => void }) {
   const currentUser = useQuery(api.users.getCurrentUser)
 
   if (!currentUser) {
     return null
   }
 
-  return <UserMenu userName={currentUser.name || 'User'} />
+  return <UserMenu userName={currentUser.name || 'User'} onSignOut={onSignOut} />
 }
 
-export function Header({ onSignInClick }: HeaderProps) {
+export function Header({ onSignInClick, onSignOut }: HeaderProps) {
   return (
     <Flex
       flexShrink={0}
@@ -43,7 +44,7 @@ export function Header({ onSignInClick }: HeaderProps) {
       <Flex position="absolute" right={4} gap={2} align="center">
         <ColorModeToggle />
         <Authenticated>
-          <AuthenticatedHeader />
+          <AuthenticatedHeader onSignOut={onSignOut} />
         </Authenticated>
         <Unauthenticated>
           <IconButton
