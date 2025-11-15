@@ -127,6 +127,27 @@ Defines restaurants table with:
   - Resolves restaurant IDs by name
   - Associates events with participating restaurants
 
+#### Firecrawl Integration (firecrawl.ts, firecrawlStorage.ts)
+
+- **crawlRestaurantWeekWebsite** (Action in firecrawl.ts): Node.js action that uses Firecrawl SDK to scrape restaurant data
+  - Accepts an eventId parameter
+  - Fetches event details and validates it has a websiteUrl
+  - Uses Firecrawl's `scrape` method with JSON schema extraction
+  - Extracts structured data: restaurant names, addresses, categories, menus (meal types, prices, URLs)
+  - Calls internal mutation to store the data
+  - Requires `FIRECRAWL_API_KEY` environment variable
+
+- **getEventForCrawl** (Internal Query in firecrawlStorage.ts): Fetches event details needed for crawling
+  
+- **storeScrapedRestaurants** (Internal Mutation in firecrawlStorage.ts): Stores extracted restaurant and menu data
+  - Uses deterministic approach based on restaurant names to prevent duplicates
+  - Checks if restaurant exists by name (using `by_name` index)
+  - Updates existing restaurants with new data or creates new ones
+  - Creates/updates menus linked to both restaurant and event
+  - Automatically syncs new restaurants to geospatial index
+  - Updates event syncTime to track when last crawled
+  - Returns count of restaurants and menus processed
+
 ### 6. Sample Data
 
 **Restaurants**: 10 curated San Francisco Bay Area restaurants:
@@ -210,9 +231,11 @@ Defines restaurants table with:
 - **Map Integration**: React Leaflet with OpenStreetMap tiles
 - **Dark Mode**: Built-in support via Chakra UI
 - **Auto-seeding**: Convenient sample data for testing
+- **Web Scraping**: Firecrawl integration for automated data extraction from event websites
 - **Geospatial Indexing**: Efficient location-based queries using S2 cell indexing
 - **Viewport-Based Loading**: Dynamic restaurant fetching based on map bounds
 - **Performance Optimized**: Only loads restaurants visible in current viewport
+- **Deterministic Storage**: Restaurant names used as natural keys to prevent duplicates
 
 ## Build & Deployment
 
@@ -231,13 +254,16 @@ Defines restaurants table with:
 - `convex/seedData.ts` - Seed functions (added event seeding and geospatial sync)
 - `src/routes/index.tsx` - **Completely reimplemented as landing page** with event showcase
 - `src/components/RestaurantMap.tsx` - Map component (moved MapBounds type here)
-- `package.json` - Added geospatial component dependency
-- `README.md` - Updated with landing page, events, and new page structure
-- `IMPLEMENTATION.md` - Updated with event features and new user flow
+- `package.json` - Added geospatial component and Firecrawl SDK dependencies
+- `.env.local.example` - Added FIRECRAWL_API_KEY configuration
+- `README.md` - Updated with landing page, events, Firecrawl integration, and new page structure
+- `IMPLEMENTATION.md` - Updated with event features, Firecrawl integration, and new user flow
 
 ### Created:
 
 - `convex/events.ts` - Event query and mutation functions
+- `convex/firecrawl.ts` - Firecrawl web scraping action (Node.js)
+- `convex/firecrawlStorage.ts` - Internal mutations for storing scraped restaurant/menu data
 - `src/routes/restaurants.tsx` - **New route** with interactive map (moved from index.tsx)
 - `convex/convex.config.ts` - Convex app configuration with geospatial component
 - `convex/geospatial.ts` - Geospatial index setup
