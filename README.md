@@ -25,6 +25,7 @@ This project leverages cutting-edge tools and services provided by our generous 
 
 - 🔐 **User Authentication**: Sign up and sign in to create a personalized experience
 - 🎉 **Restaurant Week Events**: Browse upcoming restaurant week events with exclusive menus
+- 🕷️ **Web Scraping Integration**: Automatically extract restaurant data from event websites using Firecrawl
 - 🗺️ **Interactive Map**: Explore restaurants on an OpenStreetMap-powered interactive map
 - 📍 **Location Markers**: Each restaurant is marked on the map with its exact coordinates
 - 🔍 **Restaurant Details**: Click on any marker to view comprehensive restaurant information
@@ -217,6 +218,35 @@ SENTRY_AUTH_TOKEN=your_sentry_auth_token
 
 See `.env.local.example` for a complete template.
 
+### Firecrawl Setup (Optional)
+
+For automated restaurant data extraction from event websites:
+
+1. Create a Firecrawl account at [firecrawl.dev](https://www.firecrawl.dev/)
+2. Get your API key from the dashboard
+3. Add to Convex environment variables:
+   - Go to your Convex dashboard at `https://dashboard.convex.dev`
+   - Navigate to your project's Settings → Environment Variables
+   - Add `FIRECRAWL_API_KEY` with your API key
+
+**Usage:**
+
+You can trigger the crawler by calling the `crawlRestaurantWeekWebsite` action from the Convex dashboard or your frontend:
+
+```typescript
+const crawl = useAction(api.firecrawl.crawlRestaurantWeekWebsite)
+
+// Crawl an event's website
+await crawl({ eventId: eventId })
+```
+
+The crawler will:
+- Extract restaurant names, addresses, categories, and URLs
+- Extract menu information (meal types, prices, menu URLs)
+- Store data in restaurants and menus tables
+- Use deterministic IDs (based on restaurant names) to prevent duplicates
+- Update existing restaurants or create new ones as needed
+
 ## Project Structure
 
 ```
@@ -225,6 +255,8 @@ feast-finder/
 │   ├── events.ts            # Event queries and mutations
 │   ├── restaurants.ts       # Restaurant queries and mutations
 │   ├── restaurantsGeo.ts    # Geospatial queries
+│   ├── firecrawl.ts         # Firecrawl web scraping action
+│   ├── firecrawlStorage.ts  # Internal mutations for storing scraped data
 │   ├── seedData.ts          # Sample data seeding
 │   ├── schema.ts            # Database schema definition
 │   └── _generated/          # Auto-generated Convex types

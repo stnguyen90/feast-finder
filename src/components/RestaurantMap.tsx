@@ -11,18 +11,16 @@ export interface MapBounds {
 export interface Restaurant {
   _id: string
   _creationTime: number
+  key?: string
   name: string
-  rating: number
-  latitude: number
-  longitude: number
-  address: string
+  rating?: number
+  latitude?: number
+  longitude?: number
+  address?: string
   websiteUrl?: string
   yelpUrl?: string
   openTableUrl?: string
-  categories: Array<string>
-  hasBrunch: boolean
-  hasLunch: boolean
-  hasDinner: boolean
+  categories?: Array<string>
   brunchPrice?: number
   lunchPrice?: number
   dinnerPrice?: number
@@ -151,18 +149,20 @@ export function RestaurantMap({
       />
       <ZoomControl position="topright" />
       <MapEventsHandler />
-      {restaurants.map((restaurant) => (
-        <Marker
-          key={restaurant._id}
-          position={[restaurant.latitude, restaurant.longitude]}
-          icon={customIcon}
-          eventHandlers={{
-            click: () => {
-              onSelectRestaurant(restaurant)
-            },
-          }}
-        />
-      ))}
+      {restaurants
+        .filter((r) => r.latitude !== undefined && r.longitude !== undefined)
+        .map((restaurant) => (
+          <Marker
+            key={restaurant._id}
+            position={[restaurant.latitude!, restaurant.longitude!]}
+            icon={customIcon}
+            eventHandlers={{
+              click: () => {
+                onSelectRestaurant(restaurant)
+              },
+            }}
+          />
+        ))}
     </MapContainer>
   )
 }
