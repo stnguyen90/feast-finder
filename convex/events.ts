@@ -253,24 +253,3 @@ export const addEvent = mutation({
     })
   },
 })
-
-/**
- * Add a new menu
- */
-export const addMenu = mutation({
-  args: {
-    restaurant: v.id('restaurants'),
-    event: v.id('events'),
-    meal: v.union(v.literal('brunch'), v.literal('lunch'), v.literal('dinner')),
-    price: v.number(),
-    url: v.optional(v.string()),
-  },
-  returns: v.id('menus'),
-  handler: async (ctx, args) => {
-    const syncTime = Date.now()
-    return await ctx.db.insert('menus', {
-      ...args,
-      syncTime,
-    })
-  },
-})

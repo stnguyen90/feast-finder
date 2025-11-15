@@ -1,5 +1,5 @@
 import { v } from 'convex/values'
-import { internalMutation, internalQuery, mutation, query } from './_generated/server'
+import { internalMutation, internalQuery, query } from './_generated/server'
 import { internal } from './_generated/api'
 import type { Id } from './_generated/dataModel'
 
@@ -235,40 +235,6 @@ export const getRestaurantInternal = internalQuery({
   handler: async (ctx, args) => {
     const restaurant = await ctx.db.get(args.id)
     return restaurant
-  },
-})
-
-// Mutation to add a new restaurant
-export const addRestaurant = mutation({
-  args: {
-    key: v.optional(v.string()),
-    name: v.string(),
-    rating: v.optional(v.number()),
-    latitude: v.optional(v.number()),
-    longitude: v.optional(v.number()),
-    address: v.optional(v.string()),
-    websiteUrl: v.optional(v.string()),
-    yelpUrl: v.optional(v.string()),
-    openTableUrl: v.optional(v.string()),
-    categories: v.optional(v.array(v.string())),
-    brunchPrice: v.optional(v.number()),
-    lunchPrice: v.optional(v.number()),
-    dinnerPrice: v.optional(v.number()),
-  },
-  returns: v.id('restaurants'),
-  handler: async (ctx, args) => {
-    const id = await ctx.db.insert('restaurants', args)
-    // Sync to geospatial index only if coordinates exist
-    if (args.latitude !== undefined && args.longitude !== undefined) {
-      await ctx.scheduler.runAfter(
-        0,
-        internal.restaurantsGeo.syncRestaurantToIndex,
-        {
-          restaurantId: id,
-        },
-      )
-    }
-    return id
   },
 })
 

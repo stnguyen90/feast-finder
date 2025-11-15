@@ -1,5 +1,5 @@
 import { v } from 'convex/values'
-import { action, internalMutation, mutation, query } from './_generated/server'
+import { action, internalMutation, query } from './_generated/server'
 import { api } from './_generated/api'
 import { restaurantsIndex } from './geospatial'
 import { autumn } from './autumn'
@@ -314,10 +314,13 @@ export const removeRestaurantFromIndex = internalMutation({
 })
 
 /**
- * Mutation to sync all existing restaurants to the geospatial index
- * This should be run once to migrate existing data
+ * Internal mutation to sync all existing restaurants to the geospatial index
+ * 
+ * INTERNAL ONLY: This function performs a bulk database migration and should only
+ * be called by backend processes, migration scripts, or other internal Convex functions.
+ * It is not intended for frontend invocation.
  */
-export const syncAllRestaurantsToIndex = mutation({
+export const syncAllRestaurantsToIndex = internalMutation({
   args: {},
   returns: v.object({
     synced: v.number(),
