@@ -10,6 +10,8 @@
 
 import type * as auth from "../auth.js";
 import type * as events from "../events.js";
+import type * as firecrawl from "../firecrawl.js";
+import type * as firecrawlStorage from "../firecrawlStorage.js";
 import type * as geospatial from "../geospatial.js";
 import type * as http from "../http.js";
 import type * as restaurants from "../restaurants.js";
@@ -34,6 +36,8 @@ import type {
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   events: typeof events;
+  firecrawl: typeof firecrawl;
+  firecrawlStorage: typeof firecrawlStorage;
   geospatial: typeof geospatial;
   http: typeof http;
   restaurants: typeof restaurants;
