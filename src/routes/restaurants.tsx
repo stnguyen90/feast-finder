@@ -1,7 +1,5 @@
 import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
-import { useSuspenseQuery } from '@tanstack/react-query'
-import { convexQuery } from '@convex-dev/react-query'
-import { useAction, useMutation } from 'convex/react'
+import { useAction } from 'convex/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Alert,
@@ -166,11 +164,6 @@ function Restaurants() {
   // 2. OR user is removing filters (isPendingReducingFilters)
   const shouldDisableApplyButton = shouldDisableFilters && !isPendingReducingFilters
 
-  // Always fetch all restaurants for now (used for seeding check only)
-  const { data: allRestaurants } = useSuspenseQuery(
-    convexQuery(api.restaurants.listRestaurants, {}),
-  )
-
   // Use action for server-side validated restaurant fetching
   const queryRestaurantsAction = useAction(api.restaurantsGeo.queryRestaurantsInBoundsWithAuth)
   const [geoRestaurantsResult, setGeoRestaurantsResult] = useState<{
@@ -205,36 +198,11 @@ function Restaurants() {
     if (mapBounds !== null && geoRestaurantsResult) {
       return geoRestaurantsResult.results
     }
-    return allRestaurants
-  }, [mapBounds, geoRestaurantsResult, allRestaurants])
+    return []
+  }, [mapBounds, geoRestaurantsResult])
 
   const [selectedRestaurant, setSelectedRestaurant] =
     useState<Restaurant | null>(null)
-
-  const syncAllToIndex = useMutation(
-    api.restaurantsGeo.syncAllRestaurantsToIndex,
-  )
-
-  // Sync existing restaurants to geospatial index on first load
-  useEffect(() => {
-    if (allRestaurants.length > 0) {
-      // Only sync once - check if we've already synced
-      const hasSynced = localStorage.getItem('geospatial-synced')
-      if (!hasSynced) {
-        console.log('Syncing restaurants to geospatial index...')
-        syncAllToIndex({})
-          .then((result) => {
-            console.log(
-              `Synced ${result.synced} restaurants to geospatial index`,
-            )
-            localStorage.setItem('geospatial-synced', 'true')
-          })
-          .catch((error) => {
-            console.error('Error syncing to geospatial index:', error)
-          })
-      }
-    }
-  }, [allRestaurants.length, syncAllToIndex])
 
   const handleUpgrade = useCallback(async () => {
     await checkout({
@@ -360,7 +328,7 @@ function Restaurants() {
     <Flex direction="column" h="100vh" bg="bg.page">
       <Header onSignInClick={() => setIsSignInModalOpen(true)} onSignOut={() => refetch()} />
 
-      {allRestaurants.length === 0 ? (
+      {restaurants.length === 0 ? (
         <Center flex={1} color="text.secondary">
           <Text>
             No restaurants found. Please seed data via Convex dashboard.
