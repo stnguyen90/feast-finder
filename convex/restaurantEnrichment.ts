@@ -1,7 +1,7 @@
 'use node'
 
 import { generateObject } from 'ai'
-import { createOpenAI } from '@ai-sdk/openai'
+import { createOpenAICompatible } from '@ai-sdk/openai-compatible'
 import { z } from 'zod'
 import { v } from 'convex/values'
 import { internalAction } from './_generated/server'
@@ -42,9 +42,10 @@ export const enrichRestaurantData = internalAction({
       throw new Error('AI_API_KEY or OPENAI_API_KEY environment variable is not set')
     }
 
-    const openai = createOpenAI({
+    const openai = createOpenAICompatible({
+      name: 'openai-compatible',
       apiKey,
-      baseURL,
+      baseURL: baseURL || 'https://api.openai.com/v1',
     })
 
     console.log(`Enriching restaurant data for: ${restaurant.name}`)
