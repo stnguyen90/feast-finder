@@ -180,14 +180,13 @@ function EventRestaurants() {
       (v) => v !== undefined,
     )
     if (hasPriceFilters) {
-      filtered = filtered.filter((restaurant) => {
-        // Check brunch price
+      filtered = filtered.filter((restaurant: typeof allRestaurants[number]) => {
+        // Check brunch price (restaurant has brunchPrice field)
         if (
           priceFilters.minBrunchPrice !== undefined ||
           priceFilters.maxBrunchPrice !== undefined
         ) {
           if (
-            restaurant.hasBrunch &&
             restaurant.brunchPrice !== undefined &&
             (priceFilters.minBrunchPrice === undefined ||
               restaurant.brunchPrice >= priceFilters.minBrunchPrice) &&
@@ -198,13 +197,12 @@ function EventRestaurants() {
           }
         }
 
-        // Check lunch price
+        // Check lunch price (restaurant has lunchPrice field)
         if (
           priceFilters.minLunchPrice !== undefined ||
           priceFilters.maxLunchPrice !== undefined
         ) {
           if (
-            restaurant.hasLunch &&
             restaurant.lunchPrice !== undefined &&
             (priceFilters.minLunchPrice === undefined ||
               restaurant.lunchPrice >= priceFilters.minLunchPrice) &&
@@ -215,13 +213,12 @@ function EventRestaurants() {
           }
         }
 
-        // Check dinner price
+        // Check dinner price (restaurant has dinnerPrice field)
         if (
           priceFilters.minDinnerPrice !== undefined ||
           priceFilters.maxDinnerPrice !== undefined
         ) {
           if (
-            restaurant.hasDinner &&
             restaurant.dinnerPrice !== undefined &&
             (priceFilters.minDinnerPrice === undefined ||
               restaurant.dinnerPrice >= priceFilters.minDinnerPrice) &&
@@ -238,8 +235,8 @@ function EventRestaurants() {
 
     // Apply category filters
     if (selectedCategories.length > 0) {
-      filtered = filtered.filter((restaurant) =>
-        restaurant.categories.some((category) =>
+      filtered = filtered.filter((restaurant: typeof allRestaurants[number]) =>
+        restaurant.categories?.some((category: string) =>
           selectedCategories.includes(category),
         ),
       )
@@ -433,7 +430,9 @@ function EventRestaurants() {
             onSelectRestaurant={setSelectedRestaurant}
             onBoundsChange={() => {}}
             initialCenter={
-              allRestaurants.length > 0
+              allRestaurants.length > 0 &&
+              allRestaurants[0].latitude !== undefined &&
+              allRestaurants[0].longitude !== undefined
                 ? {
                     lat: allRestaurants[0].latitude,
                     lng: allRestaurants[0].longitude,

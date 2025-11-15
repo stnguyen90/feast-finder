@@ -26,21 +26,16 @@ export function RestaurantDetail({
 }: RestaurantDetailProps) {
   if (!restaurant) return null
 
+  // Determine meal times from prices (meal availability is determined by presence of price)
   const mealTimes = []
-  if (restaurant.hasBrunch) {
-    mealTimes.push(
-      `Brunch${restaurant.brunchPrice ? ` ($${restaurant.brunchPrice})` : ''}`,
-    )
+  if (restaurant.brunchPrice !== undefined) {
+    mealTimes.push(`Brunch ($${restaurant.brunchPrice})`)
   }
-  if (restaurant.hasLunch) {
-    mealTimes.push(
-      `Lunch${restaurant.lunchPrice ? ` ($${restaurant.lunchPrice})` : ''}`,
-    )
+  if (restaurant.lunchPrice !== undefined) {
+    mealTimes.push(`Lunch ($${restaurant.lunchPrice})`)
   }
-  if (restaurant.hasDinner) {
-    mealTimes.push(
-      `Dinner${restaurant.dinnerPrice ? ` ($${restaurant.dinnerPrice})` : ''}`,
-    )
+  if (restaurant.dinnerPrice !== undefined) {
+    mealTimes.push(`Dinner ($${restaurant.dinnerPrice})`)
   }
 
   return (
@@ -68,58 +63,64 @@ export function RestaurantDetail({
             <Flex align="center" gap={2}>
               <span style={{ fontSize: '1.25rem' }}>⭐</span>
               <Box fontSize="xl" fontWeight="semibold" color="text.primary">
-                {restaurant.rating}
+                {restaurant.rating ?? 'N/A'}
               </Box>
             </Flex>
 
-            <Box>
-              <Heading size="sm" mb={1} color="text.secondary">
-                Address
-              </Heading>
-              <Box color="text.primary">{restaurant.address}</Box>
-            </Box>
+            {restaurant.address && (
+              <Box>
+                <Heading size="sm" mb={1} color="text.secondary">
+                  Address
+                </Heading>
+                <Box color="text.primary">{restaurant.address}</Box>
+              </Box>
+            )}
 
-            <Box>
-              <Heading size="sm" mb={1} color="text.secondary">
-                Categories
-              </Heading>
-              <HStack wrap="wrap" gap={2}>
-                {restaurant.categories.map((category) => (
-                  <Badge
-                    key={category}
-                    bg="badge.category.bg"
-                    color="badge.category.text"
-                    size="md"
-                    borderRadius="full"
-                    px={3}
-                    py={1}
-                  >
-                    {category}
-                  </Badge>
-                ))}
-              </HStack>
-            </Box>
+            {restaurant.categories && restaurant.categories.length > 0 && (
+              <Box>
+                <Heading size="sm" mb={1} color="text.secondary">
+                  Categories
+                </Heading>
+                <HStack wrap="wrap" gap={2}>
+                  {restaurant.categories.map((category) => (
+                    <Badge
+                      key={category}
+                      bg="badge.category.bg"
+                      color="badge.category.text"
+                      size="md"
+                      borderRadius="full"
+                      px={3}
+                      py={1}
+                    >
+                      {category}
+                    </Badge>
+                  ))}
+                </HStack>
+              </Box>
+            )}
 
-            <Box>
-              <Heading size="sm" mb={1} color="text.secondary">
-                Meal Times
-              </Heading>
-              <HStack wrap="wrap" gap={2}>
-                {mealTimes.map((meal) => (
-                  <Badge
-                    key={meal}
-                    bg="badge.meal.bg"
-                    color="badge.meal.text"
-                    size="md"
-                    borderRadius="full"
-                    px={3}
-                    py={1}
-                  >
-                    {meal}
-                  </Badge>
-                ))}
-              </HStack>
-            </Box>
+            {mealTimes.length > 0 && (
+              <Box>
+                <Heading size="sm" mb={1} color="text.secondary">
+                  Meal Times
+                </Heading>
+                <HStack wrap="wrap" gap={2}>
+                  {mealTimes.map((meal) => (
+                    <Badge
+                      key={meal}
+                      bg="badge.meal.bg"
+                      color="badge.meal.text"
+                      size="md"
+                      borderRadius="full"
+                      px={3}
+                      py={1}
+                    >
+                      {meal}
+                    </Badge>
+                  ))}
+                </HStack>
+              </Box>
+            )}
 
             {(restaurant.websiteUrl ||
               restaurant.yelpUrl ||
