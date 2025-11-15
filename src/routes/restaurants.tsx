@@ -110,7 +110,8 @@ function Restaurants() {
   const { customer, check, checkout } = useCustomer()
 
   // Check if user is signed in (customer will be null if not signed in)
-  const isSignedIn = customer !== null
+  // Recompute whenever customer changes (e.g., after sign in)
+  const isSignedIn = useMemo(() => customer !== null, [customer])
 
   // Check if user has access to advanced filters
   const hasAdvancedFilters = useMemo(() => {

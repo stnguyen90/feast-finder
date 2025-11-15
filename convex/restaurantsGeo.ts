@@ -446,15 +446,15 @@ export const queryRestaurantsInBoundsWithAuth = action({
     const categoryFilterCount = hasCategoryFilter ? 1 : 0
     const totalFilters = priceFilterCount + categoryFilterCount
 
-    // Server-side check: If user is using any filters, verify premium access
-    if (totalFilters >= 1) {
+    // Server-side check: If user is using multiple filters, verify premium access
+    if (totalFilters > 1) {
       const result = await autumn.check(ctx, {
         featureId: 'advanced-filters',
       })
 
       if (result.error || !result.data?.allowed) {
         throw new Error(
-          'Premium access required to use filters. Please upgrade to continue.',
+          'Premium access required to use multiple filters. Please upgrade to continue.',
         )
       }
     }
