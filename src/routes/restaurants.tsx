@@ -11,7 +11,6 @@ import {
   Flex,
   HStack,
   IconButton,
-  Spinner,
   Text,
   VStack,
 } from '@chakra-ui/react'
@@ -212,32 +211,13 @@ function Restaurants() {
   const [selectedRestaurant, setSelectedRestaurant] =
     useState<Restaurant | null>(null)
 
-  const seedRestaurants = useMutation(api.seedData.seedRestaurants)
   const syncAllToIndex = useMutation(
     api.restaurantsGeo.syncAllRestaurantsToIndex,
   )
-  const [isSeeding, setIsSeeding] = useState(false)
-
-  // Auto-seed on first load if no restaurants exist
-  useEffect(() => {
-    if (allRestaurants.length === 0 && !isSeeding) {
-      setIsSeeding(true)
-      seedRestaurants({})
-        .then(() => {
-          console.log('Restaurants seeded successfully')
-        })
-        .catch((error) => {
-          console.error('Error seeding restaurants:', error)
-        })
-        .finally(() => {
-          setIsSeeding(false)
-        })
-    }
-  }, [allRestaurants.length, seedRestaurants, isSeeding])
 
   // Sync existing restaurants to geospatial index on first load
   useEffect(() => {
-    if (allRestaurants.length > 0 && !isSeeding) {
+    if (allRestaurants.length > 0) {
       // Only sync once - check if we've already synced
       const hasSynced = localStorage.getItem('geospatial-synced')
       if (!hasSynced) {
@@ -254,7 +234,7 @@ function Restaurants() {
           })
       }
     }
-  }, [allRestaurants.length, syncAllToIndex, isSeeding])
+  }, [allRestaurants.length, syncAllToIndex])
 
   const handleUpgrade = useCallback(async () => {
     await checkout({
@@ -380,17 +360,10 @@ function Restaurants() {
     <Flex direction="column" h="100vh" bg="bg.page">
       <Header onSignInClick={() => setIsSignInModalOpen(true)} onSignOut={() => refetch()} />
 
-      {isSeeding ? (
-        <Center flex={1} color="text.secondary">
-          <Flex direction="column" align="center" gap={4}>
-            <Spinner size="xl" color="brand.solid" />
-            <Text>Loading restaurants...</Text>
-          </Flex>
-        </Center>
-      ) : allRestaurants.length === 0 ? (
+      {allRestaurants.length === 0 ? (
         <Center flex={1} color="text.secondary">
           <Text>
-            No restaurants found. Please wait while we load some sample data...
+            No restaurants found. Please seed data via Convex dashboard.
           </Text>
         </Center>
       ) : (

@@ -1,8 +1,7 @@
 import { Link as RouterLink, createFileRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
-import { useMutation } from 'convex/react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
   Badge,
   Box,
@@ -12,7 +11,6 @@ import {
   Flex,
   Heading,
   Link,
-  Spinner,
   Text,
   VisuallyHidden,
 } from '@chakra-ui/react'
@@ -53,28 +51,7 @@ function LandingPage() {
     convexQuery(api.events.listActiveEvents, {}),
   )
 
-  const seedEvents = useMutation(api.seedData.seedEvents)
-  const [isSeeding, setIsSeeding] = useState(false)
-  const [hasAttemptedSeed, setHasAttemptedSeed] = useState(false)
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
-
-  // Auto-seed events on first load if no events exist
-  useEffect(() => {
-    if (events.length === 0 && !isSeeding && !hasAttemptedSeed) {
-      setIsSeeding(true)
-      setHasAttemptedSeed(true)
-      seedEvents({})
-        .then(() => {
-          console.log('Events seeded successfully')
-        })
-        .catch((error) => {
-          console.error('Error seeding events:', error)
-        })
-        .finally(() => {
-          setIsSeeding(false)
-        })
-    }
-  }, [events.length, seedEvents, isSeeding, hasAttemptedSeed])
 
   return (
     <Flex direction="column" minH="100vh" bg="bg.page">
@@ -193,14 +170,7 @@ function LandingPage() {
             Join special dining events featuring exclusive menus and experiences
           </Text>
 
-          {isSeeding ? (
-            <Center py={12}>
-              <Flex direction="column" align="center" gap={4}>
-                <Spinner size="xl" color="brand.solid" />
-                <Text color="text.secondary">Loading events...</Text>
-              </Flex>
-            </Center>
-          ) : events.length === 0 ? (
+          {events.length === 0 ? (
             <Center py={12}>
               <Box textAlign="center">
                 <Text fontSize="xl" color="text.secondary" mb={4}>
