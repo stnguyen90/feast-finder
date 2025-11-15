@@ -23,7 +23,6 @@ import {
   FaMapLocationDot,
   FaUtensils,
 } from 'react-icons/fa6'
-import { PricingTable } from 'autumn-js/react'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { Header } from '~/components/Header'
@@ -183,33 +182,6 @@ function LandingPage() {
               </Text>
             </Box>
           </Flex>
-        </Box>
-
-        {/* Pricing Section */}
-        <Box mb={16}>
-          <Heading
-            size="4xl"
-            textAlign="center"
-            mb={4}
-            color="text.primary"
-            fontWeight="bold"
-          >
-            Choose Your Plan
-          </Heading>
-          <Text
-            fontSize="lg"
-            textAlign="center"
-            color="text.secondary"
-            mb={12}
-            maxW="2xl"
-            mx="auto"
-          >
-            Start exploring restaurants for free, or upgrade to premium for
-            advanced filtering and unlimited search capabilities.
-          </Text>
-          <Box maxW="6xl" mx="auto">
-            <PricingTable />
-          </Box>
         </Box>
 
         {/* Events Section */}

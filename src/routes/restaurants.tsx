@@ -244,6 +244,7 @@ function Restaurants() {
   const handleUpgrade = useCallback(async () => {
     await checkout({
       productId: 'premium',
+      successUrl: window.location.href,
     })
   }, [checkout])
 
@@ -419,7 +420,7 @@ function Restaurants() {
                   {!hasAdvancedFilters && (
                     <Alert.Root status="info" variant="subtle">
                       <Alert.Indicator />
-                      <Alert.Content>
+                      <Alert.Content flex="1">
                         <Alert.Title>Advanced filters</Alert.Title>
                         <Alert.Description>
                           {isSignedIn
@@ -427,23 +428,21 @@ function Restaurants() {
                             : 'Premium access is required to use multiple filters'}
                         </Alert.Description>
                       </Alert.Content>
-                      <Flex alignItems="center">
-                        <Button
-                          onClick={
-                            isSignedIn
-                              ? handleUpgrade
-                              : () => setIsSignInModalOpen(true)
-                          }
-                          variant="ghost"
-                          size="sm"
-                          colorPalette="blue"
-                          _hover={{
-                            bg: { base: 'blue.200', _dark: 'blue.800' },
-                          }}
-                        >
-                          {isSignedIn ? 'Upgrade' : 'Sign In'}
-                        </Button>
-                      </Flex>
+                      <Button
+                        onClick={
+                          isSignedIn
+                            ? handleUpgrade
+                            : () => setIsSignInModalOpen(true)
+                        }
+                        variant="ghost"
+                        size="sm"
+                        colorPalette="blue"
+                        _hover={{
+                          bg: { base: 'blue.200', _dark: 'blue.800' },
+                        }}
+                      >
+                        {isSignedIn ? 'Upgrade' : 'Sign In'}
+                      </Button>
                     </Alert.Root>
                   )}
 

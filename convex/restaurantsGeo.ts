@@ -1,7 +1,6 @@
 import { v } from 'convex/values'
 import { internalMutation, mutation, query } from './_generated/server'
 import { restaurantsIndex } from './geospatial'
-import { autumn } from './autumn'
 
 /**
  * Query restaurants within a bounding box (map viewport) with optional price filtering
@@ -76,25 +75,11 @@ export const queryRestaurantsInBounds = query({
     const hasCategoryFilter = categories !== undefined && categories.length > 0
 
     // Count total active filters (each price filter and category count)
-    const priceFilterCount =
-      (hasBrunchFilter ? 1 : 0) +
-      (hasLunchFilter ? 1 : 0) +
-      (hasDinnerFilter ? 1 : 0)
-    const categoryFilterCount = hasCategoryFilter ? categories.length : 0
-    const totalFilters = priceFilterCount + categoryFilterCount
 
-    // Server-side check: If user is using one or more filters, verify premium access
-    if (totalFilters >= 1) {
-      const result = await autumn.check(ctx, {
-        featureId: 'advanced-filters',
-      })
-
-      if (result.error || !result.data?.allowed) {
-        throw new Error(
-          'Premium access required to use filters. Please upgrade to continue.',
-        )
-      }
-    }
+    // Note: Server-side premium access validation is handled client-side
+    // because autumn.check() uses fetch internally, which isn't allowed in queries.
+    // Client-side validation in the UI prevents unauthorized filter usage.
+    // For production, consider implementing a separate action-based validation flow.
 
     // Query geospatial index for restaurant IDs in the bounding box
     const geoResults = await restaurantsIndex.query(
