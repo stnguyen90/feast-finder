@@ -4,6 +4,7 @@ import { internal } from './_generated/api'
 
 /**
  * Generate a deterministic key from restaurant name and address
+ * Simple hash function for V8 runtime (non-Node.js)
  */
 function generateRestaurantKey(name: string, address: string): string {
   const input = `${name}|${address}`

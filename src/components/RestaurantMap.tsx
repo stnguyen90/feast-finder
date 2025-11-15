@@ -11,7 +11,7 @@ export interface MapBounds {
 export interface Restaurant {
   _id: string
   _creationTime: number
-  key: string
+  key?: string
   name: string
   rating?: number
   latitude?: number

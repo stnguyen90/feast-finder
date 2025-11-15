@@ -31,7 +31,7 @@ export const queryRestaurantsInBounds = query({
       v.object({
         _id: v.id('restaurants'),
         _creationTime: v.number(),
-        key: v.string(),
+        key: v.optional(v.string()),
         name: v.string(),
         rating: v.optional(v.number()),
         latitude: v.optional(v.number()),
@@ -220,7 +220,7 @@ export const queryNearestRestaurants = query({
     v.object({
       _id: v.id('restaurants'),
       _creationTime: v.number(),
-      key: v.string(),
+      key: v.optional(v.string()),
       name: v.string(),
       rating: v.optional(v.number()),
       latitude: v.optional(v.number()),

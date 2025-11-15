@@ -1,5 +1,5 @@
 import { v } from 'convex/values'
-import { mutation, query } from './_generated/server'
+import { internalQuery, mutation, query } from './_generated/server'
 
 /**
  * Get all active restaurant week events with their menus
@@ -54,9 +54,9 @@ export const listActiveEvents = query({
 })
 
 /**
- * Get a specific event by ID
+ * Get a specific event by ID (internal only)
  */
-export const getEvent = query({
+export const getEvent = internalQuery({
   args: { eventId: v.id('events') },
   returns: v.union(
     v.null(),
@@ -131,7 +131,7 @@ export const getRestaurantsForEvent = query({
     v.object({
       _id: v.id('restaurants'),
       _creationTime: v.number(),
-      key: v.string(),
+      key: v.optional(v.string()),
       name: v.string(),
       rating: v.optional(v.number()),
       latitude: v.optional(v.number()),

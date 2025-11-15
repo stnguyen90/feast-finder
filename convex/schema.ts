@@ -5,7 +5,7 @@ import { authTables } from '@convex-dev/auth/server'
 export default defineSchema({
   ...authTables,
   restaurants: defineTable({
-    key: v.string(), // MD5 hash of "name|address" for deterministic lookup
+    key: v.optional(v.string()), // MD5 hash of "name|address" for deterministic lookup
     name: v.string(),
     rating: v.optional(v.number()),
     latitude: v.optional(v.number()),

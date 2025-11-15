@@ -1,10 +1,19 @@
 'use node'
 
+import crypto from 'node:crypto'
 import FirecrawlApp from '@mendable/firecrawl-js'
 import { v } from 'convex/values'
 
 import { action } from './_generated/server'
 import { internal } from './_generated/api'
+
+/**
+ * Generate MD5 hash for restaurant key
+ */
+function generateRestaurantKey(name: string, address: string): string {
+  const input = `${name}|${address}`
+  return crypto.createHash('md5').update(input).digest('hex')
+}
 
 /**
  * Crawl a restaurant week website using Firecrawl and extract restaurant data
@@ -16,7 +25,7 @@ export const crawlRestaurantWeekWebsite = action({
   returns: v.null(),
   handler: async (ctx, args) => {
     // Get the event details
-    const event = await ctx.runQuery(internal.firecrawlStorage.getEventForCrawl, {
+    const event = await ctx.runQuery(internal.events.getEvent, {
       eventId: args.eventId,
     })
 
@@ -115,10 +124,22 @@ export const crawlRestaurantWeekWebsite = action({
       return null
     }
 
+    // Generate MD5 keys for each restaurant
+    const restaurantsWithKeys = (scrapeResult as any).json.restaurants.map(
+      (restaurant: any) => ({
+        ...restaurant,
+        key: generateRestaurantKey(
+          restaurant.name || '',
+          restaurant.address || '',
+        ),
+      }),
+    )
+
     // Store the extracted data
-    await ctx.runMutation(internal.firecrawlStorage.storeScrapedRestaurants, {
+    await ctx.runMutation(internal.restaurants.storeScrapedRestaurants, {
       eventId: args.eventId,
-      restaurants: (scrapeResult as any).json.restaurants as Array<{
+      restaurants: restaurantsWithKeys as Array<{
+        key: string
         name: string
         menus?: Array<{
           price?: number
