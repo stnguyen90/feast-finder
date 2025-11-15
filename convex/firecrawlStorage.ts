@@ -4,6 +4,29 @@ import { internal } from './_generated/api'
 import type { Id } from './_generated/dataModel'
 
 /**
+ * Generate a deterministic key from restaurant name and address
+ * Creates an MD5-like hash using the name and address
+ * Format: md5("restaurant name|address")
+ */
+function generateRestaurantKey(name: string, address: string): string {
+  const input = `${name}|${address}`
+  
+  // Simple hash function (since we can't use Node.js crypto in V8 runtime)
+  // This creates a deterministic string from the input
+  let hash = 0
+  for (let i = 0; i < input.length; i++) {
+    const char = input.charCodeAt(i)
+    hash = (hash << 5) - hash + char
+    hash = hash & hash // Convert to 32bit integer
+  }
+  
+  // Convert to a consistent hex-like string
+  const hashStr = Math.abs(hash).toString(16).padStart(8, '0')
+  // Create a longer hash to be more unique (simulate MD5 32-char format)
+  return hashStr + hashStr + hashStr + hashStr
+}
+
+/**
  * Internal query to get event for crawling
  */
 export const getEventForCrawl = internalQuery({
@@ -53,6 +76,9 @@ export const storeScrapedRestaurants = internalMutation({
         categories: v.optional(v.array(v.string())),
         address: v.optional(v.string()),
         yelpUrl: v.optional(v.string()),
+        latitude: v.optional(v.number()),
+        longitude: v.optional(v.number()),
+        rating: v.optional(v.number()),
       }),
     ),
   },
@@ -72,10 +98,14 @@ export const storeScrapedRestaurants = internalMutation({
         continue
       }
 
-      // Check if restaurant already exists by name
+      // Generate deterministic key from name and address
+      const address = restaurantData.address || ''
+      const key = generateRestaurantKey(restaurantData.name, address)
+
+      // Check if restaurant already exists by key
       const existingRestaurant = await ctx.db
         .query('restaurants')
-        .withIndex('by_name', (q) => q.eq('name', restaurantData.name))
+        .withIndex('by_key', (q) => q.eq('key', key))
         .first()
 
       let restaurantId: Id<'restaurants'>
@@ -94,39 +124,36 @@ export const storeScrapedRestaurants = internalMutation({
               ? restaurantData.categories
               : existingRestaurant.categories,
           address: restaurantData.address || existingRestaurant.address,
+          latitude: restaurantData.latitude || existingRestaurant.latitude,
+          longitude: restaurantData.longitude || existingRestaurant.longitude,
+          rating: restaurantData.rating || existingRestaurant.rating,
         })
         console.log(`Updated existing restaurant: ${restaurantData.name}`)
       } else {
-        // Get event location for restaurant coordinates (fallback)
-        const event = await ctx.db.get(args.eventId)
-        if (!event) {
-          throw new Error(`Event not found: ${args.eventId}`)
-        }
-
-        // Create new restaurant with default values
+        // Create new restaurant
         restaurantId = await ctx.db.insert('restaurants', {
+          key,
           name: restaurantData.name,
-          rating: 0, // Default rating, can be updated later
-          latitude: event.latitude, // Use event location as fallback
-          longitude: event.longitude,
-          address: restaurantData.address || 'Address not available',
+          address: restaurantData.address,
           websiteUrl: restaurantData.websiteUrl,
           openTableUrl: restaurantData.openTableUrl,
           yelpUrl: restaurantData.yelpUrl,
-          categories: restaurantData.categories || [],
-          hasBrunch: false, // Will be set based on menus
-          hasLunch: false,
-          hasDinner: false,
+          categories: restaurantData.categories,
+          latitude: restaurantData.latitude,
+          longitude: restaurantData.longitude,
+          rating: restaurantData.rating,
         })
 
-        // Sync to geospatial index
-        await ctx.scheduler.runAfter(
-          0,
-          internal.restaurantsGeo.syncRestaurantToIndex,
-          {
-            restaurantId,
-          },
-        )
+        // Sync to geospatial index only if we have coordinates
+        if (restaurantData.latitude && restaurantData.longitude) {
+          await ctx.scheduler.runAfter(
+            0,
+            internal.restaurantsGeo.syncRestaurantToIndex,
+            {
+              restaurantId,
+            },
+          )
+        }
 
         console.log(`Created new restaurant: ${restaurantData.name}`)
       }
@@ -135,27 +162,6 @@ export const storeScrapedRestaurants = internalMutation({
 
       // Process menus for this restaurant
       if (restaurantData.menus && restaurantData.menus.length > 0) {
-        // Update restaurant meal availability flags
-        const hasBrunch = restaurantData.menus.some(
-          (m) => m.meal?.toLowerCase() === 'brunch',
-        )
-        const hasLunch = restaurantData.menus.some(
-          (m) => m.meal?.toLowerCase() === 'lunch',
-        )
-        const hasDinner = restaurantData.menus.some(
-          (m) => m.meal?.toLowerCase() === 'dinner',
-        )
-
-        // Get existing restaurant to preserve other meal flags
-        const restaurant = await ctx.db.get(restaurantId)
-        if (restaurant) {
-          await ctx.db.patch(restaurantId, {
-            hasBrunch: restaurant.hasBrunch || hasBrunch,
-            hasLunch: restaurant.hasLunch || hasLunch,
-            hasDinner: restaurant.hasDinner || hasDinner,
-          })
-        }
-
         for (const menuData of restaurantData.menus) {
           // Validate menu data
           if (!menuData.meal || !menuData.price) {

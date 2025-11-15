@@ -9,18 +9,16 @@ export const listRestaurants = query({
     v.object({
       _id: v.id('restaurants'),
       _creationTime: v.number(),
+      key: v.string(),
       name: v.string(),
-      rating: v.number(),
-      latitude: v.number(),
-      longitude: v.number(),
-      address: v.string(),
+      rating: v.optional(v.number()),
+      latitude: v.optional(v.number()),
+      longitude: v.optional(v.number()),
+      address: v.optional(v.string()),
       websiteUrl: v.optional(v.string()),
       yelpUrl: v.optional(v.string()),
       openTableUrl: v.optional(v.string()),
-      categories: v.array(v.string()),
-      hasBrunch: v.boolean(),
-      hasLunch: v.boolean(),
-      hasDinner: v.boolean(),
+      categories: v.optional(v.array(v.string())),
       brunchPrice: v.optional(v.number()),
       lunchPrice: v.optional(v.number()),
       dinnerPrice: v.optional(v.number()),
@@ -42,8 +40,10 @@ export const listCategories = query({
     // Collect all categories from all restaurants
     const categorySet = new Set<string>()
     for (const restaurant of restaurants) {
-      for (const category of restaurant.categories) {
-        categorySet.add(category)
+      if (restaurant.categories) {
+        for (const category of restaurant.categories) {
+          categorySet.add(category)
+        }
       }
     }
 
@@ -66,18 +66,16 @@ export const listRestaurantsWithPriceFilter = query({
     v.object({
       _id: v.id('restaurants'),
       _creationTime: v.number(),
+      key: v.string(),
       name: v.string(),
-      rating: v.number(),
-      latitude: v.number(),
-      longitude: v.number(),
-      address: v.string(),
+      rating: v.optional(v.number()),
+      latitude: v.optional(v.number()),
+      longitude: v.optional(v.number()),
+      address: v.optional(v.string()),
       websiteUrl: v.optional(v.string()),
       yelpUrl: v.optional(v.string()),
       openTableUrl: v.optional(v.string()),
-      categories: v.array(v.string()),
-      hasBrunch: v.boolean(),
-      hasLunch: v.boolean(),
-      hasDinner: v.boolean(),
+      categories: v.optional(v.array(v.string())),
       brunchPrice: v.optional(v.number()),
       lunchPrice: v.optional(v.number()),
       dinnerPrice: v.optional(v.number()),
@@ -105,12 +103,9 @@ export const listRestaurantsWithPriceFilter = query({
         // Build OR conditions for meal types
         const conditions = []
 
-        // Brunch price filter
+        // Brunch price filter - only check if price exists and is in range
         if (hasBrunchFilter) {
-          let brunchCondition = q.and(
-            q.eq(q.field('hasBrunch'), true),
-            q.neq(q.field('brunchPrice'), undefined),
-          )
+          let brunchCondition = q.neq(q.field('brunchPrice'), undefined)
 
           if (args.minBrunchPrice !== undefined) {
             brunchCondition = q.and(
@@ -131,10 +126,7 @@ export const listRestaurantsWithPriceFilter = query({
 
         // Lunch price filter
         if (hasLunchFilter) {
-          let lunchCondition = q.and(
-            q.eq(q.field('hasLunch'), true),
-            q.neq(q.field('lunchPrice'), undefined),
-          )
+          let lunchCondition = q.neq(q.field('lunchPrice'), undefined)
 
           if (args.minLunchPrice !== undefined) {
             lunchCondition = q.and(
@@ -155,10 +147,7 @@ export const listRestaurantsWithPriceFilter = query({
 
         // Dinner price filter
         if (hasDinnerFilter) {
-          let dinnerCondition = q.and(
-            q.eq(q.field('hasDinner'), true),
-            q.neq(q.field('dinnerPrice'), undefined),
-          )
+          let dinnerCondition = q.neq(q.field('dinnerPrice'), undefined)
 
           if (args.minDinnerPrice !== undefined) {
             dinnerCondition = q.and(
@@ -195,18 +184,16 @@ export const getRestaurant = query({
     v.object({
       _id: v.id('restaurants'),
       _creationTime: v.number(),
+      key: v.string(),
       name: v.string(),
-      rating: v.number(),
-      latitude: v.number(),
-      longitude: v.number(),
-      address: v.string(),
+      rating: v.optional(v.number()),
+      latitude: v.optional(v.number()),
+      longitude: v.optional(v.number()),
+      address: v.optional(v.string()),
       websiteUrl: v.optional(v.string()),
       yelpUrl: v.optional(v.string()),
       openTableUrl: v.optional(v.string()),
-      categories: v.array(v.string()),
-      hasBrunch: v.boolean(),
-      hasLunch: v.boolean(),
-      hasDinner: v.boolean(),
+      categories: v.optional(v.array(v.string())),
       brunchPrice: v.optional(v.number()),
       lunchPrice: v.optional(v.number()),
       dinnerPrice: v.optional(v.number()),
@@ -222,18 +209,16 @@ export const getRestaurant = query({
 // Mutation to add a new restaurant
 export const addRestaurant = mutation({
   args: {
+    key: v.string(),
     name: v.string(),
-    rating: v.number(),
-    latitude: v.number(),
-    longitude: v.number(),
-    address: v.string(),
+    rating: v.optional(v.number()),
+    latitude: v.optional(v.number()),
+    longitude: v.optional(v.number()),
+    address: v.optional(v.string()),
     websiteUrl: v.optional(v.string()),
     yelpUrl: v.optional(v.string()),
     openTableUrl: v.optional(v.string()),
-    categories: v.array(v.string()),
-    hasBrunch: v.boolean(),
-    hasLunch: v.boolean(),
-    hasDinner: v.boolean(),
+    categories: v.optional(v.array(v.string())),
     brunchPrice: v.optional(v.number()),
     lunchPrice: v.optional(v.number()),
     dinnerPrice: v.optional(v.number()),
@@ -241,14 +226,16 @@ export const addRestaurant = mutation({
   returns: v.id('restaurants'),
   handler: async (ctx, args) => {
     const id = await ctx.db.insert('restaurants', args)
-    // Sync to geospatial index
-    await ctx.scheduler.runAfter(
-      0,
-      internal.restaurantsGeo.syncRestaurantToIndex,
-      {
-        restaurantId: id,
-      },
-    )
+    // Sync to geospatial index only if coordinates exist
+    if (args.latitude !== undefined && args.longitude !== undefined) {
+      await ctx.scheduler.runAfter(
+        0,
+        internal.restaurantsGeo.syncRestaurantToIndex,
+        {
+          restaurantId: id,
+        },
+      )
+    }
     return id
   },
 })

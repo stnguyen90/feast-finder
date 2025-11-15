@@ -140,7 +140,7 @@ function EventRestaurants() {
             onSelectRestaurant={setSelectedRestaurant}
             onBoundsChange={() => {}}
             initialCenter={
-              restaurants.length > 0
+              restaurants.length > 0 && restaurants[0].latitude !== undefined && restaurants[0].longitude !== undefined
                 ? {
                     lat: restaurants[0].latitude,
                     lng: restaurants[0].longitude,
