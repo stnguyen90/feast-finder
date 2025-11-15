@@ -53,66 +53,68 @@ export const crawlRestaurantWeekWebsite = action({
 
     // Use Firecrawl's scrape endpoint with structured data extraction
     const scrapeResult = await app.scrape(event.websiteUrl, {
-      formats: ['json'],
-      onlyMainContent: true,
-      waitFor: 500,
-      jsonOptions: {
-        schema: {
-          type: 'object',
-          required: [],
-          properties: {
-            restaurants: {
-              type: 'array',
-              items: {
-                type: 'object',
-                required: [],
-                properties: {
-                  name: {
-                    type: 'string',
-                  },
-                  menus: {
-                    type: 'array',
-                    items: {
-                      type: 'object',
-                      required: [],
-                      properties: {
-                        price: {
-                          type: 'number',
-                        },
-                        meal: {
-                          type: 'string',
-                        },
-                        url: {
-                          type: 'string',
+      formats: [
+        {
+          type: 'json',
+          prompt: 'Extract all restaurants and their meal menus',
+          schema: {
+            type: 'object',
+            required: [],
+            properties: {
+              restaurants: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  required: [],
+                  properties: {
+                    name: {
+                      type: 'string',
+                    },
+                    menus: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        required: [],
+                        properties: {
+                          price: {
+                            type: 'number',
+                          },
+                          meal: {
+                            type: 'string',
+                          },
+                          url: {
+                            type: 'string',
+                          },
                         },
                       },
                     },
-                  },
-                  websiteUrl: {
-                    type: 'string',
-                  },
-                  openTableUrl: {
-                    type: 'string',
-                  },
-                  categories: {
-                    type: 'array',
-                    items: {
+                    websiteUrl: {
                       type: 'string',
                     },
-                  },
-                  address: {
-                    type: 'string',
-                  },
-                  yelpUrl: {
-                    type: 'string',
+                    openTableUrl: {
+                      type: 'string',
+                    },
+                    categories: {
+                      type: 'array',
+                      items: {
+                        type: 'string',
+                      },
+                    },
+                    address: {
+                      type: 'string',
+                    },
+                    yelpUrl: {
+                      type: 'string',
+                    },
                   },
                 },
               },
             },
           },
         },
-        prompt: 'Extract all restaurants and their meal menus',
-      },
+      ],
+      onlyMainContent: true,
+      waitFor: 500,
     })
 
     console.log(

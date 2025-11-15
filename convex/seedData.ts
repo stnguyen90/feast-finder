@@ -2,27 +2,6 @@ import { v } from 'convex/values'
 import { mutation } from './_generated/server'
 import { internal } from './_generated/api'
 
-/**
- * Generate a deterministic key from restaurant name and address
- * Simple hash function for V8 runtime (non-Node.js)
- */
-function generateRestaurantKey(name: string, address: string): string {
-  const input = `${name}|${address}`
-  
-  // Simple hash function to create a deterministic key
-  let hash = 0
-  for (let i = 0; i < input.length; i++) {
-    const char = input.charCodeAt(i)
-    hash = (hash << 5) - hash + char
-    hash = hash & hash // Convert to 32bit integer
-  }
-  
-  // Convert to a consistent hex-like string
-  const hashStr = Math.abs(hash).toString(16).padStart(8, '0')
-  // Create a longer hash to be more unique (simulate MD5 32-char format)
-  return hashStr + hashStr + hashStr + hashStr
-}
-
 // Mutation to seed sample restaurant data
 export const seedRestaurants = mutation({
   args: {},
@@ -165,11 +144,7 @@ export const seedRestaurants = mutation({
     // Insert restaurants and collect IDs
     const restaurantIds = []
     for (const restaurant of restaurants) {
-      const key = generateRestaurantKey(restaurant.name, restaurant.address)
-      const id = await ctx.db.insert('restaurants', {
-        ...restaurant,
-        key,
-      })
+      const id = await ctx.db.insert('restaurants', restaurant)
       restaurantIds.push(id)
     }
 
