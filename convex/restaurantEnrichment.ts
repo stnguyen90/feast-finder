@@ -18,7 +18,7 @@ export const enrichRestaurantData = internalAction({
   returns: v.null(),
   handler: async (ctx, args) => {
     // Get the restaurant data
-    const restaurant = await ctx.runQuery(internal.restaurants.getRestaurantInternal, {
+    const restaurant = await ctx.runQuery(internal.restaurants.getRestaurant, {
       id: args.restaurantId,
     })
 

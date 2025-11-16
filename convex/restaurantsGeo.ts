@@ -212,64 +212,6 @@ export const queryRestaurantsInBounds = query({
 })
 
 /**
- * Query restaurants nearest to a specific point
- * Useful for "find restaurants near me" functionality
- */
-export const queryNearestRestaurants = query({
-  args: {
-    latitude: v.number(),
-    longitude: v.number(),
-    maxResults: v.optional(v.number()),
-    maxDistanceMeters: v.optional(v.number()),
-  },
-  returns: v.array(
-    v.object({
-      _id: v.id('restaurants'),
-      _creationTime: v.number(),
-      key: v.optional(v.string()),
-      name: v.string(),
-      rating: v.optional(v.number()),
-      latitude: v.optional(v.number()),
-      longitude: v.optional(v.number()),
-      address: v.optional(v.string()),
-      websiteUrl: v.optional(v.string()),
-      yelpUrl: v.optional(v.string()),
-      openTableUrl: v.optional(v.string()),
-      categories: v.optional(v.array(v.string())),
-      brunchPrice: v.optional(v.number()),
-      lunchPrice: v.optional(v.number()),
-      dinnerPrice: v.optional(v.number()),
-      distance: v.number(),
-    }),
-  ),
-  handler: async (ctx, args) => {
-    const { latitude, longitude, maxResults = 10, maxDistanceMeters } = args
-
-    // Query geospatial index for nearest restaurants
-    const geoResults = await restaurantsIndex.queryNearest(
-      ctx,
-      { latitude, longitude },
-      maxResults,
-      maxDistanceMeters,
-    )
-
-    // Fetch full restaurant details for each ID
-    const restaurants = []
-    for (const result of geoResults) {
-      const restaurant = await ctx.db.get(result.key)
-      if (restaurant) {
-        restaurants.push({
-          ...restaurant,
-          distance: result.distance,
-        })
-      }
-    }
-
-    return restaurants
-  },
-})
-
-/**
  * Internal mutation to sync a restaurant to the geospatial index
  * Called when a restaurant is added or updated
  */
@@ -296,54 +238,6 @@ export const syncRestaurantToIndex = internalMutation({
     }
 
     return null
-  },
-})
-
-/**
- * Internal mutation to remove a restaurant from the geospatial index
- */
-export const removeRestaurantFromIndex = internalMutation({
-  args: {
-    restaurantId: v.id('restaurants'),
-  },
-  returns: v.null(),
-  handler: async (ctx, args) => {
-    await restaurantsIndex.remove(ctx, args.restaurantId)
-    return null
-  },
-})
-
-/**
- * Internal mutation to sync all existing restaurants to the geospatial index
- * 
- * INTERNAL ONLY: This function performs a bulk database migration and should only
- * be called by backend processes, migration scripts, or other internal Convex functions.
- * It is not intended for frontend invocation.
- */
-export const syncAllRestaurantsToIndex = internalMutation({
-  args: {},
-  returns: v.object({
-    synced: v.number(),
-  }),
-  handler: async (ctx) => {
-    const restaurants = await ctx.db.query('restaurants').collect()
-
-    let synced = 0
-    for (const restaurant of restaurants) {
-      // Only sync restaurants with coordinates
-      if (restaurant.latitude !== undefined && restaurant.longitude !== undefined) {
-        await restaurantsIndex.insert(
-          ctx,
-          restaurant._id,
-          { latitude: restaurant.latitude, longitude: restaurant.longitude },
-          { categories: restaurant.categories || [] },
-          restaurant.rating || 0,
-        )
-        synced++
-      }
-    }
-
-    return { synced }
   },
 })
 
