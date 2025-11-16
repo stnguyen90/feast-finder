@@ -1,9 +1,10 @@
 import { v } from 'convex/values'
-import { mutation } from './_generated/server'
+import { internalMutation } from './_generated/server'
 import { internal } from './_generated/api'
 
-// Mutation to seed sample restaurant data
-export const seedRestaurants = mutation({
+// Internal mutation to seed sample restaurant data
+// This can only be called from backend, not from frontend
+export const seedRestaurants = internalMutation({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {
@@ -26,9 +27,6 @@ export const seedRestaurants = mutation({
         yelpUrl: 'https://www.yelp.com/biz/the-french-laundry-yountville',
         openTableUrl: 'https://www.opentable.com/the-french-laundry',
         categories: ['French', 'Fine Dining', 'Contemporary'],
-        hasBrunch: false,
-        hasLunch: true,
-        hasDinner: true,
         lunchPrice: 350,
         dinnerPrice: 350,
       },
@@ -42,9 +40,6 @@ export const seedRestaurants = mutation({
         yelpUrl: 'https://www.yelp.com/biz/zuni-cafe-san-francisco',
         openTableUrl: 'https://www.opentable.com/zuni-cafe',
         categories: ['American', 'Mediterranean', 'Italian'],
-        hasBrunch: true,
-        hasLunch: true,
-        hasDinner: true,
         brunchPrice: 45,
         lunchPrice: 35,
         dinnerPrice: 55,
@@ -59,9 +54,6 @@ export const seedRestaurants = mutation({
         yelpUrl: 'https://www.yelp.com/biz/state-bird-provisions-san-francisco',
         openTableUrl: 'https://www.opentable.com/state-bird-provisions',
         categories: ['American', 'Contemporary', 'Dim Sum'],
-        hasBrunch: false,
-        hasLunch: false,
-        hasDinner: true,
         dinnerPrice: 75,
       },
       {
@@ -74,9 +66,6 @@ export const seedRestaurants = mutation({
         yelpUrl:
           'https://www.yelp.com/biz/tartine-bakery-and-cafe-san-francisco',
         categories: ['Bakery', 'Café', 'Breakfast'],
-        hasBrunch: true,
-        hasLunch: true,
-        hasDinner: false,
         brunchPrice: 20,
         lunchPrice: 25,
       },
@@ -90,9 +79,6 @@ export const seedRestaurants = mutation({
         yelpUrl: 'https://www.yelp.com/biz/gary-danko-san-francisco',
         openTableUrl: 'https://www.opentable.com/gary-danko',
         categories: ['French', 'American', 'Fine Dining'],
-        hasBrunch: false,
-        hasLunch: false,
-        hasDinner: true,
         dinnerPrice: 150,
       },
       {
@@ -105,9 +91,6 @@ export const seedRestaurants = mutation({
         yelpUrl: 'https://www.yelp.com/biz/nopa-san-francisco',
         openTableUrl: 'https://www.opentable.com/nopa',
         categories: ['American', 'California Cuisine', 'Contemporary'],
-        hasBrunch: true,
-        hasLunch: false,
-        hasDinner: true,
         brunchPrice: 35,
         dinnerPrice: 65,
       },
@@ -119,9 +102,6 @@ export const seedRestaurants = mutation({
         address: '2889 Mission St, San Francisco, CA 94110',
         yelpUrl: 'https://www.yelp.com/biz/la-taqueria-san-francisco-2',
         categories: ['Mexican', 'Tacos', 'Burritos'],
-        hasBrunch: false,
-        hasLunch: true,
-        hasDinner: true,
         lunchPrice: 15,
         dinnerPrice: 15,
       },
@@ -133,9 +113,6 @@ export const seedRestaurants = mutation({
         address: '1517 Polk St, San Francisco, CA 94109',
         yelpUrl: 'https://www.yelp.com/biz/swan-oyster-depot-san-francisco',
         categories: ['Seafood', 'Oyster Bar', 'Casual'],
-        hasBrunch: false,
-        hasLunch: true,
-        hasDinner: false,
         lunchPrice: 45,
       },
       {
@@ -148,9 +125,6 @@ export const seedRestaurants = mutation({
         yelpUrl: 'https://www.yelp.com/biz/flour-water-san-francisco',
         openTableUrl: 'https://www.opentable.com/flour-water',
         categories: ['Italian', 'Pasta', 'Contemporary'],
-        hasBrunch: false,
-        hasLunch: false,
-        hasDinner: true,
         dinnerPrice: 70,
       },
       {
@@ -163,9 +137,6 @@ export const seedRestaurants = mutation({
         yelpUrl:
           'https://www.yelp.com/biz/mamas-on-washington-square-san-francisco',
         categories: ['Breakfast', 'Brunch', 'American'],
-        hasBrunch: true,
-        hasLunch: true,
-        hasDinner: false,
         brunchPrice: 25,
         lunchPrice: 30,
       },
@@ -194,8 +165,9 @@ export const seedRestaurants = mutation({
   },
 })
 
-// Mutation to seed sample restaurant week events
-export const seedEvents = mutation({
+// Internal mutation to seed sample restaurant week events
+// This can only be called from backend, not from frontend
+export const seedEvents = internalMutation({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {

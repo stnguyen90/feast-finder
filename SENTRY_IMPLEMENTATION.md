@@ -38,7 +38,7 @@ This document describes the Sentry integration implementation for Feast Finder, 
    - Client-side: `import('./sentry.client.config')`
    - Server-side: `import('./sentry.server.config')`
 
-2. **src/routes/__root.tsx**: Added Sentry ErrorBoundary
+2. **src/routes/\_\_root.tsx**: Added Sentry ErrorBoundary
    - Wraps entire application
    - Custom fallback UI
    - Error dialog support
@@ -62,12 +62,14 @@ This document describes the Sentry integration implementation for Feast Finder, 
 ### ✅ Error Tracking (Client & Server)
 
 **Client-side:**
+
 - Automatic uncaught exception capture
 - Unhandled promise rejection capture
 - Error boundary integration
 - Manual error capture with `Sentry.captureException()`
 
 **Server-side:**
+
 - Server-side error capture
 - Request context tracking
 - Sensitive header filtering
@@ -103,11 +105,13 @@ This document describes the Sentry integration implementation for Feast Finder, 
 ### ✅ Security & Privacy
 
 **Sensitive Data Filtering:**
+
 - Query parameters: token, api_key, apikey, password
 - Request headers: authorization, cookie, x-api-key
 - Custom `beforeSend` hook for additional filtering
 
 **Best Practices:**
+
 - No PII (Personally Identifiable Information) sent by default
 - Configurable data scrubbing
 - HTTPS-only communication with Sentry
@@ -141,12 +145,14 @@ SENTRY_AUTH_TOKEN=your_sentry_auth_token
 ### Configuration Options
 
 **Client-side (src/sentry.client.config.ts):**
+
 - `tracesSampleRate`: Percentage of transactions to track (0.0 - 1.0)
 - `replaysSessionSampleRate`: Percentage of sessions to record (0.0 - 1.0)
 - `replaysOnErrorSampleRate`: Percentage of error sessions to record (0.0 - 1.0)
 - `debug`: Enable debug logging (default: true in development)
 
 **Server-side (src/sentry.server.config.ts):**
+
 - `tracesSampleRate`: Percentage of transactions to track (0.0 - 1.0)
 - `debug`: Enable debug logging (default: true in development)
 
@@ -301,6 +307,7 @@ Access your Sentry dashboard at [sentry.io](https://sentry.io) to view:
 ## Cost Considerations
 
 Sentry offers a free tier with:
+
 - 5,000 errors/month
 - 10,000 performance units/month
 - 50 replay recordings/month
@@ -340,6 +347,7 @@ For production applications, consider upgrading to a paid plan based on usage.
 ## Support
 
 For issues or questions:
+
 1. Check this document
 2. Review Sentry documentation
 3. Check Sentry dashboard for captured events

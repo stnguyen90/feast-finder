@@ -1,6 +1,8 @@
 import { v } from 'convex/values'
-import { internalMutation, mutation, query } from './_generated/server'
+import { action, internalMutation, query } from './_generated/server'
+import { api } from './_generated/api'
 import { restaurantsIndex } from './geospatial'
+import { autumn } from './autumn'
 
 /**
  * Query restaurants within a bounding box (map viewport) with optional price filtering
@@ -31,18 +33,16 @@ export const queryRestaurantsInBounds = query({
       v.object({
         _id: v.id('restaurants'),
         _creationTime: v.number(),
+        key: v.optional(v.string()),
         name: v.string(),
-        rating: v.number(),
-        latitude: v.number(),
-        longitude: v.number(),
-        address: v.string(),
+        rating: v.optional(v.number()),
+        latitude: v.optional(v.number()),
+        longitude: v.optional(v.number()),
+        address: v.optional(v.string()),
         websiteUrl: v.optional(v.string()),
         yelpUrl: v.optional(v.string()),
         openTableUrl: v.optional(v.string()),
-        categories: v.array(v.string()),
-        hasBrunch: v.boolean(),
-        hasLunch: v.boolean(),
-        hasDinner: v.boolean(),
+        categories: v.optional(v.array(v.string())),
         brunchPrice: v.optional(v.number()),
         lunchPrice: v.optional(v.number()),
         dinnerPrice: v.optional(v.number()),
@@ -63,6 +63,20 @@ export const queryRestaurantsInBounds = query({
       maxDinnerPrice,
       categories,
     } = args
+
+    // Determine which price filters are active
+    const hasBrunchFilter =
+      minBrunchPrice !== undefined || maxBrunchPrice !== undefined
+    const hasLunchFilter =
+      minLunchPrice !== undefined || maxLunchPrice !== undefined
+    const hasDinnerFilter =
+      minDinnerPrice !== undefined || maxDinnerPrice !== undefined
+    const hasPriceFilters = hasBrunchFilter || hasLunchFilter || hasDinnerFilter
+    const hasCategoryFilter = categories !== undefined && categories.length > 0
+
+    // Note: Server-side premium access validation cannot be done in queries
+    // because autumn.check() uses fetch internally, which isn't allowed in queries.
+    // Use the action-based queryRestaurantsInBoundsWithAuth for server-side validation.
 
     // Query geospatial index for restaurant IDs in the bounding box
     const geoResults = await restaurantsIndex.query(
@@ -93,16 +107,6 @@ export const queryRestaurantsInBounds = query({
       }
     }
 
-    // Determine which price filters are active
-    const hasBrunchFilter =
-      minBrunchPrice !== undefined || maxBrunchPrice !== undefined
-    const hasLunchFilter =
-      minLunchPrice !== undefined || maxLunchPrice !== undefined
-    const hasDinnerFilter =
-      minDinnerPrice !== undefined || maxDinnerPrice !== undefined
-    const hasPriceFilters = hasBrunchFilter || hasLunchFilter || hasDinnerFilter
-    const hasCategoryFilter = categories !== undefined && categories.length > 0
-
     // Query database with combined geospatial and price filtering
     let restaurantsQuery = ctx.db.query('restaurants')
 
@@ -117,12 +121,9 @@ export const queryRestaurantsInBounds = query({
         // Build price filter conditions
         const priceConditions = []
 
-        // Brunch price filter
+        // Brunch price filter - just check if price exists and is in range
         if (hasBrunchFilter) {
-          let brunchCondition = q.and(
-            q.eq(q.field('hasBrunch'), true),
-            q.neq(q.field('brunchPrice'), undefined),
-          )
+          let brunchCondition = q.neq(q.field('brunchPrice'), undefined)
 
           if (minBrunchPrice !== undefined) {
             brunchCondition = q.and(
@@ -143,10 +144,7 @@ export const queryRestaurantsInBounds = query({
 
         // Lunch price filter
         if (hasLunchFilter) {
-          let lunchCondition = q.and(
-            q.eq(q.field('hasLunch'), true),
-            q.neq(q.field('lunchPrice'), undefined),
-          )
+          let lunchCondition = q.neq(q.field('lunchPrice'), undefined)
 
           if (minLunchPrice !== undefined) {
             lunchCondition = q.and(
@@ -167,10 +165,7 @@ export const queryRestaurantsInBounds = query({
 
         // Dinner price filter
         if (hasDinnerFilter) {
-          let dinnerCondition = q.and(
-            q.eq(q.field('hasDinner'), true),
-            q.neq(q.field('dinnerPrice'), undefined),
-          )
+          let dinnerCondition = q.neq(q.field('dinnerPrice'), undefined)
 
           if (minDinnerPrice !== undefined) {
             dinnerCondition = q.and(
@@ -205,7 +200,7 @@ export const queryRestaurantsInBounds = query({
     // This is efficient since we're only filtering a small subset from geospatial query
     if (hasCategoryFilter) {
       restaurants = restaurants.filter((restaurant) =>
-        restaurant.categories.some((category) => categories.includes(category)),
+        restaurant.categories?.some((category) => categories.includes(category)),
       )
     }
 
@@ -213,66 +208,6 @@ export const queryRestaurantsInBounds = query({
       results: restaurants,
       nextCursor: geoResults.nextCursor,
     }
-  },
-})
-
-/**
- * Query restaurants nearest to a specific point
- * Useful for "find restaurants near me" functionality
- */
-export const queryNearestRestaurants = query({
-  args: {
-    latitude: v.number(),
-    longitude: v.number(),
-    maxResults: v.optional(v.number()),
-    maxDistanceMeters: v.optional(v.number()),
-  },
-  returns: v.array(
-    v.object({
-      _id: v.id('restaurants'),
-      _creationTime: v.number(),
-      name: v.string(),
-      rating: v.number(),
-      latitude: v.number(),
-      longitude: v.number(),
-      address: v.string(),
-      websiteUrl: v.optional(v.string()),
-      yelpUrl: v.optional(v.string()),
-      openTableUrl: v.optional(v.string()),
-      categories: v.array(v.string()),
-      hasBrunch: v.boolean(),
-      hasLunch: v.boolean(),
-      hasDinner: v.boolean(),
-      brunchPrice: v.optional(v.number()),
-      lunchPrice: v.optional(v.number()),
-      dinnerPrice: v.optional(v.number()),
-      distance: v.number(),
-    }),
-  ),
-  handler: async (ctx, args) => {
-    const { latitude, longitude, maxResults = 10, maxDistanceMeters } = args
-
-    // Query geospatial index for nearest restaurants
-    const geoResults = await restaurantsIndex.queryNearest(
-      ctx,
-      { latitude, longitude },
-      maxResults,
-      maxDistanceMeters,
-    )
-
-    // Fetch full restaurant details for each ID
-    const restaurants = []
-    for (const result of geoResults) {
-      const restaurant = await ctx.db.get(result.key)
-      if (restaurant) {
-        restaurants.push({
-          ...restaurant,
-          distance: result.distance,
-        })
-      }
-    }
-
-    return restaurants
   },
 })
 
@@ -291,57 +226,125 @@ export const syncRestaurantToIndex = internalMutation({
       throw new Error('Restaurant not found')
     }
 
-    // Insert or update in geospatial index
-    await restaurantsIndex.insert(
-      ctx,
-      restaurant._id,
-      { latitude: restaurant.latitude, longitude: restaurant.longitude },
-      { categories: restaurant.categories },
-      restaurant.rating, // Use rating as sort key for ordering results
-    )
-
-    return null
-  },
-})
-
-/**
- * Internal mutation to remove a restaurant from the geospatial index
- */
-export const removeRestaurantFromIndex = internalMutation({
-  args: {
-    restaurantId: v.id('restaurants'),
-  },
-  returns: v.null(),
-  handler: async (ctx, args) => {
-    await restaurantsIndex.remove(ctx, args.restaurantId)
-    return null
-  },
-})
-
-/**
- * Mutation to sync all existing restaurants to the geospatial index
- * This should be run once to migrate existing data
- */
-export const syncAllRestaurantsToIndex = mutation({
-  args: {},
-  returns: v.object({
-    synced: v.number(),
-  }),
-  handler: async (ctx) => {
-    const restaurants = await ctx.db.query('restaurants').collect()
-
-    let synced = 0
-    for (const restaurant of restaurants) {
+    // Only insert into geospatial index if coordinates exist
+    if (restaurant.latitude !== undefined && restaurant.longitude !== undefined) {
       await restaurantsIndex.insert(
         ctx,
         restaurant._id,
         { latitude: restaurant.latitude, longitude: restaurant.longitude },
-        { categories: restaurant.categories },
-        restaurant.rating,
+        { categories: restaurant.categories || [] },
+        restaurant.rating || 0, // Use rating as sort key, default to 0 if not set
       )
-      synced++
     }
 
-    return { synced }
+    return null
+  },
+})
+
+/**
+ * Action to query restaurants with server-side premium access validation
+ * This action validates filter usage against Autumn premium access before returning results
+ */
+export const queryRestaurantsInBoundsWithAuth = action({
+  args: {
+    bounds: v.object({
+      north: v.number(),
+      south: v.number(),
+      east: v.number(),
+      west: v.number(),
+    }),
+    limit: v.optional(v.number()),
+    cursor: v.optional(v.string()),
+    // Price filter parameters
+    minBrunchPrice: v.optional(v.number()),
+    maxBrunchPrice: v.optional(v.number()),
+    minLunchPrice: v.optional(v.number()),
+    maxLunchPrice: v.optional(v.number()),
+    minDinnerPrice: v.optional(v.number()),
+    maxDinnerPrice: v.optional(v.number()),
+    // Category filter parameter
+    categories: v.optional(v.array(v.string())),
+  },
+  returns: v.object({
+    results: v.array(
+      v.object({
+        _id: v.id('restaurants'),
+        _creationTime: v.number(),
+        key: v.optional(v.string()),
+        name: v.string(),
+        rating: v.optional(v.number()),
+        latitude: v.optional(v.number()),
+        longitude: v.optional(v.number()),
+        address: v.optional(v.string()),
+        websiteUrl: v.optional(v.string()),
+        yelpUrl: v.optional(v.string()),
+        openTableUrl: v.optional(v.string()),
+        categories: v.optional(v.array(v.string())),
+        brunchPrice: v.optional(v.number()),
+        lunchPrice: v.optional(v.number()),
+        dinnerPrice: v.optional(v.number()),
+      }),
+    ),
+    nextCursor: v.optional(v.string()),
+  }),
+  handler: async (ctx, args): Promise<{
+    results: Array<{
+      _id: any
+      _creationTime: number
+      key?: string
+      name: string
+      rating?: number
+      latitude?: number
+      longitude?: number
+      address?: string
+      websiteUrl?: string
+      yelpUrl?: string
+      openTableUrl?: string
+      categories?: Array<string>
+      brunchPrice?: number
+      lunchPrice?: number
+      dinnerPrice?: number
+    }>
+    nextCursor?: string
+  }> => {
+    const {
+      minBrunchPrice,
+      maxBrunchPrice,
+      minLunchPrice,
+      maxLunchPrice,
+      minDinnerPrice,
+      maxDinnerPrice,
+      categories,
+    } = args
+
+    // Determine which price filters are active
+    const hasBrunchFilter =
+      minBrunchPrice !== undefined || maxBrunchPrice !== undefined
+    const hasLunchFilter =
+      minLunchPrice !== undefined || maxLunchPrice !== undefined
+    const hasDinnerFilter =
+      minDinnerPrice !== undefined || maxDinnerPrice !== undefined
+    const hasCategoryFilter = categories !== undefined && categories.length > 0
+
+    // Count total active filters
+    const priceFilterCount = [hasBrunchFilter, hasLunchFilter, hasDinnerFilter].filter(Boolean).length
+    const categoryFilterCount = hasCategoryFilter ? 1 : 0
+    const totalFilters = priceFilterCount + categoryFilterCount
+
+    // Server-side check: If user is using multiple filters, verify premium access
+    if (totalFilters > 1) {
+      const result = await autumn.check(ctx, {
+        featureId: 'advanced-filters',
+      })
+
+      if (result.error || !result.data?.allowed) {
+        throw new Error(
+          'Premium access required to use multiple filters. Please upgrade to continue.',
+        )
+      }
+    }
+
+    // Call the query to fetch restaurants
+    return await ctx.runQuery(api.restaurantsGeo.queryRestaurantsInBounds, args)
   },
 })

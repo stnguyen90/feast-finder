@@ -3,10 +3,10 @@ import * as Sentry from '@sentry/tanstackstart-react'
 // Initialize Sentry for server-side error tracking
 Sentry.init({
   dsn: process.env.VITE_SENTRY_DSN,
-  
+
   // Set environment
   environment: process.env.NODE_ENV || 'development',
-  
+
   // Performance Monitoring
   integrations: [
     // Capture console logs on server
@@ -14,17 +14,17 @@ Sentry.init({
       levels: ['error', 'warn'],
     }),
   ],
-  
+
   // Performance Monitoring sample rate
   // 1.0 = 100% of transactions are sent
   tracesSampleRate: 1.0,
-  
+
   // Enable Sentry debug mode in development
   debug: process.env.NODE_ENV === 'development',
-  
+
   // Send default PII (Personally Identifiable Information)
   sendDefaultPii: false,
-  
+
   // Before sending events, filter out potential sensitive data
   beforeSend(event) {
     // Filter out potential sensitive data from server requests
@@ -43,7 +43,7 @@ Sentry.init({
         // Invalid URL, skip filtering
       }
     }
-    
+
     // Filter sensitive headers
     if (event.request?.headers) {
       const sensitiveHeaders = ['authorization', 'cookie', 'x-api-key']
@@ -53,7 +53,7 @@ Sentry.init({
         }
       })
     }
-    
+
     return event
   },
 })

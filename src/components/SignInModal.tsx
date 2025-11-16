@@ -21,11 +21,12 @@ import { useAuthActions } from '@convex-dev/auth/react'
 interface SignInModalProps {
   isOpen: boolean
   onClose: () => void
+  onSuccess?: () => void
 }
 
 type AuthMode = 'signin' | 'signup'
 
-export function SignInModal({ isOpen, onClose }: SignInModalProps) {
+export function SignInModal({ isOpen, onClose, onSuccess }: SignInModalProps) {
   const [mode, setMode] = useState<AuthMode>('signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -50,7 +51,11 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
       setEmail('')
       setPassword('')
       setName('')
-      onClose()
+      if (onSuccess) {
+        onSuccess()
+      } else {
+        onClose()
+      }
     } catch (err) {
       setError(
         err instanceof Error
@@ -87,98 +92,113 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
         />
         <DialogPositioner>
           <DialogContent maxW="md" bg="bg.surface" color="text.primary">
-        <DialogHeader>
-          <DialogTitle color="text.primary">
-            {mode === 'signin' ? 'Sign In' : 'Create Account'}
-          </DialogTitle>
-          <DialogCloseTrigger />
-        </DialogHeader>
-        <DialogBody>
-          <Box as="form" onSubmit={handleSubmit}>
-            <VStack gap={4} align="stretch">
-              {mode === 'signup' && (
-                <Box>
-                  <Text mb={2} fontSize="sm" fontWeight="medium" color="text.primary">
-                    Name
-                  </Text>
-                  <Input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Enter your name"
-                    required
+            <DialogHeader>
+              <DialogTitle color="text.primary">
+                {mode === 'signin' ? 'Sign In' : 'Create Account'}
+              </DialogTitle>
+              <DialogCloseTrigger />
+            </DialogHeader>
+            <DialogBody>
+              <Box as="form" onSubmit={handleSubmit}>
+                <VStack gap={4} align="stretch">
+                  {mode === 'signup' && (
+                    <Box>
+                      <Text
+                        mb={2}
+                        fontSize="sm"
+                        fontWeight="medium"
+                        color="text.primary"
+                      >
+                        Name
+                      </Text>
+                      <Input
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Enter your name"
+                        required
+                        disabled={isLoading}
+                        color="text.primary"
+                        _placeholder={{ color: 'text.muted' }}
+                      />
+                    </Box>
+                  )}
+                  <Box>
+                    <Text
+                      mb={2}
+                      fontSize="sm"
+                      fontWeight="medium"
+                      color="text.primary"
+                    >
+                      Email
+                    </Text>
+                    <Input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Enter your email"
+                      required
+                      disabled={isLoading}
+                      color="text.primary"
+                      _placeholder={{ color: 'text.muted' }}
+                    />
+                  </Box>
+                  <Box>
+                    <Text
+                      mb={2}
+                      fontSize="sm"
+                      fontWeight="medium"
+                      color="text.primary"
+                    >
+                      Password
+                    </Text>
+                    <Input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Enter your password"
+                      required
+                      disabled={isLoading}
+                      color="text.primary"
+                      _placeholder={{ color: 'text.muted' }}
+                    />
+                  </Box>
+                  {error && (
+                    <Text color="red.500" fontSize="sm">
+                      {error}
+                    </Text>
+                  )}
+                  <Button
+                    type="submit"
+                    bg="brand.solid"
+                    color="brand.contrast"
+                    width="full"
                     disabled={isLoading}
-                    color="text.primary"
-                    _placeholder={{ color: 'text.muted' }}
-                  />
-                </Box>
-              )}
-              <Box>
-                <Text mb={2} fontSize="sm" fontWeight="medium" color="text.primary">
-                  Email
-                </Text>
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
-                  required
-                  disabled={isLoading}
-                  color="text.primary"
-                  _placeholder={{ color: 'text.muted' }}
-                />
+                  >
+                    {isLoading ? (
+                      <Spinner size="sm" />
+                    ) : mode === 'signin' ? (
+                      'Sign In'
+                    ) : (
+                      'Create Account'
+                    )}
+                  </Button>
+                  <Box textAlign="center">
+                    <Button
+                      variant="plain"
+                      onClick={toggleMode}
+                      size="sm"
+                      disabled={isLoading}
+                    >
+                      {mode === 'signin'
+                        ? "Don't have an account? Sign up"
+                        : 'Already have an account? Sign in'}
+                    </Button>
+                  </Box>
+                </VStack>
               </Box>
-              <Box>
-                <Text mb={2} fontSize="sm" fontWeight="medium" color="text.primary">
-                  Password
-                </Text>
-                <Input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  required
-                  disabled={isLoading}
-                  color="text.primary"
-                  _placeholder={{ color: 'text.muted' }}
-                />
-              </Box>
-              {error && (
-                <Text color="red.500" fontSize="sm">
-                  {error}
-                </Text>
-              )}
-              <Button
-                type="submit"
-                bg="brand.solid"
-                color="brand.contrast"
-                width="full"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <Spinner size="sm" />
-                ) : mode === 'signin' ? (
-                  'Sign In'
-                ) : (
-                  'Create Account'
-                )}
-              </Button>
-              <Box textAlign="center">
-                <Button
-                  variant="plain"
-                  onClick={toggleMode}
-                  size="sm"
-                  disabled={isLoading}
-                >
-                  {mode === 'signin'
-                    ? "Don't have an account? Sign up"
-                    : 'Already have an account? Sign in'}
-                </Button>
-              </Box>
-            </VStack>
-          </Box>
-        </DialogBody>
-      </DialogContent>
+            </DialogBody>
+          </DialogContent>
         </DialogPositioner>
       </Portal>
     </DialogRoot>

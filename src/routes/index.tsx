@@ -1,8 +1,7 @@
 import { Link as RouterLink, createFileRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
-import { useMutation } from 'convex/react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
   Badge,
   Box,
@@ -12,11 +11,16 @@ import {
   Flex,
   Heading,
   Link,
-  Spinner,
   Text,
   VisuallyHidden,
 } from '@chakra-ui/react'
-import { FaCalendar, FaFilter, FaGlobe, FaMapLocationDot, FaUtensils } from 'react-icons/fa6'
+import {
+  FaCalendar,
+  FaFilter,
+  FaGlobe,
+  FaMapLocationDot,
+  FaUtensils,
+} from 'react-icons/fa6'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { Header } from '~/components/Header'
@@ -47,28 +51,7 @@ function LandingPage() {
     convexQuery(api.events.listActiveEvents, {}),
   )
 
-  const seedEvents = useMutation(api.seedData.seedEvents)
-  const [isSeeding, setIsSeeding] = useState(false)
-  const [hasAttemptedSeed, setHasAttemptedSeed] = useState(false)
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
-
-  // Auto-seed events on first load if no events exist
-  useEffect(() => {
-    if (events.length === 0 && !isSeeding && !hasAttemptedSeed) {
-      setIsSeeding(true)
-      setHasAttemptedSeed(true)
-      seedEvents({})
-        .then(() => {
-          console.log('Events seeded successfully')
-        })
-        .catch((error) => {
-          console.error('Error seeding events:', error)
-        })
-        .finally(() => {
-          setIsSeeding(false)
-        })
-    }
-  }, [events.length, seedEvents, isSeeding, hasAttemptedSeed])
 
   return (
     <Flex direction="column" minH="100vh" bg="bg.page">
@@ -78,14 +61,19 @@ function LandingPage() {
       <Container maxW="container.xl" py={12}>
         {/* Hero Section */}
         <Box textAlign="center" mb={16} position="relative">
-          <Heading size="5xl" mb={6} fontWeight="extrabold" color="text.primary">
+          <Heading
+            size="5xl"
+            mb={6}
+            fontWeight="extrabold"
+            color="text.primary"
+          >
             Discover Your Next
             <br />
             <Box
               as="span"
               bgGradient="to-r"
               gradientFrom="brand.solid"
-              gradientTo="purple.500"
+              gradientTo="brand.subtle"
               bgClip="text"
             >
               Culinary Adventure
@@ -182,14 +170,7 @@ function LandingPage() {
             Join special dining events featuring exclusive menus and experiences
           </Text>
 
-          {isSeeding ? (
-            <Center py={12}>
-              <Flex direction="column" align="center" gap={4}>
-                <Spinner size="xl" color="brand.solid" />
-                <Text color="text.secondary">Loading events...</Text>
-              </Flex>
-            </Center>
-          ) : events.length === 0 ? (
+          {events.length === 0 ? (
             <Center py={12}>
               <Box textAlign="center">
                 <Text fontSize="xl" color="text.secondary" mb={4}>
@@ -226,7 +207,9 @@ function LandingPage() {
                     >
                       <Box flex={1}>
                         <Flex align="center" gap={3} mb={4}>
-                          <Heading size="lg" color="text.primary">{event.name}</Heading>
+                          <Heading size="lg" color="text.primary">
+                            {event.name}
+                          </Heading>
                           {isActive && (
                             <Badge
                               colorScheme="green"
@@ -288,10 +271,17 @@ function LandingPage() {
                             </Link>
                           </Box>
                         )}
-                        <Button asChild bg="brand.solid" color="brand.contrast" size="lg">
-                          <RouterLink 
-                            to="/events/$eventName" 
-                            params={{ eventName: encodeURIComponent(event.name) }}
+                        <Button
+                          asChild
+                          bg="brand.solid"
+                          color="brand.contrast"
+                          size="lg"
+                        >
+                          <RouterLink
+                            to="/events/$eventName"
+                            params={{
+                              eventName: encodeURIComponent(event.name),
+                            }}
                           >
                             View Restaurants
                           </RouterLink>
@@ -322,4 +312,3 @@ function LandingPage() {
 }
 
 // Component to display authenticated user header
-

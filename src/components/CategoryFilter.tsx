@@ -20,6 +20,7 @@ interface CategoryFilterProps {
   onApply?: () => void
   initialValues?: Array<string>
   hideButtons?: boolean
+  disabled?: boolean
 }
 
 export function CategoryFilter({
@@ -28,6 +29,7 @@ export function CategoryFilter({
   onApply,
   initialValues = [],
   hideButtons = false,
+  disabled = false,
 }: CategoryFilterProps) {
   // Fetch all available categories from the database (use regular useQuery to prevent flicker)
   const { data: availableCategories = [] } = useQuery(
@@ -46,7 +48,7 @@ export function CategoryFilter({
   // Filter categories based on search value
   const filteredCategories = useMemo(
     () =>
-      availableCategories.filter((cat) =>
+      availableCategories.filter((cat: string) =>
         cat.toLowerCase().includes(searchValue.toLowerCase()),
       ),
     [availableCategories, searchValue],
@@ -56,7 +58,7 @@ export function CategoryFilter({
   const collection = useMemo(
     () =>
       createListCollection({
-        items: filteredCategories.map((cat) => ({ label: cat, value: cat })),
+        items: filteredCategories.map((cat: string) => ({ label: cat, value: cat })),
       }),
     [filteredCategories],
   )
@@ -103,11 +105,13 @@ export function CategoryFilter({
         value={selectedCategories}
         onValueChange={handleValueChange}
         onInputValueChange={(e) => setSearchValue(e.inputValue)}
+        disabled={disabled}
       >
         <Combobox.Control>
           <Combobox.Input
             placeholder="Select categories..."
             color="text.primary"
+            disabled={disabled}
           />
           <Combobox.IndicatorGroup>
             <Combobox.ClearTrigger />
@@ -118,7 +122,7 @@ export function CategoryFilter({
           <Combobox.Positioner>
             <Combobox.Content>
               <Combobox.Empty>No items found</Combobox.Empty>
-              {collection.items.map((item) => (
+              {collection.items.map((item: { label: string; value: string }) => (
                 <Combobox.Item key={item.value} item={item}>
                   <Combobox.ItemText color="text.primary">
                     {item.label}

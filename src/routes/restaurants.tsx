@@ -1,19 +1,16 @@
 import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
-import { useSuspenseQuery, useQuery as useTanStackQuery } from '@tanstack/react-query'
-import { convexQuery } from '@convex-dev/react-query'
-import { useMutation } from 'convex/react'
+import { useAction } from 'convex/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
+  Alert,
   Box,
   Button,
-  Center,
   Flex,
   HStack,
   IconButton,
-  Spinner,
-  Text,
   VStack,
 } from '@chakra-ui/react'
+import { useCustomer } from 'autumn-js/react'
 import { api } from '../../convex/_generated/api'
 import type { MapBounds, Restaurant } from '~/components/RestaurantMap'
 import type { PriceFilterState } from '~/components/PriceFilter'
@@ -23,6 +20,7 @@ import { CategoryFilter } from '~/components/CategoryFilter'
 import { RestaurantDetail } from '~/components/RestaurantDetail'
 import { RestaurantMap } from '~/components/RestaurantMap'
 import { SignInModal } from '~/components/SignInModal'
+import { PREMIUM_FEATURES } from '~/lib/premiumFeatures'
 
 // Define search params schema for URL state
 interface SearchParams {
@@ -80,7 +78,7 @@ function Restaurants() {
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null)
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
   const filterPanelRef = useRef<HTMLDivElement | null>(null)
-  
+
   // Authentication modal state
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
 
@@ -103,6 +101,32 @@ function Restaurants() {
     [searchParams.categories],
   )
 
+  // Check premium access for advanced filters
+  const { customer, check, checkout, refetch } = useCustomer()
+
+  // Check if user is signed in (customer will be null if not signed in)
+  // Recompute whenever customer changes (e.g., after sign in)
+  const isSignedIn = useMemo(() => customer !== null, [customer])
+
+  // Check if user has access to advanced filters
+  const hasAdvancedFilters = useMemo(() => {
+    if (!customer) return false
+    const result = check({ featureId: PREMIUM_FEATURES.ADVANCED_FILTERS })
+    return result.data.allowed
+  }, [customer, check])
+
+  // Check if free user is using any filters
+  const isUsingAnyFilters = useMemo(() => {
+    const priceFilterCount = Object.values(priceFilters).filter(
+      (v) => v !== undefined,
+    ).length
+    const categoryCount = selectedCategories.length
+    return priceFilterCount + categoryCount >= 1
+  }, [priceFilters, selectedCategories])
+
+  // Determine if filters should be disabled
+  const shouldDisableFilters = !hasAdvancedFilters && isUsingAnyFilters
+
   const [showFilters, setShowFilters] = useState(false)
 
   // Local state for pending filter changes (not yet applied)
@@ -120,77 +144,71 @@ function Restaurants() {
     setPendingCategories(selectedCategories)
   }, [selectedCategories])
 
-  // Always fetch all restaurants for now (used for seeding check only)
-  const { data: allRestaurants } = useSuspenseQuery(
-    convexQuery(api.restaurants.listRestaurants, {}),
-  )
+  // Check if pending changes would reduce filter count (enabling Apply)
+  const isPendingReducingFilters = useMemo(() => {
+    const currentFilterCount = Object.values(priceFilters).filter(
+      (v) => v !== undefined,
+    ).length + selectedCategories.length
+    
+    const pendingFilterCount = Object.values(pendingPriceFilters).filter(
+      (v) => v !== undefined,
+    ).length + pendingCategories.length
+    
+    return pendingFilterCount < currentFilterCount
+  }, [priceFilters, selectedCategories, pendingPriceFilters, pendingCategories])
 
-  // Fetch restaurants with both geospatial and price filtering in a single query
-  // Use regular useQuery with placeholderData to prevent flickering
-  const geoQueryArgs = mapBounds ?? { north: 0, south: 0, east: 0, west: 0 }
-  const { data: geoRestaurantsResult } = useTanStackQuery({
-    ...convexQuery(api.restaurantsGeo.queryRestaurantsInBounds, {
-      bounds: geoQueryArgs,
-      ...priceFilters, // Include all price filter parameters
-      categories: selectedCategories.length > 0 ? selectedCategories : undefined, // Include category filter
-    }),
-    placeholderData: (previousData) => previousData, // Keep previous data while loading
-  })
+  // Apply button should be enabled if:
+  // 1. User has premium (not shouldDisableFilters)
+  // 2. OR user is removing filters (isPendingReducingFilters)
+  const shouldDisableApplyButton = shouldDisableFilters && !isPendingReducingFilters
+
+  // Use action for server-side validated restaurant fetching
+  const queryRestaurantsAction = useAction(api.restaurantsGeo.queryRestaurantsInBoundsWithAuth)
+  const [geoRestaurantsResult, setGeoRestaurantsResult] = useState<{
+    results: Array<Restaurant>
+    nextCursor?: string
+  } | null>(null)
+
+  // Fetch restaurants when bounds or filters change
+  useEffect(() => {
+    if (!mapBounds) return
+
+    const fetchRestaurants = async () => {
+      try {
+        const result = await queryRestaurantsAction({
+          bounds: mapBounds,
+          ...priceFilters,
+          categories: selectedCategories.length > 0 ? selectedCategories : undefined,
+        })
+        setGeoRestaurantsResult(result)
+      } catch (error) {
+        console.error('Error fetching restaurants:', error)
+        // On error (e.g., premium required), clear results
+        setGeoRestaurantsResult({ results: [] })
+      }
+    }
+
+    fetchRestaurants()
+  }, [mapBounds, priceFilters, selectedCategories, queryRestaurantsAction])
 
   // Use geospatial results directly - filtering is done in database
   const restaurants = useMemo(() => {
     if (mapBounds !== null && geoRestaurantsResult) {
       return geoRestaurantsResult.results
     }
-    return allRestaurants
-  }, [mapBounds, geoRestaurantsResult, allRestaurants])
+    return []
+  }, [mapBounds, geoRestaurantsResult])
 
   const [selectedRestaurant, setSelectedRestaurant] =
     useState<Restaurant | null>(null)
 
-  const seedRestaurants = useMutation(api.seedData.seedRestaurants)
-  const syncAllToIndex = useMutation(
-    api.restaurantsGeo.syncAllRestaurantsToIndex,
-  )
-  const [isSeeding, setIsSeeding] = useState(false)
-
-  // Auto-seed on first load if no restaurants exist
-  useEffect(() => {
-    if (allRestaurants.length === 0 && !isSeeding) {
-      setIsSeeding(true)
-      seedRestaurants({})
-        .then(() => {
-          console.log('Restaurants seeded successfully')
-        })
-        .catch((error) => {
-          console.error('Error seeding restaurants:', error)
-        })
-        .finally(() => {
-          setIsSeeding(false)
-        })
-    }
-  }, [allRestaurants.length, seedRestaurants, isSeeding])
-
-  // Sync existing restaurants to geospatial index on first load
-  useEffect(() => {
-    if (allRestaurants.length > 0 && !isSeeding) {
-      // Only sync once - check if we've already synced
-      const hasSynced = localStorage.getItem('geospatial-synced')
-      if (!hasSynced) {
-        console.log('Syncing restaurants to geospatial index...')
-        syncAllToIndex({})
-          .then((result) => {
-            console.log(
-              `Synced ${result.synced} restaurants to geospatial index`,
-            )
-            localStorage.setItem('geospatial-synced', 'true')
-          })
-          .catch((error) => {
-            console.error('Error syncing to geospatial index:', error)
-          })
-      }
-    }
-  }, [allRestaurants.length, syncAllToIndex, isSeeding])
+  const handleUpgrade = useCallback(async () => {
+    await checkout({
+      productId: 'premium',
+      successUrl: window.location.href,
+      forceCheckout: true,
+    })
+  }, [checkout])
 
   const handleBoundsChange = useCallback(
     (
@@ -222,13 +240,10 @@ function Restaurants() {
     [navigate],
   )
 
-  const handleFilterChange = useCallback(
-    (filters: PriceFilterState) => {
-      // Update pending state, don't navigate yet
-      setPendingPriceFilters(filters)
-    },
-    [],
-  )
+  const handleFilterChange = useCallback((filters: PriceFilterState) => {
+    // Update pending state, don't navigate yet
+    setPendingPriceFilters(filters)
+  }, [])
 
   const handleCategoryFilterChange = useCallback(
     (categories: Array<string>) => {
@@ -283,9 +298,16 @@ function Restaurants() {
   // Click outside to close filters
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement
+      
+      // Don't close if clicking on the header
+      if (target.closest('header') || target.closest('[role="banner"]')) {
+        return
+      }
+      
       if (
         filterPanelRef.current &&
-        !filterPanelRef.current.contains(event.target as Node) &&
+        !filterPanelRef.current.contains(target) &&
         showFilters
       ) {
         setShowFilters(false)
@@ -302,34 +324,20 @@ function Restaurants() {
 
   return (
     <Flex direction="column" h="100vh" bg="bg.page">
-      <Header onSignInClick={() => setIsSignInModalOpen(true)} />
+      <Header onSignInClick={() => setIsSignInModalOpen(true)} onSignOut={() => refetch()} />
 
-      {isSeeding ? (
-        <Center flex={1} color="text.secondary">
-          <Flex direction="column" align="center" gap={4}>
-            <Spinner size="xl" color="brand.solid" />
-            <Text>Loading restaurants...</Text>
-          </Flex>
-        </Center>
-      ) : allRestaurants.length === 0 ? (
-        <Center flex={1} color="text.secondary">
-          <Text>
-            No restaurants found. Please wait while we load some sample data...
-          </Text>
-        </Center>
-      ) : (
-        <Box flex={1} position="relative">
-          <RestaurantMap
-            restaurants={restaurants}
-            onSelectRestaurant={setSelectedRestaurant}
-            onBoundsChange={handleBoundsChange}
-            initialCenter={
-              searchParams.lat && searchParams.lng
-                ? { lat: searchParams.lat, lng: searchParams.lng }
-                : undefined
-            }
-            initialZoom={searchParams.zoom}
-          />
+      <Box flex={1} position="relative">
+        <RestaurantMap
+          restaurants={restaurants}
+          onSelectRestaurant={setSelectedRestaurant}
+          onBoundsChange={handleBoundsChange}
+          initialCenter={
+            searchParams.lat && searchParams.lng
+              ? { lat: searchParams.lat, lng: searchParams.lng }
+              : { lat: 37.7749, lng: -122.4194 } // Default to San Francisco
+          }
+          initialZoom={searchParams.zoom ?? 12} // Default zoom level
+        />
 
           {/* Filter Panel */}
           <Box position="absolute" top={4} left={4} zIndex={1000}>
@@ -356,12 +364,43 @@ function Restaurants() {
                 maxW="400px"
               >
                 <VStack gap={4} align="stretch">
+                  {/* Premium Alert */}
+                  {!hasAdvancedFilters && (
+                    <Alert.Root status="info" variant="subtle">
+                      <Alert.Indicator />
+                      <Alert.Content flex="1">
+                        <Alert.Title>Advanced filters</Alert.Title>
+                        <Alert.Description>
+                          {isSignedIn
+                            ? 'Upgrade to use multiple filters'
+                            : 'Premium access is required to use multiple filters'}
+                        </Alert.Description>
+                      </Alert.Content>
+                      <Button
+                        onClick={
+                          isSignedIn
+                            ? handleUpgrade
+                            : () => setIsSignInModalOpen(true)
+                        }
+                        variant="ghost"
+                        size="sm"
+                        colorPalette="blue"
+                        _hover={{
+                          bg: { base: 'blue.200', _dark: 'blue.800' },
+                        }}
+                      >
+                        {isSignedIn ? 'Upgrade' : 'Sign In'}
+                      </Button>
+                    </Alert.Root>
+                  )}
+
                   {/* Price Filter */}
                   <PriceFilter
                     onFilterChange={handleFilterChange}
                     onClearFilters={() => setPendingPriceFilters({})}
                     initialValues={pendingPriceFilters}
                     hideButtons={true}
+                    disabled={shouldDisableFilters}
                   />
 
                   {/* Category Filter */}
@@ -370,6 +409,7 @@ function Restaurants() {
                     onClearFilters={() => setPendingCategories([])}
                     initialValues={pendingCategories}
                     hideButtons={true}
+                    disabled={shouldDisableFilters}
                   />
 
                   {/* Single set of buttons at the bottom */}
@@ -380,6 +420,7 @@ function Restaurants() {
                       size="sm"
                       flex={1}
                       onClick={handleApplyFilters}
+                      disabled={shouldDisableApplyButton}
                     >
                       Apply
                     </Button>
@@ -402,15 +443,17 @@ function Restaurants() {
             onClose={() => setSelectedRestaurant(null)}
           />
 
-          <SignInModal
-            isOpen={isSignInModalOpen}
-            onClose={() => setIsSignInModalOpen(false)}
-          />
-        </Box>
-      )}
+        <SignInModal
+          isOpen={isSignInModalOpen}
+          onClose={() => setIsSignInModalOpen(false)}
+          onSuccess={() => {
+            setIsSignInModalOpen(false)
+            refetch()
+          }}
+        />
+      </Box>
     </Flex>
   )
 }
 
 // Component to display authenticated user header
-

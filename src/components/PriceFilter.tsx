@@ -16,6 +16,7 @@ interface PriceFilterProps {
   onApply?: () => void
   initialValues?: PriceFilterState
   hideButtons?: boolean
+  disabled?: boolean
 }
 
 export function PriceFilter({
@@ -24,6 +25,7 @@ export function PriceFilter({
   onApply,
   initialValues,
   hideButtons = false,
+  disabled = false,
 }: PriceFilterProps) {
   const [minBrunchPrice, setMinBrunchPrice] = useState<string>(
     initialValues?.minBrunchPrice?.toString() ?? '',
@@ -127,6 +129,7 @@ export function PriceFilter({
               onChange={(e) => setMinBrunchPrice(e.target.value)}
               size="sm"
               color="text.primary"
+              disabled={disabled}
             />
             <Box color="text.secondary">-</Box>
             <Input
@@ -137,6 +140,7 @@ export function PriceFilter({
               onChange={(e) => setMaxBrunchPrice(e.target.value)}
               size="sm"
               color="text.primary"
+              disabled={disabled}
             />
           </HStack>
         </Box>
@@ -155,6 +159,7 @@ export function PriceFilter({
               onChange={(e) => setMinLunchPrice(e.target.value)}
               size="sm"
               color="text.primary"
+              disabled={disabled}
             />
             <Box color="text.secondary">-</Box>
             <Input
@@ -165,6 +170,7 @@ export function PriceFilter({
               onChange={(e) => setMaxLunchPrice(e.target.value)}
               size="sm"
               color="text.primary"
+              disabled={disabled}
             />
           </HStack>
         </Box>
@@ -183,6 +189,7 @@ export function PriceFilter({
               onChange={(e) => setMinDinnerPrice(e.target.value)}
               size="sm"
               color="text.primary"
+              disabled={disabled}
             />
             <Box color="text.secondary">-</Box>
             <Input
@@ -193,6 +200,7 @@ export function PriceFilter({
               onChange={(e) => setMaxDinnerPrice(e.target.value)}
               size="sm"
               color="text.primary"
+              disabled={disabled}
             />
           </HStack>
         </Box>

@@ -4,15 +4,33 @@
 
 Feast Finder is a modern web application built with React, Convex, and React Leaflet that helps users explore restaurant week events and discover dining experiences through an interactive map interface.
 
+## Built For TanStack Start Hackathon
+
+Feast Finder was created for the [TanStack Start Hackathon](https://www.convex.dev/hackathons/tanstack), showcasing the power of modern web technologies and seamless integrations.
+
+### Sponsors & Technologies
+
+This project leverages cutting-edge tools and services provided by our generous hackathon sponsors:
+
+- **[TanStack Start](https://tanstack.com/start)**: The core framework powering our full-stack application with server-side rendering, file-based routing, and seamless data fetching
+- **[Convex](https://www.convex.dev/)**: Our serverless database platform providing real-time data synchronization, backend functions, and geospatial indexing
+- **[CodeRabbit](https://coderabbit.ai/)**: AI-powered pull request review bot ensuring code quality and catching potential issues
+- **[Firecrawl](https://www.firecrawl.dev/)**: Used to extract structured data from restaurant week websites to populate our Convex database
+- **[Netlify](https://www.netlify.com/)**: Our web hosting platform with edge functions and continuous deployment
+- **[Autumn](https://www.getautumn.com/)**: Payment processing for premium access features
+- **[Sentry](https://sentry.io/)**: Integrated error tracking, performance monitoring, and user feedback for both client and server
+- **[Cloudflare](https://www.cloudflare.com/)**: Proxy layer providing analytics, DDoS protection, and intelligent caching
+
 ## Features
+
+### Free Features
 
 - 🔐 **User Authentication**: Sign up and sign in to create a personalized experience
 - 🎉 **Restaurant Week Events**: Browse upcoming restaurant week events with exclusive menus
+- 🕷️ **Web Scraping Integration**: Automatically extract restaurant data from event websites using Firecrawl
 - 🗺️ **Interactive Map**: Explore restaurants on an OpenStreetMap-powered interactive map
 - 📍 **Location Markers**: Each restaurant is marked on the map with its exact coordinates
 - 🔍 **Restaurant Details**: Click on any marker to view comprehensive restaurant information
-- 💲 **Price Filtering**: Filter restaurants by price range for brunch, lunch, or dinner
-- 🏷️ **Category Filtering**: Filter restaurants by cuisine types (e.g., French, Italian, Mexican)
 - 📊 **Rich Metadata**: View ratings, categories, meal times, prices, and external links
 - 🌙 **Dark Mode Support**: Built-in dark mode for comfortable viewing
 - ⚡ **Real-time Updates**: Powered by Convex for real-time data synchronization
@@ -20,10 +38,27 @@ Feast Finder is a modern web application built with React, Convex, and React Lea
 - 🌍 **Geospatial Indexing**: Efficient location-based queries using Convex Geospatial Component
 - 🎯 **Viewport-Based Loading**: Dynamically fetches restaurants visible in the current map view
 
+### Premium Features ⭐
+
+**Free Tier:**
+- 💲 **Single Filter**: Filter by ONE price range OR ONE category at a time
+- 🏷️ **Basic Filtering**: Choose one cuisine type or one meal price range
+- 🗺️ **Map Filtering**: Always available - filter by map viewport
+
+**Premium Tier:**
+- 💲 **Advanced Price Filtering**: Filter restaurants by multiple price ranges (brunch, lunch, and dinner) simultaneously
+- 🏷️ **Multi-Category Filtering**: Filter by multiple cuisine types at once
+- 🔀 **Combined Search**: Combine price and category filters for precise results
+- 📊 **Unlimited Filters**: Use as many filters as you want together
+
+Premium access is managed through [Autumn](https://docs.useautumn.com) for seamless subscription and payment handling.
+
 ## Pages
 
 ### Landing Page (`/`)
+
 The homepage showcases Feast Finder's purpose and features:
+
 - Hero section describing the app's benefits
 - Feature highlights (Interactive Map, Restaurant Week Events, Price Filtering)
 - Upcoming restaurant week events with detailed descriptions
@@ -31,14 +66,18 @@ The homepage showcases Feast Finder's purpose and features:
 - Fallback messaging when no events are available
 
 ### Event Pages (`/events/$eventName`)
+
 Dynamic pages that show restaurants participating in specific events:
+
 - Event information banner with dates and restaurant count
 - Interactive map showing only restaurants in that event
 - Full restaurant details via click-through modals
 - Event-specific filtering based on menu participation
 
 ### Restaurants Page (`/restaurants`)
+
 Interactive map interface for exploring all restaurants:
+
 - Full-screen map with restaurant markers
 - Price filter panel for brunch, lunch, and dinner
 - Category filter panel to filter by cuisine types
@@ -156,11 +195,43 @@ Feast Finder uses Convex Auth for secure user authentication:
 For complete setup instructions, see [AUTHENTICATION.md](./AUTHENTICATION.md).
 
 **Authentication Features:**
+
 - 🔐 Email and password sign-up and sign-in
 - 👤 User profile display in header
 - 🚪 Sign out functionality
 - 🔄 Real-time authentication state updates
 - 🔒 Secure password hashing and session management
+
+### Autumn Setup (Premium Features)
+
+Feast Finder uses [Autumn](https://docs.useautumn.com) for premium access management:
+
+1. Sign up for Autumn at [app.useautumn.com](https://app.useautumn.com)
+
+2. Get your API key from the Autumn Dashboard:
+   - Navigate to Settings → API Keys
+   - Copy your test secret key (starts with `am_sk_`)
+
+3. Add to Convex Dashboard environment variables:
+   - Go to `https://dashboard.convex.dev`
+   - Navigate to your project's Settings → Environment Variables
+   - Add `AUTUMN_SECRET_KEY` with your Autumn API key
+
+4. Run `npx convex dev` and `npx convex codegen` to generate Autumn component types
+
+5. Create products in Autumn Dashboard:
+   - Create a "Free" tier (base product)
+   - Create a "Premium" tier with feature: `advanced-filters`
+   - Set pricing and connect Stripe
+
+For complete setup instructions, see [AUTUMN_INTEGRATION.md](./AUTUMN_INTEGRATION.md).
+
+**Premium Features:**
+
+- ⭐ Advanced filtering by price and category
+- 🔀 Multi-filter search capabilities
+- 💳 Seamless Stripe payment integration
+- 📊 Usage tracking and analytics
 
 ### Sentry Setup (Optional)
 
@@ -176,6 +247,7 @@ VITE_SENTRY_DSN=your_sentry_dsn_here
 ```
 
 **Features enabled:**
+
 - ✅ Error tracking (client & server)
 - ✅ Performance monitoring
 - ✅ Session replay (10% of sessions, 100% with errors)
@@ -183,6 +255,7 @@ VITE_SENTRY_DSN=your_sentry_dsn_here
 - ✅ Console log capture (errors & warnings)
 
 For production source map uploads, also add:
+
 ```bash
 SENTRY_ORG=your_sentry_org
 SENTRY_PROJECT=your_sentry_project
@@ -190,6 +263,35 @@ SENTRY_AUTH_TOKEN=your_sentry_auth_token
 ```
 
 See `.env.local.example` for a complete template.
+
+### Firecrawl Setup (Optional)
+
+For automated restaurant data extraction from event websites:
+
+1. Create a Firecrawl account at [firecrawl.dev](https://www.firecrawl.dev/)
+2. Get your API key from the dashboard
+3. Add to Convex environment variables:
+   - Go to your Convex dashboard at `https://dashboard.convex.dev`
+   - Navigate to your project's Settings → Environment Variables
+   - Add `FIRECRAWL_API_KEY` with your API key
+
+**Usage:**
+
+You can trigger the crawler by calling the `crawlRestaurantWeekWebsite` action from the Convex dashboard or your frontend:
+
+```typescript
+const crawl = useAction(api.firecrawl.crawlRestaurantWeekWebsite)
+
+// Crawl an event's website
+await crawl({ eventId: eventId })
+```
+
+The crawler will:
+- Extract restaurant names, addresses, categories, and URLs
+- Extract menu information (meal types, prices, menu URLs)
+- Store data in restaurants and menus tables
+- Use deterministic IDs (based on restaurant names) to prevent duplicates
+- Update existing restaurants or create new ones as needed
 
 ## Project Structure
 
@@ -199,6 +301,8 @@ feast-finder/
 │   ├── events.ts            # Event queries and mutations
 │   ├── restaurants.ts       # Restaurant queries and mutations
 │   ├── restaurantsGeo.ts    # Geospatial queries
+│   ├── firecrawl.ts         # Firecrawl web scraping action
+│   ├── firecrawlStorage.ts  # Internal mutations for storing scraped data
 │   ├── seedData.ts          # Sample data seeding
 │   ├── schema.ts            # Database schema definition
 │   └── _generated/          # Auto-generated Convex types

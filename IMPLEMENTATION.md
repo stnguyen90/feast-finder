@@ -3,6 +3,7 @@
 ## Application Overview
 
 Feast Finder is an interactive restaurant discovery application with two main pages:
+
 1. **Landing Page** (`/`): Showcases restaurant week events and app features
 2. **Restaurants Page** (`/restaurants`): Interactive map for exploring restaurants
 
@@ -47,7 +48,10 @@ Users can discover restaurant week events on the landing page and explore partic
 ### 3. Interactive Map (RestaurantMap.tsx)
 
 - Uses React Leaflet for map rendering
-- Centered on San Francisco (37.7749, -122.4194)
+- **Defaults to San Francisco** (37.7749, -122.4194) at zoom level 12
+  - Ensures map bounds are set immediately on load
+  - Enables restaurant data fetching from the start
+  - Can be overridden by URL parameters (lat, lng, zoom)
 - Displays restaurant markers at their exact coordinates
 - Click markers to open detail modal
 - Popup preview shows name, rating, and address
@@ -64,7 +68,54 @@ Users can discover restaurant week events on the landing page and explore partic
 - Close button to dismiss
 - Dark mode support
 
-### 5. Backend (Convex)
+### 5. Premium Access with Autumn
+
+**Purpose**: Gate advanced filtering features behind premium subscription
+
+- **Integration**: Uses Autumn for subscription management and feature gating
+- **Feature ID**: `advanced-filters`
+- **Free Tier**: Map browsing with viewport filtering + ONE filter at a time
+- **Premium Tier**: Unlimited filters (multiple price ranges + multiple categories)
+
+#### Components Modified
+
+**Filter Panel (`src/routes/restaurants.tsx`)**:
+- Checks premium access using `useCustomer` hook from Autumn
+- Counts active filters (price values + categories)
+- Displays premium badge when user has 2+ filters without premium
+- Disables additional filters when free user already has one active
+- Shows dynamic message based on filter usage
+- Shows "Upgrade" link to prompt subscription
+
+**Price Filter (`src/components/PriceFilter.tsx`)**:
+- Added `disabled` prop to support premium gating
+- All input fields respect disabled state
+- Maintains visual consistency when disabled
+
+**Category Filter (`src/components/CategoryFilter.tsx`)**:
+- Added `disabled` prop to support premium gating
+- Combobox respects disabled state
+- Prevents interaction when user lacks premium access
+
+#### Autumn Integration Files
+
+**`convex/autumn.ts`**:
+- Initializes Autumn client with Convex Auth integration
+- Uses `auth.getUserId()` to identify customers
+- Exports all Autumn API functions (check, track, attach, etc.)
+- Requires `AUTUMN_SECRET_KEY` environment variable
+
+**`src/lib/premiumFeatures.ts`**:
+- Defines feature ID constants
+- Type-safe feature IDs for consistency
+- Currently includes `ADVANCED_FILTERS`
+
+**`src/router.tsx`**:
+- Wraps app with `AutumnProvider`
+- Positioned inside `ConvexAuthProvider`
+- Enables Autumn hooks throughout the app
+
+### 6. Backend (Convex)
 
 #### Schema (schema.ts)
 
@@ -92,7 +143,7 @@ Defines restaurants table with:
     - Category filtering is done in-memory on the geospatial results
   - **queryNearestRestaurants**: Find nearest restaurants to a specific point
   - **syncRestaurantToIndex**: Internal mutation to sync restaurants to geospatial index
-  - **syncAllRestaurantsToIndex**: Migration helper for existing data
+  - **syncAllRestaurantsToIndex**: **Internal-only** migration helper for existing data (bulk operation)
 
 #### Functions (restaurants.ts)
 
@@ -105,7 +156,7 @@ Defines restaurants table with:
   - Uses OR logic: restaurants matching ANY meal type criteria are returned
   - Only shows restaurants that have the specified meal type with prices in range
 - **getRestaurant**: Query to get single restaurant by ID
-- **addRestaurant**: Mutation to add new restaurant (auto-syncs to geospatial index)
+- **storeScrapedRestaurants**: Internal mutation to store scraped restaurant data (auto-syncs to geospatial index)
 
 #### Event Functions (events.ts)
 
@@ -113,10 +164,10 @@ Defines restaurants table with:
   - Filters events by end date (only future/current events)
   - Returns events sorted by start date
   - Includes restaurant count for each event
-- **listEventsByCity**: Query to get events filtered by city
-  - Accepts city parameter for location-specific filtering
-  - Returns active events for the specified city
-- **getEvent**: Query to get single event by ID
+- **getEventByName**: Query to get single event by name
+- **getRestaurantsForEvent**: Query to get all restaurants for a specific event
+- **getMenusForEvent**: Query to get all menus for a specific event
+- **getMenusForRestaurant**: Query to get all menus for a specific restaurant
 - **addEvent**: Mutation to add new restaurant week event
 
 #### Seed Data (seedData.ts)
@@ -125,6 +176,23 @@ Defines restaurants table with:
 - **seedEvents**: Mutation to populate sample event data (5 restaurant week events in SF Bay Area)
   - Resolves restaurant IDs by name
   - Associates events with participating restaurants
+
+#### Firecrawl Integration (firecrawl.ts)
+
+- **crawlRestaurantWeekWebsite**: **Internal-only** Node.js action that uses Firecrawl SDK to scrape restaurant data
+  - **Security**: Uses privileged FIRECRAWL_API_KEY credentials, only callable from backend/dashboard
+  - Accepts an eventId parameter
+  - Fetches event details and validates it has a websiteUrl
+  - Uses Firecrawl's `scrape` method with JSON schema extraction
+  - Extracts structured data: restaurant names, addresses, categories, menus (meal types, prices, URLs)
+  - Calls internal mutation `storeScrapedRestaurants` to store the data
+  - Requires `FIRECRAWL_API_KEY` environment variable
+  - Checks if restaurant exists by name (using `by_name` index)
+  - Updates existing restaurants with new data or creates new ones
+  - Creates/updates menus linked to both restaurant and event
+  - Automatically syncs new restaurants to geospatial index
+  - Updates event syncTime to track when last crawled
+  - Returns count of restaurants and menus processed
 
 ### 6. Sample Data
 
@@ -170,7 +238,9 @@ Defines restaurants table with:
 1. User visits `/restaurants` (either directly or from landing page)
 2. If no restaurants exist, app automatically seeds sample data
 3. If restaurants exist but aren't in geospatial index, app automatically syncs them (one-time)
-4. Map displays with restaurant markers in San Francisco
+4. Map loads centered on San Francisco with default bounds set
+   - This ensures restaurant data is fetched immediately
+   - Map bounds trigger geospatial query to load visible restaurants
 5. As user pans/zooms the map:
    - App detects viewport bounds changes
    - Queries geospatial index for restaurants in current viewport
@@ -200,6 +270,16 @@ Defines restaurants table with:
 9. User clicks X or outside modal to close
 10. User can select another restaurant
 
+### Premium User Flow
+
+1. User navigates to `/restaurants`
+2. If not premium, sees disabled filters with premium badge
+3. User clicks "Upgrade" link (future: redirects to pricing/checkout)
+4. After subscribing via Autumn/Stripe, user refreshes page
+5. Premium check succeeds, filters become enabled
+6. User can now filter by price and categories
+7. Multiple filters can be combined for precise search
+
 ## Technical Highlights
 
 - **Type Safety**: Full TypeScript with strict types
@@ -209,9 +289,13 @@ Defines restaurants table with:
 - **Map Integration**: React Leaflet with OpenStreetMap tiles
 - **Dark Mode**: Built-in support via Chakra UI
 - **Auto-seeding**: Convenient sample data for testing
+- **Web Scraping**: Firecrawl integration for automated data extraction from event websites
 - **Geospatial Indexing**: Efficient location-based queries using S2 cell indexing
 - **Viewport-Based Loading**: Dynamic restaurant fetching based on map bounds
 - **Performance Optimized**: Only loads restaurants visible in current viewport
+- **Premium Access**: Autumn integration for subscription management and feature gating
+- **Payment Processing**: Stripe integration via Autumn for seamless billing
+- **Deterministic Storage**: Restaurant names used as natural keys to prevent duplicates
 
 ## Build & Deployment
 
@@ -226,22 +310,33 @@ Defines restaurants table with:
 ### Modified:
 
 - `convex/schema.ts` - Added events table to restaurant data model
+- `convex/convex.config.ts` - Added Autumn component registration
 - `convex/restaurants.ts` - Backend queries and mutations (added geospatial sync)
 - `convex/seedData.ts` - Seed functions (added event seeding and geospatial sync)
 - `src/routes/index.tsx` - **Completely reimplemented as landing page** with event showcase
+- `src/routes/restaurants.tsx` - Added premium access checks and filter gating
 - `src/components/RestaurantMap.tsx` - Map component (moved MapBounds type here)
-- `package.json` - Added geospatial component dependency
-- `README.md` - Updated with landing page, events, and new page structure
-- `IMPLEMENTATION.md` - Updated with event features and new user flow
+- `src/components/PriceFilter.tsx` - Added disabled prop for premium gating
+- `src/components/CategoryFilter.tsx` - Added disabled prop for premium gating
+- `src/router.tsx` - Added AutumnProvider wrapper
+- `package.json` - Added Autumn packages (@useautumn/convex, autumn-js), geospatial component, and Firecrawl SDK dependencies
+- `.env.local.example` - Added AUTUMN_SECRET_KEY and FIRECRAWL_API_KEY configuration
+- `README.md` - Updated with premium features, Autumn setup, landing page, events, Firecrawl integration, and new page structure
+- `IMPLEMENTATION.md` - Updated with Autumn integration details, event features, Firecrawl integration, and new user flow
 
 ### Created:
 
 - `convex/events.ts` - Event query and mutation functions
+- `convex/autumn.ts` - Autumn client initialization and API exports
+- `convex/firecrawl.ts` - Firecrawl web scraping action (Node.js)
+- `convex/firecrawlStorage.ts` - Internal mutations for storing scraped restaurant/menu data
 - `src/routes/restaurants.tsx` - **New route** with interactive map (moved from index.tsx)
-- `convex/convex.config.ts` - Convex app configuration with geospatial component
+- `convex/convex.config.ts` - Convex app configuration with geospatial and Autumn components
 - `convex/geospatial.ts` - Geospatial index setup
 - `convex/restaurantsGeo.ts` - Geospatial query functions
+- `src/lib/premiumFeatures.ts` - Premium feature ID constants
 - `GEOSPATIAL.md` - Comprehensive geospatial integration documentation
+- `AUTUMN_INTEGRATION.md` - Comprehensive Autumn integration documentation
 - `src/components/RestaurantDetail.tsx` - Detail modal component
 - `src/components/ColorModeToggle.tsx` - Theme toggle component
 - `src/components/PriceFilter.tsx` - Price filtering component with min/max inputs
