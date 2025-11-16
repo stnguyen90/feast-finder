@@ -48,7 +48,10 @@ Users can discover restaurant week events on the landing page and explore partic
 ### 3. Interactive Map (RestaurantMap.tsx)
 
 - Uses React Leaflet for map rendering
-- Centered on San Francisco (37.7749, -122.4194)
+- **Defaults to San Francisco** (37.7749, -122.4194) at zoom level 12
+  - Ensures map bounds are set immediately on load
+  - Enables restaurant data fetching from the start
+  - Can be overridden by URL parameters (lat, lng, zoom)
 - Displays restaurant markers at their exact coordinates
 - Click markers to open detail modal
 - Popup preview shows name, rating, and address
@@ -235,7 +238,9 @@ Defines restaurants table with:
 1. User visits `/restaurants` (either directly or from landing page)
 2. If no restaurants exist, app automatically seeds sample data
 3. If restaurants exist but aren't in geospatial index, app automatically syncs them (one-time)
-4. Map displays with restaurant markers in San Francisco
+4. Map loads centered on San Francisco with default bounds set
+   - This ensures restaurant data is fetched immediately
+   - Map bounds trigger geospatial query to load visible restaurants
 5. As user pans/zooms the map:
    - App detects viewport bounds changes
    - Queries geospatial index for restaurants in current viewport

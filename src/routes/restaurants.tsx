@@ -343,9 +343,9 @@ function Restaurants() {
             initialCenter={
               searchParams.lat && searchParams.lng
                 ? { lat: searchParams.lat, lng: searchParams.lng }
-                : undefined
+                : { lat: 37.7749, lng: -122.4194 } // Default to San Francisco
             }
-            initialZoom={searchParams.zoom}
+            initialZoom={searchParams.zoom ?? 12} // Default zoom level
           />
 
           {/* Filter Panel */}
