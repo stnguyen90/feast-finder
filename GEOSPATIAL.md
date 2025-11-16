@@ -115,23 +115,19 @@ const { data: nearbyRestaurants } = useSuspenseQuery(
 
 **File:** `convex/restaurants.ts`
 
-When a new restaurant is added via `addRestaurant` mutation, it's automatically synced to the geospatial index:
+When restaurants are inserted (e.g., via scraped data from Firecrawl), they're automatically synced to the geospatial index:
 
 ```typescript
-export const addRestaurant = mutation({
-  handler: async (ctx, args) => {
-    const id = await ctx.db.insert('restaurants', args)
-    // Automatically sync to geospatial index
-    await ctx.scheduler.runAfter(
-      0,
-      internal.restaurantsGeo.syncRestaurantToIndex,
-      {
-        restaurantId: id,
-      },
-    )
-    return id
-  },
-})
+// From storeScrapedRestaurants internal mutation
+if (restaurantData.latitude && restaurantData.longitude) {
+  await ctx.scheduler.runAfter(
+    0,
+    internal.restaurantsGeo.syncRestaurantToIndex,
+    {
+      restaurantId,
+    },
+  )
+}
 ```
 
 #### Seeding Data
@@ -166,18 +162,42 @@ export const seedRestaurants = mutation({
 
 #### Manual Sync for Existing Data
 
-**Function:** `api.restaurantsGeo.syncAllRestaurantsToIndex`
+**Function:** `internal.restaurantsGeo.syncAllRestaurantsToIndex`
+
+**Visibility**: Internal only - can only be called from backend, Convex dashboard, or other internal functions
 
 For migrating existing restaurants to the geospatial index:
 
-```typescript
-const syncAllToIndex = useMutation(api.restaurantsGeo.syncAllRestaurantsToIndex)
+**From Convex Dashboard:**
 
-// Call once to migrate existing data
-syncAllToIndex({}).then((result) => {
-  console.log(`Synced ${result.synced} restaurants`)
+1. Open [Convex Dashboard](https://dashboard.convex.dev)
+2. Navigate to Functions → restaurantsGeo.ts
+3. Find `syncAllRestaurantsToIndex` (listed under "Internal Mutations")
+4. Click "Run" with empty parameters: `{}`
+5. Check the result: `{ "synced": <number> }`
+
+**From Backend/Scheduled Functions:**
+
+```typescript
+import { internalAction } from './_generated/server'
+import { internal } from './_generated/api'
+import { v } from 'convex/values'
+
+export const migrateRestaurants = internalAction({
+  args: {},
+  returns: v.null(),
+  handler: async (ctx) => {
+    const result = await ctx.runMutation(
+      internal.restaurantsGeo.syncAllRestaurantsToIndex,
+      {},
+    )
+    console.log(`Synced ${result.synced} restaurants`)
+    return null
+  },
 })
 ```
+
+**Security**: This is an internal-only function because it performs bulk database migration and should not be exposed to the frontend.
 
 ### Frontend Integration
 
@@ -312,9 +332,9 @@ On first load with existing data:
 If restaurants don't appear:
 
 1. Check browser console for sync status logs
-2. Clear localStorage key `geospatial-synced` to re-trigger sync
-3. Manually call `syncAllRestaurantsToIndex()` from Convex dashboard
-4. Verify Convex deployment has the geospatial component installed
+2. Verify Convex deployment has the geospatial component installed
+3. Manually call `syncAllRestaurantsToIndex()` from Convex dashboard (under Internal Mutations)
+4. Check that restaurants have valid latitude/longitude values
 
 ## Performance Considerations
 

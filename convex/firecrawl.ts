@@ -4,7 +4,7 @@ import crypto from 'node:crypto'
 import FirecrawlApp from '@mendable/firecrawl-js'
 import { v } from 'convex/values'
 
-import { action } from './_generated/server'
+import { internalAction } from './_generated/server'
 import { internal } from './_generated/api'
 
 /**
@@ -17,8 +17,12 @@ function generateRestaurantKey(name: string, address: string): string {
 
 /**
  * Crawl a restaurant week website using Firecrawl and extract restaurant data
+ * 
+ * INTERNAL ONLY: This function uses privileged API credentials (FIRECRAWL_API_KEY)
+ * and performs database writes. It should only be called by backend processes,
+ * schedulers, or other internal Convex functions, never directly from the frontend.
  */
-export const crawlRestaurantWeekWebsite = action({
+export const crawlRestaurantWeekWebsite = internalAction({
   args: {
     eventId: v.id('events'),
   },
