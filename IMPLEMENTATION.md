@@ -140,7 +140,7 @@ Defines restaurants table with:
     - Category filtering is done in-memory on the geospatial results
   - **queryNearestRestaurants**: Find nearest restaurants to a specific point
   - **syncRestaurantToIndex**: Internal mutation to sync restaurants to geospatial index
-  - **syncAllRestaurantsToIndex**: Migration helper for existing data
+  - **syncAllRestaurantsToIndex**: **Internal-only** migration helper for existing data (bulk operation)
 
 #### Functions (restaurants.ts)
 
@@ -153,7 +153,7 @@ Defines restaurants table with:
   - Uses OR logic: restaurants matching ANY meal type criteria are returned
   - Only shows restaurants that have the specified meal type with prices in range
 - **getRestaurant**: Query to get single restaurant by ID
-- **addRestaurant**: Mutation to add new restaurant (auto-syncs to geospatial index)
+- **storeScrapedRestaurants**: Internal mutation to store scraped restaurant data (auto-syncs to geospatial index)
 
 #### Event Functions (events.ts)
 
@@ -161,10 +161,10 @@ Defines restaurants table with:
   - Filters events by end date (only future/current events)
   - Returns events sorted by start date
   - Includes restaurant count for each event
-- **listEventsByCity**: Query to get events filtered by city
-  - Accepts city parameter for location-specific filtering
-  - Returns active events for the specified city
-- **getEvent**: Query to get single event by ID
+- **getEventByName**: Query to get single event by name
+- **getRestaurantsForEvent**: Query to get all restaurants for a specific event
+- **getMenusForEvent**: Query to get all menus for a specific event
+- **getMenusForRestaurant**: Query to get all menus for a specific restaurant
 - **addEvent**: Mutation to add new restaurant week event
 
 #### Seed Data (seedData.ts)
@@ -174,20 +174,16 @@ Defines restaurants table with:
   - Resolves restaurant IDs by name
   - Associates events with participating restaurants
 
-#### Firecrawl Integration (firecrawl.ts, firecrawlStorage.ts)
+#### Firecrawl Integration (firecrawl.ts)
 
-- **crawlRestaurantWeekWebsite** (Action in firecrawl.ts): Node.js action that uses Firecrawl SDK to scrape restaurant data
+- **crawlRestaurantWeekWebsite**: **Internal-only** Node.js action that uses Firecrawl SDK to scrape restaurant data
+  - **Security**: Uses privileged FIRECRAWL_API_KEY credentials, only callable from backend/dashboard
   - Accepts an eventId parameter
   - Fetches event details and validates it has a websiteUrl
   - Uses Firecrawl's `scrape` method with JSON schema extraction
   - Extracts structured data: restaurant names, addresses, categories, menus (meal types, prices, URLs)
-  - Calls internal mutation to store the data
+  - Calls internal mutation `storeScrapedRestaurants` to store the data
   - Requires `FIRECRAWL_API_KEY` environment variable
-
-- **getEventForCrawl** (Internal Query in firecrawlStorage.ts): Fetches event details needed for crawling
-  
-- **storeScrapedRestaurants** (Internal Mutation in firecrawlStorage.ts): Stores extracted restaurant and menu data
-  - Uses deterministic approach based on restaurant names to prevent duplicates
   - Checks if restaurant exists by name (using `by_name` index)
   - Updates existing restaurants with new data or creates new ones
   - Creates/updates menus linked to both restaurant and event

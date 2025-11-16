@@ -25,12 +25,21 @@ Add the API key to your Convex environment:
 
 ## Usage
 
+### Security Note
+
+The `crawlRestaurantWeekWebsite` function is **internal only** and uses privileged API credentials. It can only be called by:
+- Backend processes
+- Convex schedulers
+- Other internal Convex functions
+
+It **cannot** be called directly from the frontend for security reasons.
+
 ### From Convex Dashboard
 
 1. Open your [Convex Dashboard](https://dashboard.convex.dev)
 2. Navigate to Functions
 3. Find the `firecrawl.ts` file
-4. Select `crawlRestaurantWeekWebsite` action
+4. Select `crawlRestaurantWeekWebsite` action (listed under "Internal Actions")
 5. Provide the eventId parameter
 6. Click "Run"
 
@@ -41,35 +50,41 @@ Example parameters:
 }
 ```
 
-### From Your Application
+### From Backend/Scheduled Functions
+
+You can invoke this function from other internal Convex functions or scheduled tasks:
 
 ```typescript
+import { internalAction } from './_generated/server'
+import { internal } from './_generated/api'
+import { v } from 'convex/values'
+
+export const scheduledCrawl = internalAction({
+  args: { eventId: v.id('events') },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    // Call the crawl function
+    await ctx.runAction(internal.firecrawl.crawlRestaurantWeekWebsite, {
+      eventId: args.eventId,
+    })
+    return null
+  },
+})
+```
+
+### ⚠️ Not Available from Frontend
+
+The following code **will NOT work** because the function is internal:
+
+```typescript
+// ❌ This will fail - function is internal only
 import { useAction } from 'convex/react'
 import { api } from '../convex/_generated/api'
-import { Id } from '../convex/_generated/dataModel'
 
 function CrawlEventButton({ eventId }: { eventId: Id<'events'> }) {
+  // This will cause a TypeScript error - function not in api, only in internal
   const crawl = useAction(api.firecrawl.crawlRestaurantWeekWebsite)
-  const [isLoading, setIsLoading] = React.useState(false)
-
-  const handleCrawl = async () => {
-    setIsLoading(true)
-    try {
-      await crawl({ eventId })
-      alert('Crawl completed successfully!')
-    } catch (error) {
-      console.error('Crawl failed:', error)
-      alert('Crawl failed. Check console for details.')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  return (
-    <button onClick={handleCrawl} disabled={isLoading}>
-      {isLoading ? 'Crawling...' : 'Crawl Event Website'}
-    </button>
-  )
+  // ...
 }
 ```
 
@@ -238,7 +253,9 @@ Successfully stored data for event: SF Restaurant Week
 
 ## API Reference
 
-### Action: `crawlRestaurantWeekWebsite`
+### Internal Action: `crawlRestaurantWeekWebsite`
+
+**Visibility**: Internal only - can only be called from backend, schedulers, or other internal functions
 
 **Parameters:**
 - `eventId` (Id<'events'>): The ID of the event to crawl
@@ -250,6 +267,8 @@ Successfully stored data for event: SF Restaurant Week
 - Error if event not found
 - Error if event has no websiteUrl
 - Error if FIRECRAWL_API_KEY not set
+
+**Security**: Uses privileged FIRECRAWL_API_KEY credentials and performs database writes
 
 ### Internal Query: `getEventForCrawl`
 
