@@ -5,11 +5,9 @@ import {
   Alert,
   Box,
   Button,
-  Center,
   Flex,
   HStack,
   IconButton,
-  Text,
   VStack,
 } from '@chakra-ui/react'
 import { useCustomer } from 'autumn-js/react'
@@ -328,25 +326,18 @@ function Restaurants() {
     <Flex direction="column" h="100vh" bg="bg.page">
       <Header onSignInClick={() => setIsSignInModalOpen(true)} onSignOut={() => refetch()} />
 
-      {restaurants.length === 0 ? (
-        <Center flex={1} color="text.secondary">
-          <Text>
-            No restaurants found. Please seed data via Convex dashboard.
-          </Text>
-        </Center>
-      ) : (
-        <Box flex={1} position="relative">
-          <RestaurantMap
-            restaurants={restaurants}
-            onSelectRestaurant={setSelectedRestaurant}
-            onBoundsChange={handleBoundsChange}
-            initialCenter={
-              searchParams.lat && searchParams.lng
-                ? { lat: searchParams.lat, lng: searchParams.lng }
-                : undefined
-            }
-            initialZoom={searchParams.zoom}
-          />
+      <Box flex={1} position="relative">
+        <RestaurantMap
+          restaurants={restaurants}
+          onSelectRestaurant={setSelectedRestaurant}
+          onBoundsChange={handleBoundsChange}
+          initialCenter={
+            searchParams.lat && searchParams.lng
+              ? { lat: searchParams.lat, lng: searchParams.lng }
+              : { lat: 37.7749, lng: -122.4194 } // Default to San Francisco
+          }
+          initialZoom={searchParams.zoom ?? 12} // Default zoom level
+        />
 
           {/* Filter Panel */}
           <Box position="absolute" top={4} left={4} zIndex={1000}>
@@ -452,16 +443,15 @@ function Restaurants() {
             onClose={() => setSelectedRestaurant(null)}
           />
 
-          <SignInModal
-            isOpen={isSignInModalOpen}
-            onClose={() => setIsSignInModalOpen(false)}
-            onSuccess={() => {
-              setIsSignInModalOpen(false)
-              refetch()
-            }}
-          />
-        </Box>
-      )}
+        <SignInModal
+          isOpen={isSignInModalOpen}
+          onClose={() => setIsSignInModalOpen(false)}
+          onSuccess={() => {
+            setIsSignInModalOpen(false)
+            refetch()
+          }}
+        />
+      </Box>
     </Flex>
   )
 }
