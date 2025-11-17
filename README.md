@@ -96,21 +96,25 @@ Each restaurant includes:
 - **Yelp URL**: Link to restaurant's Yelp page
 - **OpenTable URL**: Link to restaurant's OpenTable reservation page
 - **Categories**: Array of cuisine/style tags (e.g., "Italian", "Fine Dining")
-- **Meal Times**: Boolean flags for brunch, lunch, and dinner availability
-- **Pricing**: Average prices for brunch, lunch, and dinner services
+- **Pricing**: Average prices for brunch, lunch, and dinner services (optional, meal availability is implied by presence of price)
 
 ## Event Data Model
 
 Each restaurant week event includes:
 
 - **Name**: Event name
-- **Description**: Detailed description of the event
 - **Dates**: Start and end dates (ISO format)
-- **Location**: Event location description
-- **City**: City name for filtering
 - **Coordinates**: Latitude and longitude for location-based features
-- **Restaurant IDs**: Array of participating restaurant IDs
-- **Image URL**: Optional event image
+- **Website URL**: Link to event's official website (optional)
+- **Sync Time**: Timestamp of last data synchronization
+
+Events are linked to restaurants through the **menus** table, which stores:
+- **Restaurant ID**: Reference to the restaurant
+- **Event ID**: Reference to the event
+- **Meal**: Type of meal (brunch, lunch, or dinner)
+- **Price**: Price for this specific menu
+- **Menu URL**: Link to menu PDF or image (optional)
+- **Sync Time**: Timestamp of last update
 
 ## Tech Stack
 
@@ -301,23 +305,35 @@ feast-finder/
 │   ├── events.ts            # Event queries and mutations
 │   ├── restaurants.ts       # Restaurant queries and mutations
 │   ├── restaurantsGeo.ts    # Geospatial queries
+│   ├── restaurantEnrichment.ts # Restaurant data enrichment
 │   ├── firecrawl.ts         # Firecrawl web scraping action
-│   ├── firecrawlStorage.ts  # Internal mutations for storing scraped data
 │   ├── seedData.ts          # Sample data seeding
 │   ├── schema.ts            # Database schema definition
+│   ├── auth.ts              # Authentication setup
+│   ├── auth.config.ts       # Auth provider configuration
+│   ├── autumn.ts            # Autumn premium access integration
+│   ├── users.ts             # User queries
+│   ├── http.ts              # HTTP endpoints
+│   ├── geospatial.ts        # Geospatial index setup
 │   └── _generated/          # Auto-generated Convex types
 ├── src/
 │   ├── components/
 │   │   ├── RestaurantMap.tsx    # Interactive map component
 │   │   ├── RestaurantDetail.tsx # Restaurant detail modal
 │   │   ├── PriceFilter.tsx      # Price filtering component
-│   │   └── ColorModeToggle.tsx  # Dark mode toggle
+│   │   ├── CategoryFilter.tsx   # Category filtering component
+│   │   ├── ColorModeToggle.tsx  # Dark mode toggle
+│   │   ├── Header.tsx           # App header with auth
+│   │   ├── SignInModal.tsx      # Sign in/sign up modal
+│   │   └── UserMenu.tsx         # User menu dropdown
 │   ├── routes/
 │   │   ├── __root.tsx        # Root layout
 │   │   ├── index.tsx         # Landing page with events
 │   │   ├── restaurants.tsx   # Interactive map page
 │   │   └── events/
 │   │       └── $eventName.tsx # Dynamic event page
+│   ├── lib/
+│   │   └── premiumFeatures.ts # Premium feature constants
 │   └── styles/
 │       └── app.css          # Global styles
 └── public/                  # Static assets
@@ -364,12 +380,16 @@ npm run format      # Format code with Prettier
 
 ### Adding New Restaurants
 
-Use the `addRestaurant` mutation from the Convex dashboard or by calling:
+Use the restaurant storage functions from the Convex dashboard. The system uses deterministic IDs based on restaurant name and address to prevent duplicates.
 
+**Note**: Restaurants no longer use boolean flags for meal availability. Instead, meal availability is determined by the presence of price fields:
+- If `brunchPrice` exists, the restaurant serves brunch
+- If `lunchPrice` exists, the restaurant serves lunch
+- If `dinnerPrice` exists, the restaurant serves dinner
+
+Example structure (for reference):
 ```typescript
-const addRestaurant = useMutation(api.myFunctions.addRestaurant)
-
-addRestaurant({
+{
   name: 'Restaurant Name',
   rating: 4.5,
   latitude: 37.7749,
@@ -379,20 +399,17 @@ addRestaurant({
   yelpUrl: 'https://yelp.com/...',
   openTableUrl: 'https://opentable.com/...',
   categories: ['Italian', 'Fine Dining'],
-  hasBrunch: true,
-  hasLunch: true,
-  hasDinner: true,
   brunchPrice: 40,
   lunchPrice: 35,
   dinnerPrice: 75,
-})
+}
 ```
 
 ### Filtering Restaurants by Price
 
 The price filtering feature allows users to filter restaurants based on their meal prices:
 
-1. Click the "💲 Filter by Price" button on the map
+1. Click the "🔍 Filter" button on the restaurants map page
 2. Enter min/max prices for any meal type (brunch, lunch, dinner)
 3. Click "Apply Filters" to see restaurants matching your criteria
 4. Click "Clear" to remove all filters
@@ -403,7 +420,9 @@ The price filtering feature allows users to filter restaurants based on their me
 - For example, filtering by "Brunch $20-$40" shows all restaurants with brunch prices between $20-$40
 - You can filter by multiple meal types simultaneously - restaurants matching any of the criteria will be shown
 - Price filtering works seamlessly with the map viewport filtering
-- Only restaurants that serve the specified meal type and meet the price criteria are included
+- Only restaurants with prices defined for the specified meal type and within the range are included
+
+**Premium Feature**: Free users can use ONE filter at a time (one price range OR one category). Premium users can combine unlimited filters (multiple price ranges + multiple categories).
 
 ## Geospatial Integration
 
