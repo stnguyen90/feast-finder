@@ -2,41 +2,62 @@
 
 ## Important: Generated Files
 
-The file `convex/_generated/api.d.ts` is an auto-generated file that should be created by running:
+The files in `convex/_generated/` are auto-generated and should not be manually edited. They are created by running:
 
 ```bash
 npx convex codegen
 ```
 
-or
+or when starting the development server:
 
 ```bash
-npx convex dev --local --once
+npx convex dev
 ```
 
-## Current State
+## When to Run Codegen
 
-Due to the sandboxed development environment limitations (no network access and no authentication), the Convex codegen commands cannot be executed automatically. The `convex/_generated/api.d.ts` file has been manually updated to include the `seedData` module to allow the code to compile.
+You **must** run codegen after:
+- Adding or modifying any Convex functions (queries, mutations, actions)
+- Changing the database schema in `convex/schema.ts`
+- Adding new files to the `convex/` directory
+- Configuring new Convex components (geospatial, autumn, auth, etc.)
+- Updating environment variables that affect components
 
-## Action Required
+## Generated Files
 
-When you pull this PR and work with it locally, please run:
+Running codegen will regenerate:
 
-```bash
-npx convex dev --local --once
-```
+- `api.d.ts` - API types for all public functions
+- `api.js` - API exports
+- `dataModel.d.ts` - Data model types for database tables
+- `server.d.ts` - Server types for Convex functions
+- `server.js` - Server exports
 
-This will properly regenerate all files in `convex/_generated/` including:
+## Development Workflow
 
-- `api.d.ts` - API types
-- `dataModel.d.ts` - Data model types
-- `server.d.ts` - Server types
+1. Make changes to Convex functions or schema
+2. Run `npx convex dev` (auto-generates types) or `npx convex codegen` manually
+3. TypeScript will now recognize your new functions and types
+4. Import and use them in your React components
 
-The manually updated file should match what Convex generates, but running the official codegen ensures everything is properly synchronized.
+## Troubleshooting
 
-## Files Affected
+### "Cannot find module 'convex/_generated/api'" error
 
-- `convex/_generated/api.d.ts` - Manually updated to include seedData module
-- `convex/seedData.ts` - New file with seedRestaurants mutation
-- `convex/myFunctions.ts` - Removed seedRestaurants (moved to seedData.ts)
-- `src/routes/index.tsx` - Updated to use api.seedData.seedRestaurants
+**Fix:** Run `npx convex dev` to start the Convex development server and generate types.
+
+### Types are outdated after schema changes
+
+**Fix:** Run `npx convex codegen` to regenerate types.
+
+### Component types not available (e.g., autumn, geospatial)
+
+**Fix:** 
+1. Ensure component is registered in `convex/convex.config.ts`
+2. Ensure required environment variables are set (e.g., `AUTUMN_SECRET_KEY`)
+3. Run `npx convex dev` or `npx convex codegen`
+4. Restart your development server
+
+## Note on Manual Edits
+
+**Do NOT** manually edit files in `convex/_generated/`. Any manual changes will be overwritten when codegen runs. The Convex CLI generates these files based on your actual code and schema.
