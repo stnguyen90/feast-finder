@@ -51,7 +51,7 @@ This registers the geospatial component with your Convex application.
 
 **Function:** `api.restaurantsGeo.queryRestaurantsInBounds`
 
-Efficiently retrieves only restaurants visible in the current map viewport.
+Efficiently retrieves only restaurants visible in the current map viewport with optional price and category filtering.
 
 **Usage:**
 
@@ -66,6 +66,15 @@ const { data: result } = useSuspenseQuery(
     },
     limit: 100, // optional, defaults to 100
     cursor: undefined, // optional, for pagination
+    // Optional price filters (for premium users)
+    minBrunchPrice: 20,
+    maxBrunchPrice: 50,
+    minLunchPrice: 15,
+    maxLunchPrice: 40,
+    minDinnerPrice: 30,
+    maxDinnerPrice: 80,
+    // Optional category filter
+    categories: ['Italian', 'French'], // optional array of categories
   }),
 )
 
@@ -79,35 +88,29 @@ const { data: result } = useSuspenseQuery(
 - Uses geospatial index rectangle query for efficient spatial lookup
 - Fetches full restaurant details for each ID returned by the index
 - Supports pagination via cursor parameter
+- Supports price range filtering for brunch, lunch, and dinner
+- Supports category filtering by cuisine types
 - Returns structured data with restaurant objects and optional nextCursor
+- Price and category filters use OR logic (matches any criteria)
 
-#### Query Nearest Restaurants
+#### Query Restaurants with Authentication
 
-**Function:** `api.restaurantsGeo.queryNearestRestaurants`
+**Function:** `api.restaurantsGeo.queryRestaurantsInBoundsWithAuth`
 
-Finds restaurants closest to a specific point, useful for "find restaurants near me" functionality.
+Action-based query that includes server-side premium feature validation. This ensures that advanced filtering features are properly gated.
 
 **Usage:**
 
 ```typescript
-const { data: nearbyRestaurants } = useSuspenseQuery(
-  convexQuery(api.restaurantsGeo.queryNearestRestaurants, {
-    latitude: 37.7749,
-    longitude: -122.4194,
-    maxResults: 10, // optional, defaults to 10
-    maxDistanceMeters: 5000, // optional, limits search radius
+const { data: result } = useSuspenseQuery(
+  convexQuery(api.restaurantsGeo.queryRestaurantsInBoundsWithAuth, {
+    bounds: { /* ... */ },
+    // ... same parameters as queryRestaurantsInBounds
   }),
 )
-
-// Each restaurant includes a 'distance' field in meters
 ```
 
-**Implementation Details:**
-
-- Uses geospatial index nearest neighbor search
-- Returns restaurants sorted by distance
-- Each result includes distance in meters from query point
-- Optional maxDistanceMeters parameter improves performance
+**Note**: This is an action (not a query) because it needs to perform external authentication checks via the Autumn API.
 
 ### Data Synchronization
 
@@ -162,19 +165,19 @@ export const seedRestaurants = mutation({
 
 #### Manual Sync for Existing Data
 
-**Function:** `internal.restaurantsGeo.syncAllRestaurantsToIndex`
+For new restaurants added to the database, they are automatically synced to the geospatial index when created. However, if you need to manually sync a specific restaurant, you can use:
+
+**Function:** `internal.restaurantsGeo.syncRestaurantToIndex`
 
 **Visibility**: Internal only - can only be called from backend, Convex dashboard, or other internal functions
-
-For migrating existing restaurants to the geospatial index:
 
 **From Convex Dashboard:**
 
 1. Open [Convex Dashboard](https://dashboard.convex.dev)
 2. Navigate to Functions → restaurantsGeo.ts
-3. Find `syncAllRestaurantsToIndex` (listed under "Internal Mutations")
-4. Click "Run" with empty parameters: `{}`
-5. Check the result: `{ "synced": <number> }`
+3. Find `syncRestaurantToIndex` (listed under "Internal Mutations")
+4. Click "Run" with the restaurant ID: `{ "restaurantId": "<restaurant_id>" }`
+5. Check the result to confirm successful sync
 
 **From Backend/Scheduled Functions:**
 
@@ -183,21 +186,22 @@ import { internalAction } from './_generated/server'
 import { internal } from './_generated/api'
 import { v } from 'convex/values'
 
-export const migrateRestaurants = internalAction({
-  args: {},
+export const syncSpecificRestaurant = internalAction({
+  args: { restaurantId: v.id('restaurants') },
   returns: v.null(),
-  handler: async (ctx) => {
-    const result = await ctx.runMutation(
-      internal.restaurantsGeo.syncAllRestaurantsToIndex,
-      {},
-    )
-    console.log(`Synced ${result.synced} restaurants`)
+  handler: async (ctx, args) => {
+    await ctx.runMutation(internal.restaurantsGeo.syncRestaurantToIndex, {
+      restaurantId: args.restaurantId,
+    })
+    console.log(`Synced restaurant ${args.restaurantId}`)
     return null
   },
 })
 ```
 
-**Security**: This is an internal-only function because it performs bulk database migration and should not be exposed to the frontend.
+**Security**: This is an internal-only function because it performs database operations and should not be exposed to the frontend.
+
+**Note**: The old bulk sync function `syncAllRestaurantsToIndex` has been removed. All restaurants are now automatically synced when created via `seedRestaurants` or through the Firecrawl integration.
 
 ### Frontend Integration
 
@@ -242,30 +246,29 @@ function MapEventsHandler() {
 
 #### Dynamic Restaurant Loading
 
-**File:** `src/routes/index.tsx`
+**File:** `src/routes/restaurants.tsx`
 
-The homepage dynamically fetches restaurants based on the current map viewport:
+The restaurants page dynamically fetches restaurants based on the current map viewport with optional filters:
 
 ```typescript
-function Home() {
+function RestaurantsPage() {
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null)
+  const [priceFilters, setPriceFilters] = useState<PriceFilters>({})
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
 
-  // Fetch all restaurants (for seeding check)
-  const { data: allRestaurants } = useSuspenseQuery(
-    convexQuery(api.restaurants.listRestaurants, {}),
-  )
-
-  // Fetch geospatial results when bounds are available
+  // Fetch geospatial results with filters
   const { data: geoRestaurantsResult } = useSuspenseQuery(
     convexQuery(api.restaurantsGeo.queryRestaurantsInBounds, {
       bounds: mapBounds ?? { north: 0, south: 0, east: 0, west: 0 },
+      minBrunchPrice: priceFilters.minBrunchPrice,
+      maxBrunchPrice: priceFilters.maxBrunchPrice,
+      minLunchPrice: priceFilters.minLunchPrice,
+      maxLunchPrice: priceFilters.maxLunchPrice,
+      minDinnerPrice: priceFilters.minDinnerPrice,
+      maxDinnerPrice: priceFilters.maxDinnerPrice,
+      categories: selectedCategories.length > 0 ? selectedCategories : undefined,
     }),
   )
-
-  // Use geospatial results if bounds are set
-  const restaurants = mapBounds !== null
-    ? geoRestaurantsResult.results
-    : allRestaurants
 
   const handleBoundsChange = useCallback((bounds: MapBounds) => {
     setMapBounds(bounds)
@@ -273,12 +276,18 @@ function Home() {
 
   return (
     <RestaurantMap
-      restaurants={restaurants}
+      restaurants={geoRestaurantsResult.results}
       onBoundsChange={handleBoundsChange}
     />
   )
 }
 ```
+
+**Key Features:**
+- Viewport-based loading for performance
+- Price range filtering (premium feature)
+- Category filtering (premium feature)
+- Real-time updates when filters or map bounds change
 
 ## Benefits
 
@@ -320,12 +329,12 @@ The geospatial integration maintains backward compatibility with the existing sc
 
 ### First-Time Setup
 
-On first load with existing data:
+On first load:
 
 1. Application checks for existing restaurants
-2. If restaurants exist but not in geospatial index, runs one-time sync
-3. Uses localStorage to track if sync has completed
-4. All future restaurant additions automatically sync
+2. If no restaurants exist, runs automatic seeding via `seedRestaurants`
+3. All restaurants are automatically synced to geospatial index during seeding
+4. Future restaurant additions (via Firecrawl or manual creation) automatically sync
 
 ### Troubleshooting
 
@@ -333,15 +342,17 @@ If restaurants don't appear:
 
 1. Check browser console for sync status logs
 2. Verify Convex deployment has the geospatial component installed
-3. Manually call `syncAllRestaurantsToIndex()` from Convex dashboard (under Internal Mutations)
-4. Check that restaurants have valid latitude/longitude values
+3. Check that restaurants have valid latitude/longitude values
+4. Verify geospatial component is registered in `convex/convex.config.ts`
+5. If needed, manually sync a specific restaurant using `syncRestaurantToIndex` from Convex dashboard
 
 ## Performance Considerations
 
 1. **Index Query Limits**: Default limit is 100 restaurants per query
-2. **S2 Cell Configuration**: Uses default settings (minLevel: 4, maxLevel: 16)
-3. **Sort Key**: Uses restaurant rating for result ordering
-4. **Filter Keys**: Categories array available for future filtering features
+2. **S2 Cell Configuration**: Uses default settings for spatial indexing
+3. **Category Filtering**: Available via categories array in restaurant data
+4. **Price Filtering**: Supported via optional price parameters in query
+5. **Authentication**: Premium feature validation handled via separate action for server-side checks
 
 ## Future Enhancements
 
