@@ -147,7 +147,7 @@ When clicking on a marker again:
 │   │  [American] [Mediterranean] [Italian]              │   │
 │   │  (Blue tags with rounded corners)                  │   │
 │   │                                                     │   │
-│   │  Meal Times                                         │   │
+│   │  Meal Times & Prices                                │   │
 │   │  [Brunch ($45)] [Lunch ($35)] [Dinner ($55)]      │   │
 │   │  (Green tags with rounded corners)                 │   │
 │   │                                                     │   │

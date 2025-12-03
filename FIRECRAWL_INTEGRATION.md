@@ -270,23 +270,31 @@ Successfully stored data for event: SF Restaurant Week
 
 **Security**: Uses privileged FIRECRAWL_API_KEY credentials and performs database writes
 
-### Internal Query: `getEventForCrawl`
-
-**Parameters:**
-- `eventId` (Id<'events'>): The ID of the event
-
-**Returns:**
-- Event object with _id, name, websiteUrl, latitude, longitude
-- `null` if event not found
+**Implementation Details:**
+- Fetches event using `internal.events.getEvent`
+- Validates event has a websiteUrl
+- Uses Firecrawl SDK to scrape and extract structured data
+- Stores restaurants via `internal.restaurants.storeScrapedRestaurants`
+- Automatically generates deterministic keys based on name and address
+- Syncs new restaurants to geospatial index
 
 ### Internal Mutation: `storeScrapedRestaurants`
+
+Located in `convex/restaurants.ts`, not in firecrawl.ts.
 
 **Parameters:**
 - `eventId` (Id<'events'>): The ID of the event
 - `restaurants` (Array): Array of restaurant objects with menus
+- `eventLocation` (object): Event's latitude and longitude for fallback
 
 **Returns:**
 - Object with `restaurantsProcessed` and `menusProcessed` counts
+
+**Behavior:**
+- Uses MD5 hash of "name|address" as deterministic key
+- Updates existing restaurants or creates new ones
+- Creates/updates menu entries linked to event and restaurant
+- Automatically schedules geospatial index sync for new restaurants
 
 ## Support
 

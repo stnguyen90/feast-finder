@@ -6,8 +6,8 @@ This document describes the Sentry integration implementation for Feast Finder, 
 
 ## Package Used
 
-- **@sentry/tanstackstart-react** (v8.48.0): Official Sentry SDK for TanStack Start + React applications
-- **@sentry/vite-plugin** (v2.22.9): Vite plugin for automatic source map uploads
+- **@sentry/tanstackstart-react** (^10.23.0): Official Sentry SDK for TanStack Start + React applications
+- **@sentry/vite-plugin** (^4.6.0): Vite plugin for automatic source map uploads
 
 ## Files Created/Modified
 

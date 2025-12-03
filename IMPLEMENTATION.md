@@ -119,17 +119,35 @@ Users can discover restaurant week events on the landing page and explore partic
 
 #### Schema (schema.ts)
 
-Defines restaurants table with:
+Defines three main tables:
 
+**Restaurants table:**
 - name (string)
-- rating (number)
-- latitude, longitude (numbers)
-- address (string)
+- rating (optional number)
+- latitude, longitude (optional numbers)
+- address (optional string)
 - websiteUrl, yelpUrl, openTableUrl (optional strings)
-- categories (array of strings)
-- hasBrunch, hasLunch, hasDinner (booleans)
-- brunchPrice, lunchPrice, dinnerPrice (optional numbers)
-- Index on name field
+- categories (optional array of strings)
+- brunchPrice, lunchPrice, dinnerPrice (optional numbers) - presence indicates meal availability
+- key (optional string) - MD5 hash for deterministic lookups
+- Indexes: by_key, by_name
+
+**Events table:**
+- name (string)
+- startDate, endDate (ISO date strings)
+- latitude, longitude (numbers)
+- websiteUrl (optional string)
+- syncTime (number) - Unix timestamp
+- Index: by_start_date
+
+**Menus table:**
+- restaurant (ID reference to restaurants table)
+- event (ID reference to events table)
+- meal (union of 'brunch', 'lunch', 'dinner')
+- price (number)
+- url (optional string) - link to menu PDF/image
+- syncTime (number) - Unix timestamp
+- Indexes: by_restaurant, by_event, by_restaurant_and_event
 
 #### Geospatial Integration
 
@@ -147,35 +165,38 @@ Defines restaurants table with:
 
 #### Functions (restaurants.ts)
 
-- **listRestaurants**: Query to get all restaurants
 - **listCategories**: Query to get all unique categories from restaurants
   - Efficiently collects and returns a sorted array of unique cuisine types
   - Used to populate category filter options
-- **listRestaurantsWithPriceFilter**: Query to filter restaurants by price ranges
-  - Accepts optional min/max prices for brunch, lunch, and dinner
-  - Uses OR logic: restaurants matching ANY meal type criteria are returned
-  - Only shows restaurants that have the specified meal type with prices in range
-- **getRestaurant**: Query to get single restaurant by ID
-- **storeScrapedRestaurants**: Internal mutation to store scraped restaurant data (auto-syncs to geospatial index)
+- **getRestaurant**: Internal query to get single restaurant by ID (for internal use)
+- **storeScrapedRestaurants**: Internal mutation to store scraped restaurant data
+  - Uses deterministic IDs based on restaurant name and address
+  - Auto-syncs to geospatial index
+  - Creates or updates restaurants based on key field
 
 #### Event Functions (events.ts)
 
 - **listActiveEvents**: Query to get all active and upcoming restaurant week events
   - Filters events by end date (only future/current events)
   - Returns events sorted by start date
-  - Includes restaurant count for each event
-- **getEventByName**: Query to get single event by name
-- **getRestaurantsForEvent**: Query to get all restaurants for a specific event
+  - Includes menu count and unique restaurant count for each event
+- **getEventByName**: Query to get single event by name (for dynamic routes)
+- **getRestaurantsForEvent**: Query to get all restaurants participating in a specific event
+  - Uses menus table to link events to restaurants
+  - Returns full restaurant details
 - **getMenusForEvent**: Query to get all menus for a specific event
 - **getMenusForRestaurant**: Query to get all menus for a specific restaurant
-- **addEvent**: Mutation to add new restaurant week event
 
 #### Seed Data (seedData.ts)
 
-- **seedRestaurants**: Mutation to populate sample data (10 SF Bay Area restaurants, auto-syncs to geospatial index)
-- **seedEvents**: Mutation to populate sample event data (5 restaurant week events in SF Bay Area)
-  - Resolves restaurant IDs by name
-  - Associates events with participating restaurants
+- **seedRestaurants**: Internal mutation to populate sample data (10 SF Bay Area restaurants, auto-syncs to geospatial index)
+  - Only runs if no restaurants exist
+  - Automatically schedules geospatial index sync for each restaurant
+- **seedEvents**: Internal mutation to populate sample event data (5 restaurant week events in SF Bay Area)
+  - Only runs if no events exist
+  - Creates events with sample data
+  - Links restaurants to events through menus table
+  - Creates sample menus (lunch and dinner) for participating restaurants
 
 #### Firecrawl Integration (firecrawl.ts)
 
@@ -185,9 +206,9 @@ Defines restaurants table with:
   - Fetches event details and validates it has a websiteUrl
   - Uses Firecrawl's `scrape` method with JSON schema extraction
   - Extracts structured data: restaurant names, addresses, categories, menus (meal types, prices, URLs)
-  - Calls internal mutation `storeScrapedRestaurants` to store the data
+  - Stores data via internal restaurant storage mutation
   - Requires `FIRECRAWL_API_KEY` environment variable
-  - Checks if restaurant exists by name (using `by_name` index)
+  - Uses deterministic IDs based on restaurant name and address to prevent duplicates
   - Updates existing restaurants with new data or creates new ones
   - Creates/updates menus linked to both restaurant and event
   - Automatically syncs new restaurants to geospatial index
@@ -211,11 +232,13 @@ Defines restaurants table with:
 
 **Restaurant Week Events**: 5 sample events:
 
-1. **SF Restaurant Week** (5 participating restaurants)
-2. **North Beach Italian Festival Week** (2 participating restaurants)
-3. **Bay Area Seafood Week** (3 participating restaurants)
-4. **Mission District Food Crawl** (3 participating restaurants)
-5. **Wine Country Fine Dining Week** (1 participating restaurant)
+1. **SF Restaurant Week** (restaurants with menus: Zuni Café, State Bird Provisions, Gary Danko, Nopa, Flour + Water)
+2. **North Beach Italian Festival Week** (restaurants with menus: Zuni Café, Flour + Water)
+3. **Bay Area Seafood Week** (restaurants with menus: Swan Oyster Depot, Gary Danko, Zuni Café)
+4. **Mission District Food Crawl** (restaurants with menus: La Taqueria, Tartine Bakery, Flour + Water)
+5. **Wine Country Fine Dining Week** (restaurants with menus: The French Laundry)
+
+Events link to restaurants through the **menus** table, which stores meal type, price, and optional menu URL.
 
 ## User Flow
 
